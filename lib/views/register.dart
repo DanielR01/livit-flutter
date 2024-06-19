@@ -55,23 +55,47 @@ class _RegisterViewState extends State<RegisterView> {
               final email = _email.text;
               final password = _password.text;
               try {
-                final userCredential =
-                    await FirebaseAuth.instance.createUserWithEmailAndPassword(
+                final userCredential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
                   email: email,
                   password: password,
                 );
-                print(userCredential);
               } on FirebaseAuthException catch (error) {
-                print('Error');
                 if (error.code == 'email-already-in-use') {
-                  print('Email in use already');
+                  await showDialog<bool>(
+                    context: context,
+                    builder: (context) {
+                      return AlertDialog(
+                          title: const Text('Email already in use'),
+                          content: const Text(
+                              'This email is already in use by an account'),
+                          actions: [
+                            TextButton(
+                              onPressed: () {
+                                Navigator.of(context).pop(false);
+                              },
+                              child: const Text('Try again'),
+                            ),
+                            TextButton(
+                              onPressed: () {
+                                Navigator.of(context).pushNamedAndRemoveUntil(
+                                  '/login/',
+                                  (route) => false,
+                                );
+                              },
+                              child: const Text('Log in'),
+                            ),
+                          ]);
+                    },
+                  );
                 } else if (error.code == 'weak-password') {
-                  print('Weak password (Minimun 6 characters)');
+                  await showCustomDialog(context, 'Weak password',
+                      'The password must have at least 8 characters');
                 } else if (error.code == "invalid-email") {
-                  print('The email provided is not valid');
+                  await showCustomDialog(context, 'Invalid email',
+                      'The email provided is not a valid one');
                 } else {
-                  print('Something went wrong');
-                  print(error.code);
+                  await showCustomDialog(
+                      context, 'Something went wrong', error.code);
                 }
               }
             },
@@ -88,4 +112,20 @@ class _RegisterViewState extends State<RegisterView> {
       ),
     );
   }
+}
+
+Future<bool> showCustomDialog(BuildContext context, String title, String body) {
+  return showDialog<bool>(
+    context: context,
+    builder: (context) {
+      return AlertDialog(title: Text(title), content: Text(body), actions: [
+        TextButton(
+          onPressed: () {
+            Navigator.of(context).pop(false);
+          },
+          child: const Text('Try again'),
+        ),
+      ]);
+    },
+  ).then((value) => value ?? false);
 }

@@ -75,9 +75,17 @@ class _LoginViewState extends State<LoginView> {
                 }
               } on FirebaseAuthException catch (e) {
                 if (e.code == 'invalid-credential') {
-                  print('Not valid credentials');
+                  await showCustomDialog(
+                    context,
+                    'Not valid credentials',
+                    '',
+                  );
                 } else {
-                  print('Not valid password');
+                  await showCustomDialog(
+                    context,
+                    'Invalid email or password',
+                    'Check if your email and password are correct or try creating an account',
+                  );
                 }
               }
             },
@@ -96,4 +104,20 @@ class _LoginViewState extends State<LoginView> {
       ),
     );
   }
+}
+
+Future<bool> showCustomDialog(BuildContext context, String title, String body) {
+  return showDialog<bool>(
+    context: context,
+    builder: (context) {
+      return AlertDialog(title: Text(title), content: Text(body), actions: [
+        TextButton(
+          onPressed: () {
+            Navigator.of(context).pop(false);
+          },
+          child: const Text('Try again'),
+        ),
+      ]);
+    },
+  ).then((value) => value ?? false);
 }
