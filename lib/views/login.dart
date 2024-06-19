@@ -67,6 +67,11 @@ class _LoginViewState extends State<LoginView> {
                     '/verifyemail/',
                     (route) => false,
                   );
+                } else {
+                  Navigator.of(context).pushNamedAndRemoveUntil(
+                    '/feed/',
+                    (route) => false,
+                  );
                 }
               } on FirebaseAuthException catch (e) {
                 if (e.code == 'invalid-credential') {
