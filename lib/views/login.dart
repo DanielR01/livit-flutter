@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:livit/constants/routes.dart';
+
+import 'package:livit/utilities/show_error_dialog_2t_1b.dart';
+import 'package:livit/utilities/show_error_dialog_2t_2b.dart';
 
 class LoginView extends StatefulWidget {
   const LoginView({super.key});
@@ -28,7 +32,10 @@ class _LoginViewState extends State<LoginView> {
 
   @override
   Widget build(BuildContext context) {
+    final GlobalKey<ScaffoldState> _ScaffoldKey = GlobalKey<ScaffoldState>();
+
     return Scaffold(
+      key: _ScaffoldKey,
       appBar: AppBar(
         title: const Text('Login'),
       ),
@@ -63,41 +70,52 @@ class _LoginViewState extends State<LoginView> {
                 final emailVerified =
                     FirebaseAuth.instance.currentUser?.emailVerified ?? false;
                 if (!emailVerified) {
-                  Navigator.of(context).pushNamedAndRemoveUntil(
-                    '/verifyemail/',
-                    (route) => false,
-                  );
+                  if (context.mounted) {
+                    Navigator.of(context).pushNamedAndRemoveUntil(
+                      verifyEmailRoute,
+                      (route) => false,
+                    );
+                  }
                 } else {
-                  Navigator.of(context).pushNamedAndRemoveUntil(
-                    '/feed/',
-                    (route) => false,
-                  );
+                  if (context.mounted) {
+                    Navigator.of(context).pushNamedAndRemoveUntil(
+                      feedRoute,
+                      (route) => false,
+                    );
+                  }
                 }
-              } on FirebaseAuthException catch (e) {
-                print(e.code);
-                switch (e.code) {
+              } on FirebaseAuthException catch (error) {
+                switch (error.code) {
                   case 'invalid-credential':
-                    await showCustomDialog(
-                      context,
+                    showErrorDialog2b(
+                      _ScaffoldKey,
                       'Invalid email or password',
                       'Check if your email and password are correct or try creating an account',
+                      'Create an account',
+                      registerRoute,
                     );
                     break;
                   case 'too-many-requests':
-                    await showCustomDialog(
-                      context,
+                    showErrorDialog(
+                      _ScaffoldKey,
                       'Too many requests',
                       'Try again in a few minutes',
                     );
                     break;
                   default:
-                    await showCustomDialog(
-                      context,
+                    showErrorDialog(
+                      _ScaffoldKey,
                       'Something went wrong',
-                      'Try again in a few minutes',
+                      'Error: ${error.code}, Try again in a few minutes',
                     );
                     break;
                 }
+              } catch (error) {
+                showErrorDialog(
+                  _ScaffoldKey,
+                  'Something went wrong',
+                  'Error: ${error.toString()}',
+                );
               }
             },
             child: const Text('Login'),
@@ -105,7 +123,7 @@ class _LoginViewState extends State<LoginView> {
           TextButton(
             onPressed: () {
               Navigator.of(context).pushNamedAndRemoveUntil(
-                '/register/',
+                registerRoute,
                 (route) => false,
               );
             },
@@ -115,20 +133,4 @@ class _LoginViewState extends State<LoginView> {
       ),
     );
   }
-}
-
-Future<bool> showCustomDialog(BuildContext context, String title, String body) {
-  return showDialog<bool>(
-    context: context,
-    builder: (context) {
-      return AlertDialog(title: Text(title), content: Text(body), actions: [
-        TextButton(
-          onPressed: () {
-            Navigator.of(context).pop(false);
-          },
-          child: const Text('Try again'),
-        ),
-      ]);
-    },
-  ).then((value) => value ?? false);
 }

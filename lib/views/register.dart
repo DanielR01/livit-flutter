@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:livit/constants/routes.dart';
 
+import 'package:livit/utilities/show_error_dialog_2t_1b.dart';
+import 'package:livit/utilities/show_error_dialog_2t_2b.dart';
+
 class RegisterView extends StatefulWidget {
   const RegisterView({super.key});
 
@@ -29,7 +32,10 @@ class _RegisterViewState extends State<RegisterView> {
 
   @override
   Widget build(BuildContext context) {
+    final GlobalKey<ScaffoldState> _ScaffoldKey = GlobalKey<ScaffoldState>();
+
     return Scaffold(
+      key: _ScaffoldKey,
       appBar: AppBar(
         title: const Text('Register'),
       ),
@@ -56,53 +62,55 @@ class _RegisterViewState extends State<RegisterView> {
               final email = _email.text;
               final password = _password.text;
               try {
-                final userCredential =
-                    await FirebaseAuth.instance.createUserWithEmailAndPassword(
+                await FirebaseAuth.instance.createUserWithEmailAndPassword(
                   email: email,
                   password: password,
                 );
-                Navigator.of(context).pushNamedAndRemoveUntil(
-                  verifyEmailRoute,
-                  (route) => false,
-                );
-              } on FirebaseAuthException catch (error) {
-                if (error.code == 'email-already-in-use') {
-                  await showDialog<bool>(
-                    context: context,
-                    builder: (context) {
-                      return AlertDialog(
-                          title: const Text('Email already in use'),
-                          content: const Text(
-                              'This email is already in use by an account'),
-                          actions: [
-                            TextButton(
-                              onPressed: () {
-                                Navigator.of(context).pop(false);
-                              },
-                              child: const Text('Try again'),
-                            ),
-                            TextButton(
-                              onPressed: () {
-                                Navigator.of(context).pushNamedAndRemoveUntil(
-                                  '/login/',
-                                  (route) => false,
-                                );
-                              },
-                              child: const Text('Log in'),
-                            ),
-                          ]);
-                    },
+                if (context.mounted) {
+                  Navigator.of(context).pushNamedAndRemoveUntil(
+                    verifyEmailRoute,
+                    (route) => false,
                   );
-                } else if (error.code == 'weak-password') {
-                  await showCustomDialog(context, 'Weak password',
-                      'The password must have at least 8 characters');
-                } else if (error.code == "invalid-email") {
-                  await showCustomDialog(context, 'Invalid email',
-                      'The email provided is not a valid one');
-                } else {
-                  await showCustomDialog(
-                      context, 'Something went wrong', error.code);
                 }
+              } on FirebaseAuthException catch (error) {
+                switch (error.code) {
+                  case 'email-already-in-use':
+                    showErrorDialog2b(
+                      _ScaffoldKey,
+                      'Email already in use',
+                      'This email is already in use by an account',
+                      'Log in',
+                      loginRoute,
+                    );
+                    break;
+                  case 'weak-password':
+                    showErrorDialog(
+                      _ScaffoldKey,
+                      'Weak password',
+                      'The password must have at least 8 characters',
+                    );
+                    break;
+                  case 'invalid-email':
+                    showErrorDialog(
+                      _ScaffoldKey,
+                      'Invalid email',
+                      'The email provided is not a valid one',
+                    );
+                    break;
+                  default:
+                    showErrorDialog(
+                      _ScaffoldKey,
+                      'Something went wrong',
+                      'Error: ${error.code}',
+                    );
+                    break;
+                }
+              } catch (error) {
+                showErrorDialog(
+                  _ScaffoldKey,
+                  'Something went wrong',
+                  'Error: ${error.toString()}',
+                );
               }
             },
             child: const Text('Register'),
@@ -120,20 +128,4 @@ class _RegisterViewState extends State<RegisterView> {
       ),
     );
   }
-}
-
-Future<bool> showCustomDialog(BuildContext context, String title, String body) {
-  return showDialog<bool>(
-    context: context,
-    builder: (context) {
-      return AlertDialog(title: Text(title), content: Text(body), actions: [
-        TextButton(
-          onPressed: () {
-            Navigator.of(context).pop(false);
-          },
-          child: const Text('Try again'),
-        ),
-      ]);
-    },
-  ).then((value) => value ?? false);
 }
