@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:livit/constants/routes.dart';
 import 'package:livit/firebase_options.dart';
 import 'package:livit/views/feed.dart';
 import 'package:livit/views/register.dart';
@@ -15,14 +16,13 @@ void main() {
         theme: ThemeData.dark(),
         home: const HomePage(),
         routes: {
-          '/login/': (context) => const LoginView(),
-          '/register/': (context) => const RegisterView(),
-          '/verifyemail/': (context) => const VerifyEmailView(),
-          '/feed/': (context) => const FeedView(),
+          loginRoute: (context) => const LoginView(),
+          registerRoute: (context) => const RegisterView(),
+          verifyEmailRoute: (context) => const VerifyEmailView(),
+          feedRoute: (context) => const FeedView(),
         }),
   );
 }
-
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});

@@ -74,18 +74,29 @@ class _LoginViewState extends State<LoginView> {
                   );
                 }
               } on FirebaseAuthException catch (e) {
-                if (e.code == 'invalid-credential') {
-                  await showCustomDialog(
-                    context,
-                    'Not valid credentials',
-                    '',
-                  );
-                } else {
-                  await showCustomDialog(
-                    context,
-                    'Invalid email or password',
-                    'Check if your email and password are correct or try creating an account',
-                  );
+                print(e.code);
+                switch (e.code) {
+                  case 'invalid-credential':
+                    await showCustomDialog(
+                      context,
+                      'Invalid email or password',
+                      'Check if your email and password are correct or try creating an account',
+                    );
+                    break;
+                  case 'too-many-requests':
+                    await showCustomDialog(
+                      context,
+                      'Too many requests',
+                      'Try again in a few minutes',
+                    );
+                    break;
+                  default:
+                    await showCustomDialog(
+                      context,
+                      'Something went wrong',
+                      'Try again in a few minutes',
+                    );
+                    break;
                 }
               }
             },
