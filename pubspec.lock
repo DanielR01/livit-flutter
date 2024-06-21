@@ -49,6 +49,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.18.0"
+  country_picker_pro:
+    dependency: "direct main"
+    description:
+      name: country_picker_pro
+      sha256: "64d53f3cd72586ccb8ff5364a6ea7cc17fcb9d35559984de0f557f9338516e45"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.0.4"
   cupertino_icons:
     dependency: "direct main"
     description:

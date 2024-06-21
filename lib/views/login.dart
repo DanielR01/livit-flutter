@@ -71,14 +71,14 @@ class _LoginViewState extends State<LoginView> {
                     FirebaseAuth.instance.currentUser?.emailVerified ?? false;
                 if (!emailVerified) {
                   if (context.mounted) {
-                    Navigator.of(context).pushNamedAndRemoveUntil(
+                    await Navigator.of(context).pushNamedAndRemoveUntil(
                       verifyEmailRoute,
                       (route) => false,
                     );
                   }
                 } else {
                   if (context.mounted) {
-                    Navigator.of(context).pushNamedAndRemoveUntil(
+                    await Navigator.of(context).pushNamedAndRemoveUntil(
                       feedRoute,
                       (route) => false,
                     );
@@ -87,7 +87,7 @@ class _LoginViewState extends State<LoginView> {
               } on FirebaseAuthException catch (error) {
                 switch (error.code) {
                   case 'invalid-credential':
-                    showErrorDialog2b(
+                    await showErrorDialog2b(
                       _ScaffoldKey,
                       'Invalid email or password',
                       'Check if your email and password are correct or try creating an account',
@@ -96,14 +96,14 @@ class _LoginViewState extends State<LoginView> {
                     );
                     break;
                   case 'too-many-requests':
-                    showErrorDialog(
+                    await showErrorDialog(
                       _ScaffoldKey,
                       'Too many requests',
                       'Try again in a few minutes',
                     );
                     break;
                   default:
-                    showErrorDialog(
+                    await showErrorDialog(
                       _ScaffoldKey,
                       'Something went wrong',
                       'Error: ${error.code}, Try again in a few minutes',
@@ -111,7 +111,7 @@ class _LoginViewState extends State<LoginView> {
                     break;
                 }
               } catch (error) {
-                showErrorDialog(
+                await showErrorDialog(
                   _ScaffoldKey,
                   'Something went wrong',
                   'Error: ${error.toString()}',

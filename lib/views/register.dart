@@ -66,16 +66,16 @@ class _RegisterViewState extends State<RegisterView> {
                   email: email,
                   password: password,
                 );
+                final user = FirebaseAuth.instance.currentUser;
+                await user?.sendEmailVerification();
+                await FirebaseAuth.instance.signOut();
                 if (context.mounted) {
-                  Navigator.of(context).pushNamedAndRemoveUntil(
-                    verifyEmailRoute,
-                    (route) => false,
-                  );
+                  await Navigator.of(context).pushNamed(verifyEmailRoute);
                 }
               } on FirebaseAuthException catch (error) {
                 switch (error.code) {
                   case 'email-already-in-use':
-                    showErrorDialog2b(
+                    await showErrorDialog2b(
                       _ScaffoldKey,
                       'Email already in use',
                       'This email is already in use by an account',
@@ -84,21 +84,21 @@ class _RegisterViewState extends State<RegisterView> {
                     );
                     break;
                   case 'weak-password':
-                    showErrorDialog(
+                    await showErrorDialog(
                       _ScaffoldKey,
                       'Weak password',
                       'The password must have at least 8 characters',
                     );
                     break;
                   case 'invalid-email':
-                    showErrorDialog(
+                    await showErrorDialog(
                       _ScaffoldKey,
                       'Invalid email',
                       'The email provided is not a valid one',
                     );
                     break;
                   default:
-                    showErrorDialog(
+                    await showErrorDialog(
                       _ScaffoldKey,
                       'Something went wrong',
                       'Error: ${error.code}',
@@ -106,7 +106,7 @@ class _RegisterViewState extends State<RegisterView> {
                     break;
                 }
               } catch (error) {
-                showErrorDialog(
+                await showErrorDialog(
                   _ScaffoldKey,
                   'Something went wrong',
                   'Error: ${error.toString()}',
@@ -116,8 +116,8 @@ class _RegisterViewState extends State<RegisterView> {
             child: const Text('Register'),
           ),
           TextButton(
-            onPressed: () {
-              Navigator.of(context).pushNamedAndRemoveUntil(
+            onPressed: () async {
+              await Navigator.of(context).pushNamedAndRemoveUntil(
                 loginRoute,
                 (route) => false,
               );

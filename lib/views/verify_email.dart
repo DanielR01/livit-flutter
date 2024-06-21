@@ -20,20 +20,13 @@ class _VerifyEmailViewState extends State<VerifyEmailView> {
         mainAxisAlignment: MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Please verify your email'),
+          const Text("We've sent you a verification email, didn't receive it?"),
           TextButton(
             onPressed: () async {
               final user = FirebaseAuth.instance.currentUser;
               await user?.sendEmailVerification();
             },
-            child: const Text('Send email verification'),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.of(context)
-                  .pushNamedAndRemoveUntil(loginRoute, (route) => false);
-            },
-            child: const Text('Go back to login'),
+            child: const Text('Re-send email verification'),
           ),
         ],
       ),

@@ -3,6 +3,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:livit/constants/routes.dart';
 import 'package:livit/firebase_options.dart';
+import 'package:livit/views/check_auth.dart';
 import 'package:livit/views/feed.dart';
 import 'package:livit/views/register.dart';
 import 'package:livit/views/login.dart';
@@ -12,6 +13,7 @@ void main() {
   WidgetsFlutterBinding.ensureInitialized();
   runApp(
     MaterialApp(
+        debugShowCheckedModeBanner: false,
         title: 'Livit',
         theme: ThemeData.dark(),
         home: const HomePage(),
@@ -36,20 +38,37 @@ class HomePage extends StatelessWidget {
       builder: ((context, snapshot) {
         switch (snapshot.connectionState) {
           case ConnectionState.done:
-            final user = FirebaseAuth.instance.currentUser;
-            if (user == null) {
-              return const LoginView();
-            } else {
-              if (user.emailVerified) {
-                return const FeedView();
-              } else {
-                return const VerifyEmailView();
-              }
-            }
+            return CheckAuth();
           default:
-            return const Text('Loading');
+            return Container();
         }
       }),
     );
   }
+
+  // @override
+  // Widget build(BuildContext context) {
+  //   return FutureBuilder(
+  //     future: Firebase.initializeApp(
+  //       options: DefaultFirebaseOptions.currentPlatform,
+  //     ),
+  //     builder: ((context, snapshot) {
+  //       switch (snapshot.connectionState) {
+  //         case ConnectionState.done:
+  //           final user = FirebaseAuth.instance.currentUser;
+  //           if (user == null) {
+  //             return const LoginView();
+  //           } else {
+  //             if (user.emailVerified) {
+  //               return const FeedView();
+  //             } else {
+  //               return const VerifyEmailView();
+  //             }
+  //           }
+  //         default:
+  //           return const Text('Loading');
+  //       }
+  //     }),
+  //   );
+  // }
 }
