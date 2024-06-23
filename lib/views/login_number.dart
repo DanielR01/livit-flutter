@@ -1,5 +1,9 @@
+import 'package:livit/constants/routes.dart';
 import 'package:country_picker_pro/country_picker_pro.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:livit/utilities/show_error_dialog_2t_1b.dart';
+import 'dart:developer' as devtools show log;
 
 class LoginNumberView extends StatefulWidget {
   const LoginNumberView({super.key});
@@ -9,7 +13,9 @@ class LoginNumberView extends StatefulWidget {
 }
 
 class LoginNumberViewState extends State<LoginNumberView> {
-  late final TextEditingController _number;
+  final GlobalKey scaffold_key = GlobalKey<ScaffoldState>();
+  late final TextEditingController _numberFieldController;
+  bool valid = false;
 
   Country selectedCountry = Country(
     phoneCode: '57',
@@ -28,19 +34,20 @@ class LoginNumberViewState extends State<LoginNumberView> {
 
   @override
   void initState() {
-    _number = TextEditingController();
+    _numberFieldController = TextEditingController();
     super.initState();
   }
 
   @override
   void dispose() {
-    _number.dispose();
+    _numberFieldController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      key: scaffold_key,
       body: SafeArea(
         child: Center(
           child: Padding(
@@ -68,99 +75,137 @@ class LoginNumberViewState extends State<LoginNumberView> {
                   height: 40,
                 ),
                 TextFormField(
+                  autovalidateMode: AutovalidateMode.always,
+                  keyboardType: TextInputType.number,
                   onChanged: (value) {
                     setState(() {
-                      _number.text = value;
+                      if (_numberFieldController.text.length < 9 ||
+                          _numberFieldController.text.length > 15 ||
+                          !RegExp(r'^(\+|00)?[0-9]+$')
+                              .hasMatch(_numberFieldController.text)) {
+                        valid = false;
+                      } else {
+                        valid = true;
+                      }
                     });
                   },
                   style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.normal,
                   ),
-                  controller: _number,
+                  controller: _numberFieldController,
                   decoration: InputDecoration(
-                    hintText: 'Enter phone number',
-                    hintStyle: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.normal,
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
-                      borderSide: const BorderSide(color: Colors.white12),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
-                      borderSide: const BorderSide(color: Colors.white12),
-                    ),
-                    prefixIcon: Container(
-                      padding: const EdgeInsets.all(16),
-                      child: InkWell(
-                        onTap: () {
-                          showCountryListView(
-                            searchBarOuterBackgroundColor:
-                                const Color.fromARGB(255, 22, 21, 24),
-                            searchBarBackgroundColor:
-                                const Color.fromARGB(255, 22, 21, 24),
-                            appBarBackgroundColour:
-                                const Color.fromARGB(255, 22, 21, 24),
-                            backgroundColour:
-                                const Color.fromARGB(255, 22, 21, 24),
-                            countryTextColour:
-                                const Color.fromARGB(200, 255, 255, 255),
-                            searchBarBorderColor:
-                                const Color.fromARGB(31, 255, 255, 255),
-                            searchBarHintColor:
-                                const Color.fromARGB(200, 255, 255, 255),
-                            searchBarTextColor:
-                                const Color.fromARGB(200, 255, 255, 255),
-                            context: context,
-                            onSelect: (value) {
-                              setState(
-                                () {
-                                  selectedCountry = value;
-                                },
-                              );
-                            },
-                          );
-                        },
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(
-                              '${selectedCountry.flagEmoji} +${selectedCountry.phoneCode}',
-                              style: const TextStyle(
-                                fontSize: 16,
+                      hintText: 'Enter phone number',
+                      hintStyle: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.normal,
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        borderSide: const BorderSide(color: Colors.white12),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        borderSide: const BorderSide(color: Colors.white12),
+                      ),
+                      prefixIcon: Container(
+                        padding: const EdgeInsets.all(16),
+                        child: InkWell(
+                          onTap: () {
+                            showCountryListView(
+                              searchBarOuterBackgroundColor:
+                                  const Color.fromARGB(255, 22, 21, 24),
+                              searchBarBackgroundColor:
+                                  const Color.fromARGB(255, 22, 21, 24),
+                              appBarBackgroundColour:
+                                  const Color.fromARGB(255, 22, 21, 24),
+                              backgroundColour:
+                                  const Color.fromARGB(255, 22, 21, 24),
+                              countryTextColour:
+                                  const Color.fromARGB(200, 255, 255, 255),
+                              searchBarBorderColor:
+                                  const Color.fromARGB(31, 255, 255, 255),
+                              searchBarHintColor:
+                                  const Color.fromARGB(200, 255, 255, 255),
+                              searchBarTextColor:
+                                  const Color.fromARGB(200, 255, 255, 255),
+                              context: context,
+                              onSelect: (value) {
+                                setState(
+                                  () {
+                                    selectedCountry = value;
+                                  },
+                                );
+                              },
+                            );
+                          },
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                '${selectedCountry.flagEmoji} +${selectedCountry.phoneCode}',
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                       ),
-                    ),
-                    suffixIcon: _number.text.length > 9
-                        ? Container(
-                            height: 16,
-                            width: 16,
-                            child: const Icon(
-                              Icons.done,
-                              color: Color.fromARGB(180, 255, 255, 255),
-                              size: 18,
-                            ),
-                          )
-                        : null,
-                  ),
+                      suffixIcon: valid
+                          ? InkWell(
+                              borderRadius: BorderRadius.circular(9),
+                              onTap: () {
+                                verifyPhone(
+                                    scaffold_key,
+                                    selectedCountry.phoneCode,
+                                    _numberFieldController.text);
+                              },
+                              child: const SizedBox(
+                                height: 16,
+                                width: 16,
+                                child: Icon(
+                                  Icons.done,
+                                  color: Color.fromARGB(255, 255, 255, 255),
+                                  size: 18,
+                                ),
+                              ),
+                            )
+                          : null),
                 ),
                 const SizedBox(
                   height: 10,
-                ),
-                TextButton(
-                  onPressed: () {},
-                  child: const Text("Next"),
                 ),
               ],
             ),
           ),
         ),
       ),
+    );
+  }
+
+  void verifyPhone(GlobalKey key, String phoneCode, String phoneNumber) {
+    FirebaseAuth.instance.verifyPhoneNumber(
+      phoneNumber: '+$phoneCode $phoneNumber',
+      verificationCompleted: (PhoneAuthCredential credential) async {
+        await FirebaseAuth.instance.signInWithCredential(credential);
+      },
+      verificationFailed: (error) {
+        if (error.code == 'invalid-phone-number') {
+          showErrorDialog(key, 'Invalid Phone Number',
+              'Please check if you entered a valid phone number');
+        } else {
+          showErrorDialog(
+            key,
+            'Something went wrong',
+            error.code.toString(),
+          );
+        }
+      },
+      codeSent: (verificationId, forceResendingToken) {
+        Navigator.of(context).pushNamed(otpAuthRoute);
+      },
+      codeAutoRetrievalTimeout: (verificationId) {},
     );
   }
 }

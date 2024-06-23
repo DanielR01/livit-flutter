@@ -1,54 +1,49 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:livit/views/feed.dart';
-import 'package:livit/views/login.dart';
-import 'dart:developer' as devtools show log;
+import 'package:flutter/scheduler.dart';
+import 'package:livit/constants/routes.dart';
 
-import 'package:livit/views/login_number.dart';
+class CheckInitialAuth extends StatefulWidget {
+  const CheckInitialAuth({super.key});
 
-class CheckAuth extends StatefulWidget {
   @override
-  _CheckAuthState createState() => _CheckAuthState();
+  State<CheckInitialAuth> createState() => _CheckInitialAuthState();
 }
 
-class _CheckAuthState extends State<CheckAuth> {
+class _CheckInitialAuthState extends State<CheckInitialAuth> {
   bool isAuth = false;
-  late Future<bool> loginCheckFuture;
+  late bool isLoggedIn;
 
   @override
   void initState() {
+    isAuth = _checkIfLoggedIn();
     super.initState();
-    loginCheckFuture = _checkIfLoggedIn();
+    SchedulerBinding.instance.addPostFrameCallback((_) {
+      _routeUser();
+    });
   }
 
-  Future<bool> _checkIfLoggedIn() async {
+  void _routeUser() {
+    if (isAuth) {
+      Navigator.of(context)
+          .pushNamedAndRemoveUntil(feedRoute, (route) => false);
+    } else {
+      Navigator.of(context)
+          .pushNamedAndRemoveUntil(loginRoute, (route) => false);
+    }
+  }
+
+  bool _checkIfLoggedIn() {
     final user = FirebaseAuth.instance.currentUser;
     if (user?.emailVerified ?? false) {
       return true;
+    } else {
+      return false;
     }
-    return false;
   }
 
   @override
   Widget build(BuildContext context) {
-    Widget child;
-    return FutureBuilder(
-        future: loginCheckFuture,
-        builder: (context, snapshot) {
-          if (snapshot.hasData) {
-            if (snapshot.data == true) {
-              child = const FeedView();
-            } else {
-              child = const LoginNumberView();
-            }
-          } else {
-            // future hasnt completed yet
-            child = Container();
-          }
-
-          return Scaffold(
-            body: child,
-          );
-        });
+    return const Scaffold();
   }
 }
