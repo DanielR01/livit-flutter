@@ -90,7 +90,6 @@ class _OtpAuthViewState extends State<OtpAuthView> {
                         isActive: true,
                         text: 'Next',
                         onPressed: () async {
-                          print('s');
                           await FirebaseAuth.instance.signOut();
                           PhoneAuthCredential credential =
                               PhoneAuthProvider.credential(

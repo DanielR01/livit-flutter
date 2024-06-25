@@ -29,7 +29,7 @@ class _CheckInitialAuthState extends State<CheckInitialAuth> {
           .pushNamedAndRemoveUntil(feedRoute, (route) => false);
     } else {
       Navigator.of(context)
-          .pushNamedAndRemoveUntil(loginNumberRoute, (route) => false);
+          .pushNamedAndRemoveUntil(loginRoute, (route) => false);
     }
   }
 

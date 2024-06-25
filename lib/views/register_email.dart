@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:livit/constants/colors.dart';
 import 'package:livit/constants/routes.dart';
 
 import 'package:livit/utilities/show_error_dialog_2t_1b.dart';
@@ -45,6 +46,12 @@ class _RegisterEmailViewState extends State<RegisterEmailView> {
             controller: _email,
             decoration: const InputDecoration(
               hintText: 'Enter your email',
+              hintStyle: TextStyle(
+                color: LivitColors.borderGray,
+              ),
+            ),
+            style: const TextStyle(
+              color: LivitColors.whiteActive,
             ),
             keyboardType: TextInputType.emailAddress,
           ),
@@ -52,6 +59,12 @@ class _RegisterEmailViewState extends State<RegisterEmailView> {
             controller: _password,
             decoration: const InputDecoration(
               hintText: 'Enter your password',
+              hintStyle: TextStyle(
+                color: LivitColors.borderGray,
+              ),
+            ),
+            style: const TextStyle(
+              color: LivitColors.whiteActive,
             ),
             obscureText: true,
             enableSuggestions: false,
@@ -80,7 +93,7 @@ class _RegisterEmailViewState extends State<RegisterEmailView> {
                       'Email already in use',
                       'This email is already in use by an account',
                       'Log in',
-                      loginRoute,
+                      loginEmailRoute,
                     );
                     break;
                   case 'weak-password':
@@ -117,9 +130,8 @@ class _RegisterEmailViewState extends State<RegisterEmailView> {
           ),
           TextButton(
             onPressed: () async {
-              await Navigator.of(context).pushNamedAndRemoveUntil(
-                loginRoute,
-                (route) => false,
+              await Navigator.of(context).pushNamed(
+                loginEmailRoute,
               );
             },
             child: const Text('Already have an account? Login'),

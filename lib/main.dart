@@ -20,7 +20,17 @@ class StartPage extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Livit',
-      theme: ThemeData(scaffoldBackgroundColor: LivitColors.mainBlack),
+      theme: ThemeData(
+        scaffoldBackgroundColor: LivitColors.mainBlack,
+        appBarTheme: const AppBarTheme(
+          color: LivitColors.mainBlack,
+          titleTextStyle: TextStyle(
+            color: LivitColors.whiteActive,
+            fontSize: 22,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ),
       initialRoute: '/',
       onGenerateRoute: RouteGenerator.generateRoute,
     );

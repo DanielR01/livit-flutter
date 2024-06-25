@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:livit/constants/colors.dart';
 import 'package:livit/constants/routes.dart';
 
 import 'package:livit/utilities/show_error_dialog_2t_1b.dart';
@@ -45,6 +46,12 @@ class _LoginEmailViewState extends State<LoginEmailView> {
             controller: _email,
             decoration: const InputDecoration(
               hintText: 'Enter your email',
+              hintStyle: TextStyle(
+                color: LivitColors.borderGray,
+              ),
+            ),
+            style: const TextStyle(
+              color: LivitColors.whiteActive,
             ),
             keyboardType: TextInputType.emailAddress,
           ),
@@ -52,6 +59,12 @@ class _LoginEmailViewState extends State<LoginEmailView> {
             controller: _password,
             decoration: const InputDecoration(
               hintText: 'Enter your password',
+              hintStyle: TextStyle(
+                color: LivitColors.borderGray,
+              ),
+            ),
+            style: const TextStyle(
+              color: LivitColors.whiteActive,
             ),
             obscureText: true,
             enableSuggestions: false,
@@ -71,16 +84,14 @@ class _LoginEmailViewState extends State<LoginEmailView> {
                     FirebaseAuth.instance.currentUser?.emailVerified ?? false;
                 if (!emailVerified) {
                   if (context.mounted) {
-                    await Navigator.of(context).pushNamedAndRemoveUntil(
+                    await Navigator.of(context).pushNamed(
                       verifyEmailRoute,
-                      (route) => false,
                     );
                   }
                 } else {
                   if (context.mounted) {
-                    await Navigator.of(context).pushNamedAndRemoveUntil(
+                    await Navigator.of(context).pushNamed(
                       feedRoute,
-                      (route) => false,
                     );
                   }
                 }
@@ -92,7 +103,7 @@ class _LoginEmailViewState extends State<LoginEmailView> {
                       'Invalid email or password',
                       'Check if your email and password are correct or try creating an account',
                       'Create an account',
-                      registerRoute,
+                      registerEmailRoute,
                     );
                     break;
                   case 'too-many-requests':
@@ -122,9 +133,8 @@ class _LoginEmailViewState extends State<LoginEmailView> {
           ),
           TextButton(
             onPressed: () {
-              Navigator.of(context).pushNamedAndRemoveUntil(
-                registerRoute,
-                (route) => false,
+              Navigator.of(context).pushNamed(
+                registerEmailRoute,
               );
             },
             child: const Text('Create an account'),
