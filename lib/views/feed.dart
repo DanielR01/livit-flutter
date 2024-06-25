@@ -14,6 +14,11 @@ class FeedView extends StatefulWidget {
 
 class _FeedViewState extends State<FeedView> {
   @override
+  void initState() {
+    super.initState();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(

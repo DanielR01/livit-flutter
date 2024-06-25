@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:livit/constants/colors.dart';
 import 'package:livit/constants/routes.dart';
 import 'package:livit/utilities/main_action_button.dart';
+import 'package:livit/utilities/signin_google.dart';
 
 class RegisterView extends StatefulWidget {
   const RegisterView({super.key});
@@ -11,9 +12,11 @@ class RegisterView extends StatefulWidget {
 }
 
 class _RegisterViewState extends State<RegisterView> {
+  final GlobalKey<ScaffoldState> scaffoldKey = GlobalKey<ScaffoldState>();
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      key: scaffoldKey,
       body: SafeArea(
         child: Center(
           child: Padding(
@@ -44,9 +47,13 @@ class _RegisterViewState extends State<RegisterView> {
                         .pushNamed(authNumberRoute, arguments: false);
                   },
                 ),
-                const MainActionButton(
+                MainActionButton(
                   text: 'Continue with Google',
                   isActive: true,
+                  onPressed: () => signInWithGoogle(
+                    context,
+                    scaffoldKey,
+                  ),
                 ),
                 const MainActionButton(
                   text: 'Continue with Apple',

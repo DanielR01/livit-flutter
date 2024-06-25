@@ -39,6 +39,9 @@ dependencies:
   firebase_auth: ^5.1.0
   country_picker_pro: ^0.0.4
   pinput: ^5.0.0
+  google_sign_in_dartio: ^0.3.0
+  google_sign_in: ^6.2.1
+  google_sign_in_ios: ^5.7.6
 
 dev_dependencies:
   flutter_test:
@@ -49,7 +52,7 @@ dev_dependencies:
   # activated in the `analysis_options.yaml` file located at the root of your
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
-  flutter_lints: ^3.0.0
+  flutter_lints: ^4.0.0
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
