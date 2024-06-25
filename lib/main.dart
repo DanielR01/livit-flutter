@@ -30,6 +30,17 @@ class StartPage extends StatelessWidget {
             fontWeight: FontWeight.bold,
           ),
         ),
+        textTheme: const TextTheme(
+          bodyLarge: TextStyle(
+            color: LivitColors.whiteActive,
+          ),
+          bodyMedium: TextStyle(
+            color: LivitColors.whiteActive,
+          ),
+          bodySmall: TextStyle(
+            color: LivitColors.whiteActive,
+          ),
+        ),
       ),
       initialRoute: '/',
       onGenerateRoute: RouteGenerator.generateRoute,

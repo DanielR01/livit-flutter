@@ -3,14 +3,14 @@ import 'package:livit/constants/colors.dart';
 import 'package:livit/constants/routes.dart';
 import 'package:livit/utilities/main_action_button.dart';
 
-class LoginView extends StatefulWidget {
-  const LoginView({super.key});
+class RegisterView extends StatefulWidget {
+  const RegisterView({super.key});
 
   @override
-  State<LoginView> createState() => _LoginViewState();
+  State<RegisterView> createState() => _RegisterViewState();
 }
 
-class _LoginViewState extends State<LoginView> {
+class _RegisterViewState extends State<RegisterView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -21,7 +21,7 @@ class _LoginViewState extends State<LoginView> {
             child: Column(
               children: [
                 const Text(
-                  'Login',
+                  'Register',
                   style: TextStyle(
                     fontSize: 22,
                     color: LivitColors.whiteActive,
@@ -30,18 +30,18 @@ class _LoginViewState extends State<LoginView> {
                 ),
                 const SizedBox(height: 40),
                 MainActionButton(
-                  text: 'Continue with email',
+                  text: 'Create an account with email',
                   isActive: true,
                   onPressed: () {
-                    Navigator.of(context).pushNamed(loginEmailRoute);
+                    Navigator.of(context).pushNamed(registerEmailRoute);
                   },
                 ),
                 MainActionButton(
-                  text: 'Continue with phone number',
+                  text: 'Create an account with phone number',
                   isActive: true,
                   onPressed: () {
                     Navigator.of(context)
-                        .pushNamed(authNumberRoute, arguments: true);
+                        .pushNamed(authNumberRoute, arguments: false);
                   },
                 ),
                 const MainActionButton(
@@ -56,17 +56,18 @@ class _LoginViewState extends State<LoginView> {
                   height: 40,
                 ),
                 Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Text("Don't have an account?"),
+                    const Text("Already have an account?"),
                     const SizedBox(
                       width: 10,
                     ),
                     MainActionButton(
-                      text: 'Create an account',
+                      text: 'Login',
                       isActive: true,
                       onPressed: () {
                         Navigator.of(context).pushNamedAndRemoveUntil(
-                            registerRoute, (route) => false);
+                            loginRoute, ((route) => false));
                       },
                     ),
                   ],

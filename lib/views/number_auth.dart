@@ -5,15 +5,19 @@ import 'package:livit/constants/colors.dart';
 import 'package:livit/constants/routes.dart';
 import 'package:livit/utilities/show_error_dialog_2t_1b.dart';
 
-class LoginNumberView extends StatefulWidget {
-  const LoginNumberView({super.key});
+class AuthNumberView extends StatefulWidget {
+  final bool isLogin;
+  const AuthNumberView({
+    super.key,
+    required this.isLogin,
+  });
 
   @override
-  State<LoginNumberView> createState() => LoginNumberViewState();
+  State<AuthNumberView> createState() => AuthNumberViewState();
 }
 
-class LoginNumberViewState extends State<LoginNumberView> {
-  final GlobalKey scaffold_key = GlobalKey<ScaffoldState>();
+class AuthNumberViewState extends State<AuthNumberView> {
+  final GlobalKey scaffoldKey = GlobalKey<ScaffoldState>();
   late final TextEditingController _numberFieldController;
   bool valid = false;
 
@@ -47,16 +51,16 @@ class LoginNumberViewState extends State<LoginNumberView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      key: scaffold_key,
+      key: scaffoldKey,
       body: SafeArea(
         child: Center(
           child: Padding(
             padding: const EdgeInsets.symmetric(vertical: 25, horizontal: 35),
             child: Column(
               children: [
-                const Text(
-                  'Register',
-                  style: TextStyle(
+                Text(
+                  widget.isLogin ? 'Login' : 'Register',
+                  style: const TextStyle(
                     fontSize: 22,
                     fontWeight: FontWeight.bold,
                     color: LivitColors.whiteActive,
@@ -156,7 +160,7 @@ class LoginNumberViewState extends State<LoginNumberView> {
                               borderRadius: BorderRadius.circular(9),
                               onTap: () {
                                 verifyPhone(
-                                    scaffold_key,
+                                    scaffoldKey,
                                     selectedCountry.phoneCode,
                                     _numberFieldController.text);
                               },

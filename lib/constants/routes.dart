@@ -3,5 +3,6 @@ const loginEmailRoute = '/loginEmail';
 const registerEmailRoute = '/registerEmail';
 const feedRoute = '/feed';
 const verifyEmailRoute = '/verifyemail';
-const loginNumberRoute = '/loginNumber';
+const authNumberRoute = '/authNumber';
 const otpAuthRoute = '/otpAuth';
+const registerRoute = '/register';

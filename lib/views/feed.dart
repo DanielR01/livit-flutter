@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:livit/constants/colors.dart';
 import 'package:livit/constants/routes.dart';
 
 enum MenuAction { logout }
@@ -42,6 +43,12 @@ class _FeedViewState extends State<FeedView> {
             },
           ),
         ],
+      ),
+      body: Text(
+        (FirebaseAuth.instance.currentUser?.uid ?? '').toString(),
+        style: const TextStyle(
+          color: LivitColors.whiteActive,
+        ),
       ),
     );
   }

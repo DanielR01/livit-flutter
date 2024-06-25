@@ -90,9 +90,8 @@ class _LoginEmailViewState extends State<LoginEmailView> {
                   }
                 } else {
                   if (context.mounted) {
-                    await Navigator.of(context).pushNamed(
-                      feedRoute,
-                    );
+                    await Navigator.of(context)
+                        .pushNamedAndRemoveUntil(feedRoute, (route) => false);
                   }
                 }
               } on FirebaseAuthException catch (error) {
