@@ -1,9 +1,9 @@
-import 'package:livit/constants/routes.dart';
 import 'package:country_picker_pro/country_picker_pro.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:livit/constants/colors.dart';
+import 'package:livit/constants/routes.dart';
 import 'package:livit/utilities/show_error_dialog_2t_1b.dart';
-import 'dart:developer' as devtools show log;
 
 class LoginNumberView extends StatefulWidget {
   const LoginNumberView({super.key});
@@ -59,6 +59,7 @@ class LoginNumberViewState extends State<LoginNumberView> {
                   style: TextStyle(
                     fontSize: 22,
                     fontWeight: FontWeight.bold,
+                    color: LivitColors.whiteActive,
                   ),
                 ),
                 const SizedBox(
@@ -68,6 +69,7 @@ class LoginNumberViewState extends State<LoginNumberView> {
                   'Enter your phone number. We will send you a verification code:',
                   style: TextStyle(
                     fontSize: 14,
+                    color: LivitColors.whiteActive,
                   ),
                   textAlign: TextAlign.center,
                 ),
@@ -81,7 +83,7 @@ class LoginNumberViewState extends State<LoginNumberView> {
                     setState(() {
                       if (_numberFieldController.text.length < 9 ||
                           _numberFieldController.text.length > 15 ||
-                          !RegExp(r'^(\+|00)?[0-9]+$')
+                          !RegExp(r'^[0-9]+$')
                               .hasMatch(_numberFieldController.text)) {
                         valid = false;
                       } else {
@@ -90,23 +92,27 @@ class LoginNumberViewState extends State<LoginNumberView> {
                     });
                   },
                   style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.normal,
-                  ),
+                      fontSize: 16,
+                      fontWeight: FontWeight.normal,
+                      color: LivitColors.whiteActive),
                   controller: _numberFieldController,
                   decoration: InputDecoration(
                       hintText: 'Enter phone number',
                       hintStyle: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.normal,
+                        color: LivitColors.borderGray,
                       ),
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10),
-                        borderSide: const BorderSide(color: Colors.white12),
+                        borderSide: const BorderSide(
+                          color: LivitColors.borderGray,
+                        ),
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10),
-                        borderSide: const BorderSide(color: Colors.white12),
+                        borderSide:
+                            const BorderSide(color: LivitColors.whiteActive),
                       ),
                       prefixIcon: Container(
                         padding: const EdgeInsets.all(16),
@@ -114,21 +120,14 @@ class LoginNumberViewState extends State<LoginNumberView> {
                           onTap: () {
                             showCountryListView(
                               searchBarOuterBackgroundColor:
-                                  const Color.fromARGB(255, 22, 21, 24),
-                              searchBarBackgroundColor:
-                                  const Color.fromARGB(255, 22, 21, 24),
-                              appBarBackgroundColour:
-                                  const Color.fromARGB(255, 22, 21, 24),
-                              backgroundColour:
-                                  const Color.fromARGB(255, 22, 21, 24),
-                              countryTextColour:
-                                  const Color.fromARGB(200, 255, 255, 255),
-                              searchBarBorderColor:
-                                  const Color.fromARGB(31, 255, 255, 255),
-                              searchBarHintColor:
-                                  const Color.fromARGB(200, 255, 255, 255),
-                              searchBarTextColor:
-                                  const Color.fromARGB(200, 255, 255, 255),
+                                  LivitColors.mainBlack,
+                              searchBarBackgroundColor: LivitColors.mainBlack,
+                              appBarBackgroundColour: LivitColors.mainBlack,
+                              backgroundColour: LivitColors.mainBlack,
+                              countryTextColour: LivitColors.whiteActive,
+                              searchBarBorderColor: LivitColors.borderGray,
+                              searchBarHintColor: LivitColors.borderGray,
+                              searchBarTextColor: LivitColors.whiteActive,
                               context: context,
                               onSelect: (value) {
                                 setState(
@@ -145,8 +144,8 @@ class LoginNumberViewState extends State<LoginNumberView> {
                               Text(
                                 '${selectedCountry.flagEmoji} +${selectedCountry.phoneCode}',
                                 style: const TextStyle(
-                                  fontSize: 16,
-                                ),
+                                    fontSize: 16,
+                                    color: LivitColors.whiteActive),
                               ),
                             ],
                           ),
@@ -203,7 +202,8 @@ class LoginNumberViewState extends State<LoginNumberView> {
         }
       },
       codeSent: (verificationId, forceResendingToken) {
-        Navigator.of(context).pushNamed(otpAuthRoute);
+        Navigator.of(context)
+            .pushNamed(otpAuthRoute, arguments: verificationId);
       },
       codeAutoRetrievalTimeout: (verificationId) {},
     );

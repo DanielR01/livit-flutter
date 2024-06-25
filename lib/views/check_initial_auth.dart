@@ -11,7 +11,7 @@ class CheckInitialAuth extends StatefulWidget {
 }
 
 class _CheckInitialAuthState extends State<CheckInitialAuth> {
-  bool isAuth = false;
+  late bool isAuth;
   late bool isLoggedIn;
 
   @override
@@ -29,13 +29,17 @@ class _CheckInitialAuthState extends State<CheckInitialAuth> {
           .pushNamedAndRemoveUntil(feedRoute, (route) => false);
     } else {
       Navigator.of(context)
-          .pushNamedAndRemoveUntil(loginRoute, (route) => false);
+          .pushNamedAndRemoveUntil(loginNumberRoute, (route) => false);
     }
   }
 
   bool _checkIfLoggedIn() {
     final user = FirebaseAuth.instance.currentUser;
-    if (user?.emailVerified ?? false) {
+    if (user == null) {
+      return false;
+    } else if (user.emailVerified) {
+      return true;
+    } else if (user.phoneNumber != null) {
       return true;
     } else {
       return false;

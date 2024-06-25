@@ -5,14 +5,14 @@ import 'package:livit/constants/routes.dart';
 import 'package:livit/utilities/show_error_dialog_2t_1b.dart';
 import 'package:livit/utilities/show_error_dialog_2t_2b.dart';
 
-class RegisterView extends StatefulWidget {
-  const RegisterView({super.key});
+class RegisterEmailView extends StatefulWidget {
+  const RegisterEmailView({super.key});
 
   @override
-  State<RegisterView> createState() => _RegisterViewState();
+  State<RegisterEmailView> createState() => _RegisterEmailViewState();
 }
 
-class _RegisterViewState extends State<RegisterView> {
+class _RegisterEmailViewState extends State<RegisterEmailView> {
   late final TextEditingController _email;
   late final TextEditingController _password;
 

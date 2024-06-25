@@ -5,14 +5,14 @@ import 'package:livit/constants/routes.dart';
 import 'package:livit/utilities/show_error_dialog_2t_1b.dart';
 import 'package:livit/utilities/show_error_dialog_2t_2b.dart';
 
-class LoginView extends StatefulWidget {
-  const LoginView({super.key});
+class LoginEmailView extends StatefulWidget {
+  const LoginEmailView({super.key});
 
   @override
-  State<LoginView> createState() => _LoginViewState();
+  State<LoginEmailView> createState() => _LoginEmailViewState();
 }
 
-class _LoginViewState extends State<LoginView> {
+class _LoginEmailViewState extends State<LoginEmailView> {
   late final TextEditingController _email;
   late final TextEditingController _password;
 
