@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:livit/constants/colors.dart';
 import 'package:livit/constants/routes.dart';
+import 'package:livit/utilities/main_action_button.dart';
 import 'package:livit/utilities/show_error_dialog_2t_1b.dart';
 
 class AuthNumberView extends StatefulWidget {
@@ -156,29 +157,30 @@ class AuthNumberViewState extends State<AuthNumberView> {
                         ),
                       ),
                       suffixIcon: valid
-                          ? InkWell(
-                              borderRadius: BorderRadius.circular(9),
-                              onTap: () {
-                                verifyPhone(
-                                    scaffoldKey,
-                                    selectedCountry.phoneCode,
-                                    _numberFieldController.text);
-                              },
-                              child: const SizedBox(
-                                height: 16,
-                                width: 16,
-                                child: Icon(
-                                  Icons.done,
-                                  color: Color.fromARGB(255, 255, 255, 255),
-                                  size: 18,
-                                ),
+                          ? const SizedBox(
+                              height: 16,
+                              width: 16,
+                              child: Icon(
+                                Icons.done,
+                                color: Color.fromARGB(255, 255, 255, 255),
+                                size: 18,
                               ),
                             )
                           : null),
                 ),
                 const SizedBox(
-                  height: 10,
+                  height: 20,
                 ),
+                MainActionButton(
+                    text: 'Next',
+                    isActive: valid,
+                    onPressed: () {
+                      verifyPhone(
+                        scaffoldKey,
+                        selectedCountry.phoneCode,
+                        _numberFieldController.text,
+                      );
+                    })
               ],
             ),
           ),

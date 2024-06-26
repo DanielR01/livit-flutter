@@ -3,38 +3,38 @@ import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:livit/constants/colors.dart';
 
-class MainActionButton extends StatefulWidget {
+class SecondaryActionButton extends StatelessWidget {
   final String text;
-  final VoidCallback onPressed;
+  final VoidCallback? onPressed;
   final bool isActive;
   final double? width;
 
-  const MainActionButton({
+  const SecondaryActionButton({
     super.key,
     required this.text,
     required this.isActive,
-    required this.onPressed,
+    this.onPressed,
     this.width,
   });
 
   @override
-  State<MainActionButton> createState() => _MainActionButtonState();
-}
-
-class _MainActionButtonState extends State<MainActionButton> {
-  Color buttonColor = LivitColors.mainBlueActive;
-
-  @override
   Widget build(BuildContext context) {
-    if (widget.isActive) {
+    if (isActive) {
       return GestureDetector(
-        onTap: widget.onPressed,
+        onTap: onPressed,
         child: SizedBox(
-          width: widget.width,
+          width: width,
           child: Container(
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(32),
-              color: buttonColor,
+              color: LivitColors.mainBlack,
+              boxShadow: const [
+                BoxShadow(
+                  color: Color.fromARGB(77, 255, 255, 255),
+                  blurRadius: 9,
+                  offset: Offset(0, 0),
+                ),
+              ],
             ),
             child: Padding(
               padding: const EdgeInsets.symmetric(
@@ -42,9 +42,9 @@ class _MainActionButtonState extends State<MainActionButton> {
                 horizontal: 16,
               ),
               child: Text(
-                widget.text,
+                text,
                 style: const TextStyle(
-                  color: LivitColors.mainBlack,
+                  color: LivitColors.whiteActive,
                   fontSize: 14,
                   fontWeight: FontWeight.w500,
                 ),
@@ -56,11 +56,11 @@ class _MainActionButtonState extends State<MainActionButton> {
       );
     } else {
       return SizedBox(
-        width: widget.width,
+        width: width,
         child: Container(
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(32),
-            color: Colors.transparent,
+            color: LivitColors.mainBlack,
             border: Border.all(
               color: LivitColors.borderGray,
             ),
@@ -71,7 +71,7 @@ class _MainActionButtonState extends State<MainActionButton> {
               horizontal: 16,
             ),
             child: Text(
-              widget.text,
+              text,
               style: const TextStyle(
                   color: LivitColors.borderGray,
                   fontSize: 14,

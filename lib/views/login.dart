@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:livit/constants/colors.dart';
 import 'package:livit/constants/routes.dart';
 import 'package:livit/utilities/main_action_button.dart';
+import 'package:livit/utilities/secondary_action_button.dart';
 import 'package:livit/utilities/signin_google.dart';
 
 class LoginView extends StatefulWidget {
@@ -13,6 +14,7 @@ class LoginView extends StatefulWidget {
 
 class _LoginViewState extends State<LoginView> {
   final GlobalKey<ScaffoldState> scaffoldKey = GlobalKey<ScaffoldState>();
+  final double? buttonWidth = 250;
 
   @override
   Widget build(BuildContext context) {
@@ -39,6 +41,10 @@ class _LoginViewState extends State<LoginView> {
                   onPressed: () {
                     Navigator.of(context).pushNamed(loginEmailRoute);
                   },
+                  width: buttonWidth,
+                ),
+                const SizedBox(
+                  height: 4,
                 ),
                 MainActionButton(
                   text: 'Continue with phone number',
@@ -47,6 +53,10 @@ class _LoginViewState extends State<LoginView> {
                     Navigator.of(context)
                         .pushNamed(authNumberRoute, arguments: true);
                   },
+                  width: buttonWidth,
+                ),
+                const SizedBox(
+                  height: 4,
                 ),
                 MainActionButton(
                   text: 'Continue with Google',
@@ -55,10 +65,16 @@ class _LoginViewState extends State<LoginView> {
                     context,
                     scaffoldKey,
                   ),
+                  width: buttonWidth,
                 ),
-                const MainActionButton(
+                const SizedBox(
+                  height: 4,
+                ),
+                MainActionButton(
                   text: 'Continue with Apple',
                   isActive: true,
+                  width: buttonWidth,
+                  onPressed: () {},
                 ),
                 const SizedBox(
                   height: 40,
@@ -69,7 +85,7 @@ class _LoginViewState extends State<LoginView> {
                     const SizedBox(
                       width: 10,
                     ),
-                    MainActionButton(
+                    SecondaryActionButton(
                       text: 'Create an account',
                       isActive: true,
                       onPressed: () {

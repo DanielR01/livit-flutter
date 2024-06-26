@@ -85,46 +85,43 @@ class _OtpAuthViewState extends State<OtpAuthView> {
                 const SizedBox(
                   height: 20,
                 ),
-                valid
-                    ? MainActionButton(
-                        isActive: true,
-                        text: 'Next',
-                        onPressed: () async {
-                          await FirebaseAuth.instance.signOut();
-                          PhoneAuthCredential credential =
-                              PhoneAuthProvider.credential(
-                            verificationId: widget.verificationId,
-                            smsCode: otpCode ?? '',
+                MainActionButton(
+                  isActive: valid,
+                  text: 'Next',
+                  onPressed: () async {
+                    await FirebaseAuth.instance.signOut();
+                    PhoneAuthCredential credential =
+                        PhoneAuthProvider.credential(
+                      verificationId: widget.verificationId,
+                      smsCode: otpCode ?? '',
+                    );
+                    try {
+                      await FirebaseAuth.instance
+                          .signInWithCredential(credential);
+                      User? userCredential = FirebaseAuth.instance.currentUser;
+                      if (userCredential != null) {
+                        if (context.mounted) {
+                          Navigator.of(context).pushNamedAndRemoveUntil(
+                              feedRoute, (route) => false);
+                        }
+                      }
+                    } on FirebaseAuthException catch (error) {
+                      switch (error.code) {
+                        case 'invalid-verification-code':
+                          showErrorDialog(scaffoldKey, 'Invalid code',
+                              'Check if the phone and code entered are correct');
+                          break;
+                        default:
+                          showErrorDialog(
+                            scaffoldKey,
+                            'Something went wrong',
+                            'Error code: ${error.code}, Try again in a few minutes',
                           );
-                          try {
-                            await FirebaseAuth.instance
-                                .signInWithCredential(credential);
-                            User? userCredential =
-                                FirebaseAuth.instance.currentUser;
-                            if (userCredential != null) {
-                              if (context.mounted) {
-                                Navigator.of(context).pushNamedAndRemoveUntil(
-                                    feedRoute, (route) => false);
-                              }
-                            }
-                          } on FirebaseAuthException catch (error) {
-                            switch (error.code) {
-                              case 'invalid-verification-code':
-                                showErrorDialog(scaffoldKey, 'Invalid code',
-                                    'Check if the phone and code entered are correct');
-                                break;
-                              default:
-                                showErrorDialog(
-                                  scaffoldKey,
-                                  'Something went wrong',
-                                  'Error code: ${error.code}, Try again in a few minutes',
-                                );
-                                break;
-                            }
-                          }
-                        },
-                      )
-                    : const MainActionButton(text: 'Next', isActive: false),
+                          break;
+                      }
+                    }
+                  },
+                )
               ],
             ),
           ),

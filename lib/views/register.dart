@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:livit/constants/colors.dart';
 import 'package:livit/constants/routes.dart';
 import 'package:livit/utilities/main_action_button.dart';
+import 'package:livit/utilities/secondary_action_button.dart';
 import 'package:livit/utilities/signin_google.dart';
 
 class RegisterView extends StatefulWidget {
@@ -13,6 +14,8 @@ class RegisterView extends StatefulWidget {
 
 class _RegisterViewState extends State<RegisterView> {
   final GlobalKey<ScaffoldState> scaffoldKey = GlobalKey<ScaffoldState>();
+  final double? buttonWidth = 250;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -38,14 +41,22 @@ class _RegisterViewState extends State<RegisterView> {
                   onPressed: () {
                     Navigator.of(context).pushNamed(registerEmailRoute);
                   },
+                  width: buttonWidth,
+                ),
+                const SizedBox(
+                  height: 4,
                 ),
                 MainActionButton(
-                  text: 'Create an account with phone number',
+                  text: 'Register with phone number',
                   isActive: true,
                   onPressed: () {
                     Navigator.of(context)
                         .pushNamed(authNumberRoute, arguments: false);
                   },
+                  width: buttonWidth,
+                ),
+                const SizedBox(
+                  height: 4,
                 ),
                 MainActionButton(
                   text: 'Continue with Google',
@@ -54,10 +65,16 @@ class _RegisterViewState extends State<RegisterView> {
                     context,
                     scaffoldKey,
                   ),
+                  width: buttonWidth,
                 ),
-                const MainActionButton(
+                const SizedBox(
+                  height: 4,
+                ),
+                MainActionButton(
                   text: 'Continue with Apple',
                   isActive: true,
+                  width: buttonWidth,
+                  onPressed: () {},
                 ),
                 const SizedBox(
                   height: 40,
@@ -69,8 +86,8 @@ class _RegisterViewState extends State<RegisterView> {
                     const SizedBox(
                       width: 10,
                     ),
-                    MainActionButton(
-                      text: 'Login',
+                    SecondaryActionButton(
+                      text: 'Log in',
                       isActive: true,
                       onPressed: () {
                         Navigator.of(context).pushNamedAndRemoveUntil(
