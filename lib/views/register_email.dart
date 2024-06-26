@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:livit/constants/colors.dart';
 import 'package:livit/constants/routes.dart';
+import 'package:livit/utilities/main_action_button.dart';
 
 import 'package:livit/utilities/show_error_dialog_2t_1b.dart';
 import 'package:livit/utilities/show_error_dialog_2t_2b.dart';
@@ -14,130 +15,230 @@ class RegisterEmailView extends StatefulWidget {
 }
 
 class _RegisterEmailViewState extends State<RegisterEmailView> {
-  late final TextEditingController _email;
-  late final TextEditingController _password;
+  final GlobalKey<ScaffoldState> scaffoldKey = GlobalKey<ScaffoldState>();
+
+  bool _isEmailValid = false;
+  bool _isPasswordValid = false;
+
+  late final TextEditingController _emailFieldController;
+  late final TextEditingController _passwordFieldController;
 
   @override
   void initState() {
-    _email = TextEditingController();
-    _password = TextEditingController();
+    _emailFieldController = TextEditingController();
+    _passwordFieldController = TextEditingController();
     super.initState();
   }
 
   @override
   void dispose() {
-    _email.dispose();
-    _password.dispose();
+    _emailFieldController.dispose();
+    _passwordFieldController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final GlobalKey<ScaffoldState> _ScaffoldKey = GlobalKey<ScaffoldState>();
-
     return Scaffold(
-      key: _ScaffoldKey,
-      appBar: AppBar(
-        title: const Text('Register'),
-      ),
-      body: Column(
-        children: [
-          TextField(
-            controller: _email,
-            decoration: const InputDecoration(
-              hintText: 'Enter your email',
-              hintStyle: TextStyle(
-                color: LivitColors.borderGray,
-              ),
-            ),
-            style: const TextStyle(
-              color: LivitColors.whiteActive,
-            ),
-            keyboardType: TextInputType.emailAddress,
-          ),
-          TextField(
-            controller: _password,
-            decoration: const InputDecoration(
-              hintText: 'Enter your password',
-              hintStyle: TextStyle(
-                color: LivitColors.borderGray,
-              ),
-            ),
-            style: const TextStyle(
-              color: LivitColors.whiteActive,
-            ),
-            obscureText: true,
-            enableSuggestions: false,
-            autocorrect: false,
-          ),
-          TextButton(
-            onPressed: () async {
-              final email = _email.text;
-              final password = _password.text;
-              try {
-                await FirebaseAuth.instance.createUserWithEmailAndPassword(
-                  email: email,
-                  password: password,
-                );
-                final user = FirebaseAuth.instance.currentUser;
-                await user?.sendEmailVerification();
-                await FirebaseAuth.instance.signOut();
-                if (context.mounted) {
-                  await Navigator.of(context).pushNamed(verifyEmailRoute);
-                }
-              } on FirebaseAuthException catch (error) {
-                switch (error.code) {
-                  case 'email-already-in-use':
-                    await showErrorDialog2b(
-                      _ScaffoldKey,
-                      'Email already in use',
-                      'This email is already in use by an account',
-                      'Log in',
-                      loginEmailRoute,
+      key: scaffoldKey,
+      body: SafeArea(
+        child: Center(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 25, horizontal: 35),
+            child: Column(
+              children: [
+                const Text(
+                  'Register',
+                  style: TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                    color: LivitColors.whiteActive,
+                  ),
+                ),
+                const SizedBox(
+                  height: 10,
+                ),
+                const Text('Register with an email and password'),
+                const SizedBox(
+                  height: 40,
+                ),
+                TextFormField(
+                  controller: _emailFieldController,
+                  keyboardType: TextInputType.emailAddress,
+                  onChanged: (value) {
+                    setState(
+                      () {
+                        if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$')
+                            .hasMatch(_emailFieldController.text)) {
+                          _isEmailValid = false;
+                        } else {
+                          _isEmailValid = true;
+                        }
+                      },
                     );
-                    break;
-                  case 'weak-password':
-                    await showErrorDialog(
-                      _ScaffoldKey,
-                      'Weak password',
-                      'The password must have at least 8 characters',
+                  },
+                  decoration: InputDecoration(
+                    hintText: 'Email',
+                    hintStyle: const TextStyle(
+                      color: LivitColors.borderGray,
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: const BorderSide(
+                        color: LivitColors.borderGray,
+                      ),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide:
+                          const BorderSide(color: LivitColors.whiteActive),
+                    ),
+                    suffixIcon: _isEmailValid
+                        ? const Icon(
+                            Icons.done,
+                            color: Color.fromARGB(255, 255, 255, 255),
+                            size: 18,
+                          )
+                        : null,
+                  ),
+                  style: const TextStyle(
+                    color: LivitColors.whiteActive,
+                  ),
+                ),
+                const SizedBox(
+                  height: 10,
+                ),
+                TextFormField(
+                  controller: _passwordFieldController,
+                  onChanged: (value) {
+                    setState(
+                      () {
+                        if (_passwordFieldController.text.length < 8 ||
+                            _passwordFieldController.text.length > 20) {
+                          _isPasswordValid = false;
+                        } else {
+                          _isPasswordValid = true;
+                        }
+                      },
                     );
-                    break;
-                  case 'invalid-email':
-                    await showErrorDialog(
-                      _ScaffoldKey,
-                      'Invalid email',
-                      'The email provided is not a valid one',
+                  },
+                  decoration: InputDecoration(
+                    hintText: 'Enter your password',
+                    hintStyle: const TextStyle(
+                      color: LivitColors.borderGray,
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: const BorderSide(
+                        color: LivitColors.borderGray,
+                      ),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide:
+                          const BorderSide(color: LivitColors.whiteActive),
+                    ),
+                    suffixIcon: _isPasswordValid
+                        ? const Icon(
+                            Icons.done,
+                            color: Color.fromARGB(255, 255, 255, 255),
+                            size: 18,
+                          )
+                        : null,
+                  ),
+                  style: const TextStyle(
+                    color: LivitColors.whiteActive,
+                  ),
+                  obscureText: true,
+                  enableSuggestions: false,
+                  autocorrect: false,
+                ),
+                const SizedBox(
+                  height: 10,
+                ),
+                const Text(
+                  'Password must have at least 8 characters (20 max)',
+                  style: TextStyle(
+                    color: LivitColors.borderGray,
+                  ),
+                ),
+                const SizedBox(
+                  height: 40,
+                ),
+                MainActionButton(
+                  isActive: (_isEmailValid && _isPasswordValid) ? true : false,
+                  onPressed: () async {
+                    final email = _emailFieldController.text;
+                    final password = _passwordFieldController.text;
+                    registerWithEmailAndPassword(
+                      context,
+                      scaffoldKey,
+                      email,
+                      password,
                     );
-                    break;
-                  default:
-                    await showErrorDialog(
-                      _ScaffoldKey,
-                      'Something went wrong',
-                      'Error: ${error.code}',
-                    );
-                    break;
-                }
-              } catch (error) {
-                await showErrorDialog(
-                  _ScaffoldKey,
-                  'Something went wrong',
-                  'Error: ${error.toString()}',
-                );
-              }
-            },
-            child: const Text('Register'),
+                  },
+                  text: 'Register',
+                ),
+              ],
+            ),
           ),
-          TextButton(
-            onPressed: () async {
-              await Navigator.of(context).pushNamed(
-                loginEmailRoute,
-              );
-            },
-            child: const Text('Already have an account? Login'),
-          ),
-        ],
+        ),
       ),
     );
+  }
+
+  void registerWithEmailAndPassword(BuildContext context, GlobalKey key,
+      String email, String password) async {
+    try {
+      await FirebaseAuth.instance.createUserWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+      final user = FirebaseAuth.instance.currentUser;
+      await user?.sendEmailVerification();
+      await FirebaseAuth.instance.signOut();
+      if (context.mounted) {
+        await Navigator.of(context).pushNamed(verifyEmailRoute);
+      }
+    } on FirebaseAuthException catch (error) {
+      switch (error.code) {
+        case 'email-already-in-use':
+          await showErrorDialog2b(
+            key,
+            'Email already in use',
+            'This email is already in use by an account',
+            'Log in',
+            loginEmailRoute,
+          );
+          break;
+        case 'weak-password':
+          showErrorDialog(
+            key,
+            'Weak password',
+            'The password must have at least 8 characters',
+          );
+          break;
+        case 'invalid-email':
+          showErrorDialog(
+            key,
+            'Invalid email',
+            'The email provided is not a valid one',
+          );
+          break;
+        default:
+          showErrorDialog(
+            key,
+            'Something went wrong',
+            'Error: ${error.code}',
+          );
+          break;
+      }
+    } catch (error) {
+      showErrorDialog(
+        key,
+        'Something went wrong',
+        'Error: ${error.toString()}',
+      );
+    }
   }
 }
