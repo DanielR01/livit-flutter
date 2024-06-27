@@ -195,7 +195,7 @@ void logInWithEmailAndPassword(
     } else {
       if (context.mounted) {
         await Navigator.of(context)
-            .pushNamedAndRemoveUntil(feedRoute, (route) => false);
+            .pushNamedAndRemoveUntil(mainviewRoute, (route) => false);
       }
     }
   } on FirebaseAuthException catch (error) {

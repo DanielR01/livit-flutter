@@ -23,7 +23,7 @@ void signInWithGoogle(BuildContext context, GlobalKey contextKey) async {
 
     if (context.mounted) {
       Navigator.of(context)
-          .pushNamedAndRemoveUntil(feedRoute, (route) => false);
+          .pushNamedAndRemoveUntil(mainviewRoute, (route) => false);
     }
   } on FirebaseAuthException catch (error) {
     showErrorDialog(
