@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:livit/constants/colors.dart';
 import 'package:livit/utilities/main_background.dart';
 import 'package:livit/utilities/navigation_bar.dart';
+import 'package:livit/views/explore.dart';
+import 'package:livit/views/home.dart';
+import 'package:livit/views/profile.dart';
+import 'package:livit/views/tickets.dart';
 
 enum MenuAction { logout }
 
@@ -13,12 +18,12 @@ class MainView extends StatefulWidget {
 }
 
 class _MainViewState extends State<MainView> {
-  int currentIndex = 0;
+  int selectedIndex = 0;
 
   void onItemPressed(value) {
     setState(
       () {
-        currentIndex = value;
+        selectedIndex = value;
       },
     );
   }
@@ -61,22 +66,34 @@ class _MainViewState extends State<MainView> {
       // ),
       body: Stack(
         children: [
-          const MainBackground(),
+          //MainBackground(),
+          const Positioned(
+            left: 0,
+            top: 0,
+            child: MainBackground(),
+          ),
+          // Positioned(
+          //   right: 0,
+          //   bottom: 70,
+          //   child: Container(
+          //     color: Colors.white12,
+          //     child: const Icon(
+          //       color: LivitColors.mainBlueActive,
+          //       Icons.circle,
+          //       size: 1,
+          //     ),
+          //   ),
+          // ),
           SafeArea(
-            child: TextButton(
-              onPressed: () {},
-              child: Text(
-                (currentIndex.toString()),
-                style: const TextStyle(
-                  color: LivitColors.whiteActive,
-                ),
-              ),
+            child: IndexedStack(
+              index: selectedIndex,
+              children: viewsList,
             ),
           ),
           Align(
             alignment: Alignment.bottomCenter,
             child: CustomNavigationBar(
-              currentIndex: currentIndex,
+              currentIndex: selectedIndex,
               onItemTapped: onItemPressed,
             ),
           ),
@@ -84,6 +101,13 @@ class _MainViewState extends State<MainView> {
       ),
     );
   }
+
+  final List<Widget> viewsList = const [
+    HomeView(),
+    ExploreView(),
+    TicketsView(),
+    ProfileView(),
+  ];
 }
 
 Future<bool> showLogOutDialog(BuildContext context) {
