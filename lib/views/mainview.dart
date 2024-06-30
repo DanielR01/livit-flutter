@@ -84,19 +84,19 @@ class _MainViewState extends State<MainView> {
           //     ),
           //   ),
           // ),
-          SafeArea(
-            child: IndexedStack(
-              index: selectedIndex,
-              children: viewsList,
-            ),
-          ),
-          Align(
-            alignment: Alignment.bottomCenter,
-            child: CustomNavigationBar(
-              currentIndex: selectedIndex,
-              onItemTapped: onItemPressed,
-            ),
-          ),
+          // SafeArea(
+          //   child: IndexedStack(
+          //     index: selectedIndex,
+          //     children: viewsList,
+          //   ),
+          // ),
+          // Align(
+          //   alignment: Alignment.bottomCenter,
+          //   child: CustomNavigationBar(
+          //     currentIndex: selectedIndex,
+          //     onItemTapped: onItemPressed,
+          //   ),
+          // ),
         ],
       ),
     );
@@ -134,3 +134,5 @@ Future<bool> showLogOutDialog(BuildContext context) {
     },
   ).then((value) => value ?? false);
 }
+
+

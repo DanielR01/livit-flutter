@@ -6,4 +6,5 @@ class LivitColors {
   static const whiteInactive = Color.fromARGB(255, 112, 112, 122);
   static const borderGray = Color.fromARGB(85, 179, 179, 179);
   static const mainBlack = Color.fromARGB(255, 11, 11, 13);
+  static const greenActive = Color.fromARGB(255, 25, 224, 57);
 }

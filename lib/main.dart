@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:livit/constants/colors.dart';
 import 'package:livit/firebase_options.dart';
+import 'package:livit/utilities/main_background.dart';
 import 'package:livit/utilities/route_generator.dart';
 
 void main() async {
@@ -44,8 +45,9 @@ class StartPage extends StatelessWidget {
           ),
         ),
       ),
-      initialRoute: '/',
-      onGenerateRoute: RouteGenerator.generateRoute,
+      //initialRoute: '/',
+      //onGenerateRoute: RouteGenerator.generateRoute,
+      home: MainBackground(),
     );
   }
 }

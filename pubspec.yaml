@@ -86,6 +86,11 @@ flutter:
       - assets/images/blobs/blob3.svg
       - assets/images/blobs/blob4.svg
       - assets/images/blobs/blob5.svg
+      - assets/images/blobs/blob1.png
+      - assets/images/blobs/blob2.png
+      - assets/images/blobs/blob3.png
+      - assets/images/blobs/blob4.png
+      - assets/images/blobs/blob5.png
 
   #   - images/a_dot_burr.jpeg
   #   - images/a_dot_ham.jpeg
