@@ -229,15 +229,15 @@ class _MainBackgroundState extends State<MainBackground>
             screenWidth: screenWidth,
             svg: false,
           ),
-          // Positioned(
-          //   left: 0,
-          //   top: 0,
-          //   child: Image.asset(
-          //     "assets/images/blobs/blob1.png",
-          //     height: 608,
-          //     // height: 100,
-          //   ),
-          // ),
+          BlendMask(
+            opacity: 1,
+            blendMode: BlendMode.multiply,
+            // child: Image(
+            //   image: AssetImage('assets/images/dots.png'),
+            // ),
+            child: DotsBackground(
+                screenHeight: screenHeight, screenWidth: screenWidth),
+          ),
         ],
       ),
     );
@@ -256,55 +256,26 @@ class DotsBackground extends StatelessWidget {
   final int imageHeight = 853;
   final int imageWidth = 480;
 
-  final Image dotsImage = const Image(
-    image: AssetImage(imagePath),
-  );
-
   @override
   Widget build(BuildContext context) {
     final double screenHWratio = screenHeight / screenWidth;
     final double imageHWratio = imageHeight / imageWidth;
+    final double? imageH = screenHWratio > imageHWratio ? screenHeight : null;
+    final double? imageW = screenHWratio > imageHWratio ? null : screenWidth;
 
-    if (screenHeight > screenWidth) {
-      return Positioned(
-        left: 0,
-        top: 0,
-        child: Container(
-          height: screenHWratio > imageHWratio ? screenHeight : null,
-          width: screenHWratio > imageHWratio ? null : screenWidth,
-          alignment: Alignment.center,
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: <Color>[Colors.black, Colors.blue],
-            ),
-          ),
-          child: dotsImage,
-        ),
-      );
-    } else {
-      return Positioned(
-        left: screenWidth,
-        top: 0,
-        child: Transform(
-          transform: Matrix4.rotationZ(pi / 2),
-          child: Container(
-            height: 1 / screenHWratio > 1 / imageHWratio ? null : screenWidth,
-            width: 1 / screenHWratio > 1 / imageHWratio ? screenHeight : null,
-            alignment: Alignment.center,
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: <Color>[Colors.black, Colors.blue],
-              ),
-            ),
-            child: dotsImage,
-          ),
-        ),
-      );
-    }
+    print(imageW);
+    print(screenWidth);
+
+    return SizedBox(
+      //height: screenHWratio > imageHWratio ? screenHeight : null,
+      //width: screenHWratio > imageHWratio ? null : screenWidth,
+      child: Image(
+        image: const AssetImage(imagePath),
+        width: screenWidth,
+        height: screenHeight,
+        fit: BoxFit.fill,
+      ),
+    );
   }
 }
 
@@ -328,42 +299,45 @@ class Blobs extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      children: blobPaths.asMap().entries.map(
-        (entry) {
-          int index = entry.key;
-          String blob = entry.value;
-          return AnimatedBuilder(
-            animation: controllers[index],
-            builder: (context, child) {
-              final position = positionAnimations[index].value;
-              final color = colorAnimations[index].value;
-              return Positioned(
-                left: screenWidth * position.dx / 390 -150,
-                top: screenHeight * position.dy / 844 -150,
-                child: svg
-                    ? SvgPicture.asset(
-                        blob,
-                        colorFilter: ColorFilter.mode(
-                          color ?? Colors.transparent,
-                          BlendMode.srcIn,
-                        ),
-                      )
-                    : ColorFiltered(
-                        colorFilter: ColorFilter.mode(
-                          color ?? Colors.transparent,
-                          BlendMode.srcIn,
-                        ),
-                        child: Image.asset(
+    return Container(
+      color: LivitColors.mainBlack,
+      child: Stack(
+        children: blobPaths.asMap().entries.map(
+          (entry) {
+            int index = entry.key;
+            String blob = entry.value;
+            return AnimatedBuilder(
+              animation: controllers[index],
+              builder: (context, child) {
+                final position = positionAnimations[index].value;
+                final color = colorAnimations[index].value;
+                return Positioned(
+                  left: screenWidth * position.dx / 390 - 150,
+                  top: screenHeight * position.dy / 844 - 150,
+                  child: svg
+                      ? SvgPicture.asset(
                           blob,
-                          height: blobHeights[index] * screenHeight,
+                          colorFilter: ColorFilter.mode(
+                            color ?? Colors.transparent,
+                            BlendMode.srcIn,
+                          ),
+                        )
+                      : ColorFiltered(
+                          colorFilter: ColorFilter.mode(
+                            color ?? Colors.transparent,
+                            BlendMode.srcIn,
+                          ),
+                          child: Image.asset(
+                            blob,
+                            height: blobHeights[index] * screenHeight,
+                          ),
                         ),
-                      ),
-              );
-            },
-          );
-        },
-      ).toList(),
+                );
+              },
+            );
+          },
+        ).toList(),
+      ),
     );
   }
 }
