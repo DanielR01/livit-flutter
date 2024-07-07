@@ -1,3 +1,4 @@
+import 'package:livit/enums/credential_types.dart';
 import 'package:livit/services/auth/auth_provider.dart';
 import 'package:livit/services/auth/auth_user.dart';
 import 'package:livit/services/auth/firebase_auth_provider.dart';

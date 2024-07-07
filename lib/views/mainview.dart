@@ -5,8 +5,6 @@ import 'package:livit/views/home.dart';
 import 'package:livit/views/profile.dart';
 import 'package:livit/views/tickets.dart';
 
-enum MenuAction { logout }
-
 class MainView extends StatefulWidget {
   const MainView({super.key});
 
@@ -52,7 +50,7 @@ class _MainViewState extends State<MainView> {
     );
   }
 
-  final List<Widget> viewsList = [
+  final List<Widget> viewsList = const [
     HomeView(),
     ExploreView(),
     TicketsView(),

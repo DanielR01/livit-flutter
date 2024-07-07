@@ -1,11 +1,5 @@
+import 'package:livit/enums/credential_types.dart';
 import 'package:livit/services/auth/auth_user.dart';
-
-enum CredentialType {
-  emailAndPassword,
-  otp,
-  google,
-  apple,
-}
 
 abstract class AuthProvider {
   AuthUser? get currentUser;
