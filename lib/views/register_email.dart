@@ -200,7 +200,7 @@ class _RegisterEmailViewState extends State<RegisterEmailView> {
       await user?.sendEmailVerification();
       await FirebaseAuth.instance.signOut();
       if (context.mounted) {
-        await Navigator.of(context).pushNamed(verifyEmailRoute);
+        await Navigator.of(context).pushNamed(Routes.verifyEmailRoute);
       }
     } on FirebaseAuthException catch (error) {
       switch (error.code) {
@@ -213,7 +213,7 @@ class _RegisterEmailViewState extends State<RegisterEmailView> {
               'Log in with email',
               () {
                 Navigator.of(context)
-                    .pushNamedAndRemoveUntil(registerRoute, (_) => false);
+                    .pushNamedAndRemoveUntil(Routes.registerRoute, (_) => false);
               },
             ],
             [

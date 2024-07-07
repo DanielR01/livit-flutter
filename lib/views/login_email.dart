@@ -205,13 +205,13 @@ void logInWithEmailAndPassword(
     if (!emailVerified) {
       if (context.mounted) {
         await Navigator.of(context).pushNamed(
-          verifyEmailRoute,
+          Routes.verifyEmailRoute,
         );
       }
     } else {
       if (context.mounted) {
         await Navigator.of(context)
-            .pushNamedAndRemoveUntil(mainviewRoute, (route) => false);
+            .pushNamedAndRemoveUntil(Routes.mainviewRoute, (route) => false);
       }
     }
   } on FirebaseAuthException catch (error) {
@@ -231,7 +231,7 @@ void logInWithEmailAndPassword(
             'Create an account',
             () {
               Navigator.of(context)
-                  .pushNamedAndRemoveUntil(registerRoute, (route) => false);
+                  .pushNamedAndRemoveUntil(Routes.registerRoute, (route) => false);
             },
           ],
         );

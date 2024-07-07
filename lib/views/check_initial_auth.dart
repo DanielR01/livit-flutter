@@ -26,10 +26,10 @@ class _CheckInitialAuthState extends State<CheckInitialAuth> {
   void _routeUser() {
     if (isAuth) {
       Navigator.of(context)
-          .pushNamedAndRemoveUntil(mainviewRoute, (route) => false);
+          .pushNamedAndRemoveUntil(Routes.mainviewRoute, (route) => false);
     } else {
       Navigator.of(context)
-          .pushNamedAndRemoveUntil(loginRoute, (route) => false);
+          .pushNamedAndRemoveUntil(Routes.loginRoute, (route) => false);
     }
   }
 

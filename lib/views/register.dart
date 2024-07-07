@@ -39,7 +39,7 @@ class _RegisterViewState extends State<RegisterView> {
                   text: 'Create an account with email',
                   isActive: true,
                   onPressed: () {
-                    Navigator.of(context).pushNamed(registerEmailRoute);
+                    Navigator.of(context).pushNamed(Routes.registerEmailRoute);
                   },
                   width: buttonWidth,
                 ),
@@ -51,7 +51,7 @@ class _RegisterViewState extends State<RegisterView> {
                   isActive: true,
                   onPressed: () {
                     Navigator.of(context)
-                        .pushNamed(authNumberRoute, arguments: false);
+                        .pushNamed(Routes.authNumberRoute, arguments: false);
                   },
                   width: buttonWidth,
                 ),
@@ -91,7 +91,7 @@ class _RegisterViewState extends State<RegisterView> {
                       isActive: true,
                       onPressed: () {
                         Navigator.of(context).pushNamedAndRemoveUntil(
-                            loginRoute, ((route) => false));
+                            Routes.loginRoute, ((route) => false));
                       },
                     ),
                   ],

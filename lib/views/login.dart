@@ -39,7 +39,7 @@ class _LoginViewState extends State<LoginView> {
                   text: 'Continue with email',
                   isActive: true,
                   onPressed: () {
-                    Navigator.of(context).pushNamed(loginEmailRoute);
+                    Navigator.of(context).pushNamed(Routes.loginEmailRoute);
                   },
                   width: buttonWidth,
                 ),
@@ -51,7 +51,7 @@ class _LoginViewState extends State<LoginView> {
                   isActive: true,
                   onPressed: () {
                     Navigator.of(context)
-                        .pushNamed(authNumberRoute, arguments: true);
+                        .pushNamed(Routes.authNumberRoute, arguments: true);
                   },
                   width: buttonWidth,
                 ),
@@ -91,7 +91,7 @@ class _LoginViewState extends State<LoginView> {
                       isActive: true,
                       onPressed: () {
                         Navigator.of(context).pushNamedAndRemoveUntil(
-                            registerRoute, (route) => false);
+                            Routes.registerRoute, (route) => false);
                       },
                     ),
                   ],

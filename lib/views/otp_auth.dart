@@ -102,7 +102,7 @@ class _OtpAuthViewState extends State<OtpAuthView> {
                       if (userCredential != null) {
                         if (context.mounted) {
                           Navigator.of(context).pushNamedAndRemoveUntil(
-                              mainviewRoute, (route) => false);
+                              Routes.mainviewRoute, (route) => false);
                         }
                       }
                     } on FirebaseAuthException catch (error) {

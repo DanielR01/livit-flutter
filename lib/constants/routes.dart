@@ -1,8 +1,10 @@
-const loginRoute = '/login';
-const loginEmailRoute = '/loginEmail';
-const registerEmailRoute = '/registerEmail';
-const mainviewRoute = '/mainView';
-const verifyEmailRoute = '/verifyemail';
-const authNumberRoute = '/authNumber';
-const otpAuthRoute = '/otpAuth';
-const registerRoute = '/register';
+class Routes {
+  static const loginRoute = '/login';
+  static const loginEmailRoute = '/loginEmail';
+  static const registerEmailRoute = '/registerEmail';
+  static const mainviewRoute = '/mainView';
+  static const verifyEmailRoute = '/verifyemail';
+  static const authNumberRoute = '/authNumber';
+  static const otpAuthRoute = '/otpAuth';
+  static const registerRoute = '/register';
+}

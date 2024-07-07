@@ -18,29 +18,29 @@ class RouteGenerator {
     switch (settings.name) {
       case '/':
         return MaterialPageRoute(builder: (_) => const CheckInitialAuth());
-      case loginRoute:
+      case Routes.loginRoute:
         return MaterialPageRoute(builder: (_) => const LoginView());
-      case loginEmailRoute:
+      case Routes.loginEmailRoute:
         return MaterialPageRoute(builder: (_) => const LoginEmailView());
-      case registerEmailRoute:
+      case Routes.registerEmailRoute:
         return MaterialPageRoute(builder: (_) => const RegisterEmailView());
-      case mainviewRoute:
+      case Routes.mainviewRoute:
         return MaterialPageRoute(builder: (_) => const MainView());
-      case verifyEmailRoute:
+      case Routes.verifyEmailRoute:
         return MaterialPageRoute(builder: (_) => const VerifyEmailView());
-      case otpAuthRoute:
+      case Routes.otpAuthRoute:
         if (args is String) {
           return MaterialPageRoute(
               builder: (_) => OtpAuthView(verificationId: args));
         }
         return MaterialPageRoute(builder: (_) => const ErrorView());
-      case authNumberRoute:
+      case Routes.authNumberRoute:
         if (args is bool) {
           return MaterialPageRoute(
               builder: (_) => AuthNumberView(isLogin: args));
         }
         return MaterialPageRoute(builder: (_) => const ErrorView());
-      case registerRoute:
+      case Routes.registerRoute:
         return MaterialPageRoute(builder: (_) => const RegisterView());
       default:
         return MaterialPageRoute(builder: (_) => const ErrorView());

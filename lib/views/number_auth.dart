@@ -209,7 +209,7 @@ class AuthNumberViewState extends State<AuthNumberView> {
       },
       codeSent: (verificationId, forceResendingToken) {
         Navigator.of(context)
-            .pushNamed(otpAuthRoute, arguments: verificationId);
+            .pushNamed(Routes.otpAuthRoute, arguments: verificationId);
       },
       codeAutoRetrievalTimeout: (verificationId) {},
     );
