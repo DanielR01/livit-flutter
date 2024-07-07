@@ -65,6 +65,7 @@ class _LoginEmailViewState extends State<LoginEmailView> {
                   height: 40,
                 ),
                 TextFormField(
+                  cursorColor: LivitColors.whiteInactive,
                   controller: _emailFieldController,
                   keyboardType: TextInputType.emailAddress,
                   onChanged: (value) {
@@ -95,6 +96,13 @@ class _LoginEmailViewState extends State<LoginEmailView> {
                       borderSide:
                           const BorderSide(color: LivitColors.whiteActive),
                     ),
+                    suffixIcon: _isEmailValid
+                        ? const Icon(
+                            Icons.done,
+                            color: Color.fromARGB(255, 255, 255, 255),
+                            size: 18,
+                          )
+                        : null,
                   ),
                   style: const TextStyle(
                     color: LivitColors.whiteActive,
@@ -104,6 +112,7 @@ class _LoginEmailViewState extends State<LoginEmailView> {
                   height: 10,
                 ),
                 TextFormField(
+                  cursorColor: LivitColors.whiteInactive,
                   controller: _passwordFieldController,
                   onChanged: (value) {
                     setState(
@@ -133,6 +142,13 @@ class _LoginEmailViewState extends State<LoginEmailView> {
                       borderSide:
                           const BorderSide(color: LivitColors.whiteActive),
                     ),
+                    suffixIcon: _isPasswordValid
+                        ? const Icon(
+                            Icons.done,
+                            color: Color.fromARGB(255, 255, 255, 255),
+                            size: 18,
+                          )
+                        : null,
                   ),
                   style: const TextStyle(
                     color: LivitColors.whiteActive,
@@ -202,11 +218,22 @@ void logInWithEmailAndPassword(
     switch (error.code) {
       case 'invalid-credential':
         showErrorDialog2b(
-          key,
+          [key, null],
           'Invalid email or password',
           'Check if your email and password are correct or try creating an account',
-          'Create an account',
-          registerEmailRoute,
+          [
+            'Try Again',
+            () {
+              Navigator.of(context).pop(false);
+            },
+          ],
+          [
+            'Create an account',
+            () {
+              Navigator.of(context)
+                  .pushNamedAndRemoveUntil(registerRoute, (route) => false);
+            },
+          ],
         );
         break;
       case 'too-many-requests':

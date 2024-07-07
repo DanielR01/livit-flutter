@@ -16,11 +16,6 @@ class MainBackground extends StatefulWidget {
 
 const String imagePath = 'assets/images/dots.png';
 List<String> blobPaths = [
-  // "assets/images/blobs/blob5.svg",
-  // "assets/images/blobs/blob4.svg",
-  // "assets/images/blobs/blob3.svg",
-  // "assets/images/blobs/blob2.svg",
-  // "assets/images/blobs/blob1.svg",
   "assets/images/blobs/blob5.png",
   "assets/images/blobs/blob4.png",
   "assets/images/blobs/blob3.png",
@@ -232,9 +227,6 @@ class _MainBackgroundState extends State<MainBackground>
           BlendMask(
             opacity: 1,
             blendMode: BlendMode.multiply,
-            // child: Image(
-            //   image: AssetImage('assets/images/dots.png'),
-            // ),
             child: DotsBackground(
                 screenHeight: screenHeight, screenWidth: screenWidth),
           ),
@@ -258,17 +250,7 @@ class DotsBackground extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final double screenHWratio = screenHeight / screenWidth;
-    final double imageHWratio = imageHeight / imageWidth;
-    final double? imageH = screenHWratio > imageHWratio ? screenHeight : null;
-    final double? imageW = screenHWratio > imageHWratio ? null : screenWidth;
-
-    print(imageW);
-    print(screenWidth);
-
     return SizedBox(
-      //height: screenHWratio > imageHWratio ? screenHeight : null,
-      //width: screenHWratio > imageHWratio ? null : screenWidth,
       child: Image(
         image: const AssetImage(imagePath),
         width: screenWidth,

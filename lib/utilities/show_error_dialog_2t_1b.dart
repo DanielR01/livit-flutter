@@ -61,45 +61,6 @@ void showErrorDialog(GlobalKey contextKey, String title, String body) {
             ),
           ),
         );
-        // return AlertDialog(
-        //   title: Text(title),
-        //   content: Text(body),
-        //   shadowColor: Colors.white,
-        //   elevation: 0,
-        //   backgroundColor: LivitColors.mainBlack,
-        //   surfaceTintColor: LivitColors.mainBlack,
-        //   actions: [
-        //     TextButton(
-        //       onPressed: () {
-        //         Navigator.of(contextOfBuilder).pop();
-        //       },
-        //       child: const Text(
-        //         'Go back',
-        //         style: TextStyle(
-        //           color: LivitColors.mainBlueActive,
-        //           fontWeight: FontWeight.bold,
-        //         ),
-        //       ),
-        //     ),
-        //   ],
-        //   titleTextStyle: const TextStyle(
-        //     color: LivitColors.whiteActive,
-        //     fontSize: 22,
-        //     fontWeight: FontWeight.bold,
-        //   ),
-        //   contentTextStyle: const TextStyle(
-        //     color: LivitColors.whiteActive,
-        //     fontSize: 14,
-        //     fontWeight: FontWeight.normal,
-        //   ),
-        //   shape: RoundedRectangleBorder(
-        //     borderRadius: BorderRadius.circular(10),
-        //     side: const BorderSide(
-        //       color: LivitColors.borderGray,
-        //       width: 1,
-        //     ),
-        //   ),
-        // );
       },
     );
   } else {

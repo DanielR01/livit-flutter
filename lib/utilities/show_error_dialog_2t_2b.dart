@@ -2,54 +2,77 @@ import 'package:flutter/material.dart';
 import 'package:livit/constants/colors.dart';
 //import 'dart:developer' as devtools show log;
 
-showErrorDialog2b(GlobalKey contextKey, String title, String body,
-    String buttonText, String route) {
-  BuildContext? context = contextKey.currentContext;
+showErrorDialog2b(
+    List contextList, String title, String body, List button1, List button2) {
+  BuildContext? context = contextList[0]?.currentContext ?? contextList[1];
   if ((context != null) && (context.mounted)) {
-    //devtools.log('Mounting dialog');
     showDialog<bool>(
       context: context,
+      barrierColor: const Color.fromARGB(150, 0, 0, 0),
       builder: (context) {
-        return AlertDialog(
-          backgroundColor: LivitColors.mainBlack,
-          title: Text(title),
-          content: Text(body),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop(false);
-              },
-              child: const Text(
-                'Try again',
-                style: TextStyle(
-                  color: LivitColors.mainBlueActive,
+        return Dialog(
+          child: Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(16),
+              color: LivitColors.mainBlack,
+              boxShadow: const [
+                BoxShadow(
+                  color: Color.fromARGB(77, 255, 255, 255),
+                  blurRadius: 9,
+                  offset: Offset(0, 0),
                 ),
-              ),
+              ],
             ),
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pushNamedAndRemoveUntil(
-                  route,
-                  (route) => false,
-                );
-              },
-              child: Text(
-                buttonText,
-                style: const TextStyle(
-                  color: LivitColors.mainBlueActive,
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
-              ),
+                const SizedBox(
+                  height: 10,
+                ),
+                Text(
+                  body,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.normal,
+                  ),
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    TextButton(
+                      onPressed: button1[1],
+                      child: Text(
+                        button1[0],
+                        style: const TextStyle(
+                          color: LivitColors.mainBlueActive,
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    TextButton(
+                      onPressed: button2[1],
+                      child: Text(
+                        button2[0],
+                        style: const TextStyle(
+                          color: LivitColors.mainBlueActive,
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
             ),
-          ],
-          titleTextStyle: const TextStyle(
-            color: LivitColors.whiteActive,
-            fontSize: 22,
-            fontWeight: FontWeight.bold,
-          ),
-          contentTextStyle: const TextStyle(
-            color: LivitColors.whiteActive,
-            fontSize: 14,
-            fontWeight: FontWeight.normal,
           ),
         );
       },

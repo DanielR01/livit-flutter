@@ -29,8 +29,8 @@ class CustomNavigationBar extends StatelessWidget {
         bottom: 16,
       ),
       decoration: BoxDecoration(
-        color: Colors.black26,
-        borderRadius: BorderRadius.circular(0),
+        color: LivitColors.mainBlack,
+        borderRadius: BorderRadius.circular(16),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,

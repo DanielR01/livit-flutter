@@ -1,7 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
-import 'package:livit/constants/colors.dart';
-import 'package:livit/utilities/main_background.dart';
 import 'package:livit/utilities/navigation_bar.dart';
 import 'package:livit/views/explore.dart';
 import 'package:livit/views/home.dart';
@@ -18,6 +15,7 @@ class MainView extends StatefulWidget {
 }
 
 class _MainViewState extends State<MainView> {
+  final GlobalKey<ScaffoldState> scaffoldKey = GlobalKey();
   int selectedIndex = 0;
 
   void onItemPressed(value) {
@@ -36,73 +34,25 @@ class _MainViewState extends State<MainView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // appBar: AppBar(
-      //   title: const Text("Main feed"),
-      //   actions: [
-      //     PopupMenuButton(
-      //       onSelected: (value) async {
-      //         switch (value) {
-      //           case MenuAction.logout:
-      //             final shouldLogout = await showLogOutDialog(context);
-      //             if (shouldLogout) {
-      //               await FirebaseAuth.instance.signOut();
-      //               Navigator.of(context).pushNamedAndRemoveUntil(
-      //                 loginRoute,
-      //                 (route) => false,
-      //               );
-      //             }
-      //         }
-      //       },
-      //       itemBuilder: (context) {
-      //         return const [
-      //           PopupMenuItem<MenuAction>(
-      //             value: MenuAction.logout,
-      //             child: Text('Log out'),
-      //           ),
-      //         ];
-      //       },
-      //     ),
-      //   ],
-      // ),
       body: Stack(
         children: [
-          //MainBackground(),
-          const Positioned(
-            left: 0,
-            top: 0,
-            child: MainBackground(),
+          IndexedStack(
+            index: selectedIndex,
+            children: viewsList,
           ),
-          // Positioned(
-          //   right: 0,
-          //   bottom: 70,
-          //   child: Container(
-          //     color: Colors.white12,
-          //     child: const Icon(
-          //       color: LivitColors.mainBlueActive,
-          //       Icons.circle,
-          //       size: 1,
-          //     ),
-          //   ),
-          // ),
-          // SafeArea(
-          //   child: IndexedStack(
-          //     index: selectedIndex,
-          //     children: viewsList,
-          //   ),
-          // ),
-          // Align(
-          //   alignment: Alignment.bottomCenter,
-          //   child: CustomNavigationBar(
-          //     currentIndex: selectedIndex,
-          //     onItemTapped: onItemPressed,
-          //   ),
-          // ),
+          Align(
+            alignment: Alignment.bottomCenter,
+            child: CustomNavigationBar(
+              currentIndex: selectedIndex,
+              onItemTapped: onItemPressed,
+            ),
+          ),
         ],
       ),
     );
   }
 
-  final List<Widget> viewsList = const [
+  final List<Widget> viewsList = [
     HomeView(),
     ExploreView(),
     TicketsView(),
@@ -134,5 +84,3 @@ Future<bool> showLogOutDialog(BuildContext context) {
     },
   ).then((value) => value ?? false);
 }
-
-

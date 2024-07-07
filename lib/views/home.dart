@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart';
+import 'package:livit/utilities/main_background.dart';
 
 class HomeView extends StatefulWidget {
   const HomeView({super.key});
@@ -10,8 +11,13 @@ class HomeView extends StatefulWidget {
 class _HomeViewState extends State<HomeView> {
   @override
   Widget build(BuildContext context) {
-    return const Center(
-      child: Text('Home view'),
+    return const Stack(
+      children: [
+        MainBackground(),
+        Center(
+          child: Text('Home'),
+        ),
+      ],
     );
   }
 }

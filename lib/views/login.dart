@@ -23,7 +23,7 @@ class _LoginViewState extends State<LoginView> {
       body: SafeArea(
         child: Center(
           child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 25, horizontal: 35),
+            padding: const EdgeInsets.symmetric(vertical: 25, horizontal: 0),
             child: Column(
               children: [
                 const Text(
@@ -80,6 +80,7 @@ class _LoginViewState extends State<LoginView> {
                   height: 40,
                 ),
                 Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     const Text("Don't have an account?"),
                     const SizedBox(

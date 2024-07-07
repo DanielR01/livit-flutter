@@ -63,6 +63,7 @@ class _RegisterEmailViewState extends State<RegisterEmailView> {
                   height: 40,
                 ),
                 TextFormField(
+                  cursorColor: LivitColors.whiteInactive,
                   controller: _emailFieldController,
                   keyboardType: TextInputType.emailAddress,
                   onChanged: (value) {
@@ -109,6 +110,7 @@ class _RegisterEmailViewState extends State<RegisterEmailView> {
                   height: 10,
                 ),
                 TextFormField(
+                  cursorColor: LivitColors.whiteInactive,
                   controller: _passwordFieldController,
                   onChanged: (value) {
                     setState(
@@ -204,11 +206,22 @@ class _RegisterEmailViewState extends State<RegisterEmailView> {
       switch (error.code) {
         case 'email-already-in-use':
           await showErrorDialog2b(
-            key,
+            [key, null],
             'Email already in use',
             'This email is already in use by an account',
-            'Log in',
-            loginEmailRoute,
+            [
+              'Log in with email',
+              () {
+                Navigator.of(context)
+                    .pushNamedAndRemoveUntil(registerRoute, (_) => false);
+              },
+            ],
+            [
+              'Try Again',
+              () {
+                Navigator.of(context).pop(false);
+              },
+            ],
           );
           break;
         case 'weak-password':
