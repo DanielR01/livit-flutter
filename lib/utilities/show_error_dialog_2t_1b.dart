@@ -2,7 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:livit/constants/colors.dart';
 //import 'dart:developer' as devtools show log;
 
-void showErrorDialog(GlobalKey contextKey, String title, String body) {
+Future<void> showErrorDialog(
+  GlobalKey contextKey,
+  String title,
+  String body,
+) async {
   BuildContext? context = contextKey.currentContext;
   if ((context != null) && (context.mounted)) {
     //devtools.log('Mounting dialog');

@@ -12,6 +12,9 @@ class AuthService implements AuthProvider {
       );
 
   @override
+  Future<void> initialize() => provider.initialize();
+
+  @override
   Future<AuthUser> createUser({
     required CredentialType credentialType,
     required List<String> credentials,

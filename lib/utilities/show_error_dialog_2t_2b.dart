@@ -2,8 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:livit/constants/colors.dart';
 //import 'dart:developer' as devtools show log;
 
-showErrorDialog2b(
-    List contextList, String title, String body, List button1, List button2) {
+Future<void> showErrorDialog2b(
+  List contextList,
+  String title,
+  String body,
+  List button1,
+  List button2,
+) async {
   BuildContext? context = contextList[0]?.currentContext ?? contextList[1];
   if ((context != null) && (context.mounted)) {
     showDialog<bool>(
@@ -77,7 +82,5 @@ showErrorDialog2b(
         );
       },
     );
-  } else {
-    //devtools.log('Not mounted parent');
   }
 }

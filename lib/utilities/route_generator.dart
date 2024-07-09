@@ -5,7 +5,7 @@ import 'package:livit/views/error_route.dart';
 import 'package:livit/views/mainview.dart';
 import 'package:livit/views/login.dart';
 import 'package:livit/views/login_email.dart';
-import 'package:livit/views/number_auth.dart';
+import 'package:livit/views/phone_number_auth.dart';
 import 'package:livit/views/otp_auth.dart';
 import 'package:livit/views/register.dart';
 import 'package:livit/views/register_email.dart';

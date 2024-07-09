@@ -1,6 +1,6 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:livit/constants/routes.dart';
+import 'package:livit/services/auth/auth_service.dart';
 import 'package:livit/utilities/main_action_button.dart';
 import 'package:livit/utilities/show_error_dialog_2t_2b.dart';
 
@@ -34,10 +34,10 @@ class _ProfileViewState extends State<ProfileView> {
             [
               'Log out',
               () async {
-                await FirebaseAuth.instance.signOut();
+                await AuthService.firebase().logOut();
                 if (context.mounted) {
-                  Navigator.of(context)
-                      .pushNamedAndRemoveUntil(Routes.loginRoute, (route) => false);
+                  Navigator.of(context).pushNamedAndRemoveUntil(
+                      Routes.loginRoute, (route) => false);
                 }
               },
             ],

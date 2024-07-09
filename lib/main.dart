@@ -1,15 +1,12 @@
-import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:livit/constants/colors.dart';
-import 'package:livit/firebase_options.dart';
+import 'package:livit/services/auth/auth_service.dart';
 import 'package:livit/utilities/route_generator.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  await AuthService.firebase().initialize();
   SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp])
       .then((value) => runApp(const StartPage()));
 }

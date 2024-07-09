@@ -1,7 +1,7 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:livit/constants/routes.dart';
+import 'package:livit/services/auth/auth_service.dart';
 
 class CheckInitialAuth extends StatefulWidget {
   const CheckInitialAuth({super.key});
@@ -34,12 +34,13 @@ class _CheckInitialAuthState extends State<CheckInitialAuth> {
   }
 
   bool _checkIfLoggedIn() {
-    final user = FirebaseAuth.instance.currentUser;
+    final user = AuthService.firebase().currentUser;
+    print(user?.isEmailVerified);
     if (user == null) {
       return false;
-    } else if (user.emailVerified) {
+    } else if (user.isEmailVerified) {
       return true;
-    } else if (user.phoneNumber != null) {
+    } else if (user.hasPhoneNumber) {
       return true;
     } else {
       return false;

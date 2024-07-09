@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:livit/constants/colors.dart';
 import 'package:livit/constants/routes.dart';
+import 'package:livit/enums/credential_types.dart';
+import 'package:livit/services/auth/auth_exceptions.dart';
+import 'package:livit/services/auth/auth_service.dart';
 import 'package:livit/utilities/main_action_button.dart';
-
 import 'package:livit/utilities/show_error_dialog_2t_1b.dart';
 import 'package:livit/utilities/show_error_dialog_2t_2b.dart';
 
@@ -189,68 +190,59 @@ class _RegisterEmailViewState extends State<RegisterEmailView> {
     );
   }
 
-  void registerWithEmailAndPassword(BuildContext context, GlobalKey key,
-      String email, String password) async {
+  void registerWithEmailAndPassword(
+    BuildContext context,
+    GlobalKey key,
+    String email,
+    String password,
+  ) async {
     try {
-      await FirebaseAuth.instance.createUserWithEmailAndPassword(
-        email: email,
-        password: password,
+      await AuthService.firebase().createUser(
+        credentialType: CredentialType.emailAndPassword,
+        credentials: [
+          email,
+          password,
+        ],
       );
-      final user = FirebaseAuth.instance.currentUser;
-      await user?.sendEmailVerification();
-      await FirebaseAuth.instance.signOut();
+      await AuthService.firebase().sendEmailVerification();
       if (context.mounted) {
         await Navigator.of(context).pushNamed(Routes.verifyEmailRoute);
       }
-    } on FirebaseAuthException catch (error) {
-      switch (error.code) {
-        case 'email-already-in-use':
-          await showErrorDialog2b(
-            [key, null],
-            'Email already in use',
-            'This email is already in use by an account',
-            [
-              'Log in with email',
-              () {
-                Navigator.of(context)
-                    .pushNamedAndRemoveUntil(Routes.registerRoute, (_) => false);
-              },
-            ],
-            [
-              'Try Again',
-              () {
-                Navigator.of(context).pop(false);
-              },
-            ],
-          );
-          break;
-        case 'weak-password':
-          showErrorDialog(
-            key,
-            'Weak password',
-            'The password must have at least 8 characters',
-          );
-          break;
-        case 'invalid-email':
-          showErrorDialog(
-            key,
-            'Invalid email',
-            'The email provided is not a valid one',
-          );
-          break;
-        default:
-          showErrorDialog(
-            key,
-            'Something went wrong',
-            'Error: ${error.code}',
-          );
-          break;
-      }
-    } catch (error) {
-      showErrorDialog(
+    } on InvalidEmailAuthException {
+      await showErrorDialog(
+        key,
+        'Invalid email',
+        'The email provided is not a valid one',
+      );
+    } on WeakPasswordAuthException {
+      await showErrorDialog(
+        key,
+        'Weak password',
+        'The password must have at least 8 characters',
+      );
+    } on EmailAlreadyInUseAuthException {
+      await showErrorDialog2b(
+        [key, null],
+        'Email already in use',
+        'This email is already in use by an account',
+        [
+          'Log in with email',
+          () {
+            Navigator.of(context).pushNamed(Routes.loginEmailRoute);
+          },
+        ],
+        [
+          'Try Again',
+          () {
+            Navigator.of(context).pop(false);
+          },
+        ],
+      );
+    } on GenericAuthException {
+      await showErrorDialog(
         key,
         'Something went wrong',
-        'Error: ${error.toString()}',
+        'Try again in a few minutes',
       );
     }
   }

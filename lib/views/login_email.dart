@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:livit/constants/colors.dart';
 import 'package:livit/constants/routes.dart';
+import 'package:livit/enums/credential_types.dart';
+import 'package:livit/services/auth/auth_exceptions.dart';
+import 'package:livit/services/auth/auth_service.dart';
 import 'package:livit/utilities/main_action_button.dart';
-
 import 'package:livit/utilities/show_error_dialog_2t_1b.dart';
 import 'package:livit/utilities/show_error_dialog_2t_2b.dart';
 
@@ -195,13 +196,12 @@ class _LoginEmailViewState extends State<LoginEmailView> {
 void logInWithEmailAndPassword(
     GlobalKey key, BuildContext context, email, String password) async {
   try {
-    await FirebaseAuth.instance.signInWithEmailAndPassword(
-      email: email,
-      password: password,
+    await AuthService.firebase().logIn(
+      credentialType: CredentialType.emailAndPassword,
+      credentials: [email, password],
     );
-    //print(userCredential);
-    final emailVerified =
-        FirebaseAuth.instance.currentUser?.emailVerified ?? false;
+    final bool emailVerified =
+        AuthService.firebase().currentUser?.isEmailVerified ?? false;
     if (!emailVerified) {
       if (context.mounted) {
         await Navigator.of(context).pushNamed(
@@ -214,48 +214,36 @@ void logInWithEmailAndPassword(
             .pushNamedAndRemoveUntil(Routes.mainviewRoute, (route) => false);
       }
     }
-  } on FirebaseAuthException catch (error) {
-    switch (error.code) {
-      case 'invalid-credential':
-        showErrorDialog2b(
-          [key, null],
-          'Invalid email or password',
-          'Check if your email and password are correct or try creating an account',
-          [
-            'Try Again',
-            () {
-              Navigator.of(context).pop(false);
-            },
-          ],
-          [
-            'Create an account',
-            () {
-              Navigator.of(context)
-                  .pushNamedAndRemoveUntil(Routes.registerRoute, (route) => false);
-            },
-          ],
-        );
-        break;
-      case 'too-many-requests':
-        showErrorDialog(
-          key,
-          'Too many requests',
-          'Try again in a few minutes',
-        );
-        break;
-      default:
-        showErrorDialog(
-          key,
-          'Something went wrong',
-          'Error: ${error.code}, Try again in a few minutes',
-        );
-        break;
-    }
-  } catch (error) {
-    showErrorDialog(
+  } on InvalidCredentialsAuthException {
+    await showErrorDialog2b(
+      [key, null],
+      'Invalid email or password',
+      'Check if your email and password are correct or try creating an account',
+      [
+        'Try Again',
+        () {
+          Navigator.of(context).pop(false);
+        },
+      ],
+      [
+        'Create an account',
+        () {
+          Navigator.of(context)
+              .pushNamedAndRemoveUntil(Routes.registerRoute, (route) => false);
+        },
+      ],
+    );
+  } on TooManyRequestsAuthException {
+    await showErrorDialog(
+      key,
+      'Too many requests',
+      'Try again in a few minutes',
+    );
+  } on GenericAuthException {
+    await showErrorDialog(
       key,
       'Something went wrong',
-      'Error: ${error.toString()}',
+      'Try again in a few minutes',
     );
   }
 }

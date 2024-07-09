@@ -1,4 +1,6 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:livit/enums/credential_types.dart';
+import 'package:livit/firebase_options.dart';
 import 'package:livit/services/auth/auth_user.dart';
 import 'package:livit/services/auth/auth_exceptions.dart';
 import 'package:livit/services/auth/auth_provider.dart';
@@ -7,6 +9,13 @@ import 'package:firebase_auth/firebase_auth.dart'
     show FirebaseAuth, FirebaseAuthException;
 
 class FirebaseAuthProvider implements AuthProvider {
+  @override
+  Future<void> initialize() async {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+  }
+
   @override
   Future<AuthUser> createUser({
     required CredentialType credentialType,
@@ -93,10 +102,8 @@ class FirebaseAuthProvider implements AuthProvider {
       }
     } on FirebaseAuthException catch (error) {
       switch (error.code) {
-        case "user-not-found":
-          throw UserNotFoundAuthException();
-        case "wrong-password":
-          throw WrongPasswordAuthException();
+        case "invalid-credential":
+          throw InvalidCredentialsAuthException();
         case "too-many-requests":
           throw TooManyRequestsAuthException();
         default:
