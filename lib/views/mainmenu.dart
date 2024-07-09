@@ -5,14 +5,14 @@ import 'package:livit/views/home.dart';
 import 'package:livit/views/profile.dart';
 import 'package:livit/views/tickets.dart';
 
-class MainView extends StatefulWidget {
-  const MainView({super.key});
+class MainMenu extends StatefulWidget {
+  const MainMenu({super.key});
 
   @override
-  State<MainView> createState() => _MainViewState();
+  State<MainMenu> createState() => _MainMenuState();
 }
 
-class _MainViewState extends State<MainView> {
+class _MainMenuState extends State<MainMenu> {
   final GlobalKey<ScaffoldState> scaffoldKey = GlobalKey();
   int selectedIndex = 0;
 
