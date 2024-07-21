@@ -29,13 +29,12 @@ class _CheckInitialAuthState extends State<CheckInitialAuth> {
           .pushNamedAndRemoveUntil(Routes.mainviewRoute, (route) => false);
     } else {
       Navigator.of(context)
-          .pushNamedAndRemoveUntil(Routes.loginRoute, (route) => false);
+          .pushNamedAndRemoveUntil(Routes.authRoute, (route) => false);
     }
   }
 
   bool _checkIfLoggedIn() {
     final user = AuthService.firebase().currentUser;
-    print(user?.isEmailVerified);
     if (user == null) {
       return false;
     } else if (user.isEmailVerified) {

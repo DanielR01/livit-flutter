@@ -1,4 +1,5 @@
 class Routes {
+  static const authRoute = '/auth';
   static const loginRoute = '/login';
   static const loginEmailRoute = '/loginEmail';
   static const registerEmailRoute = '/registerEmail';

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:livit/utilities/navigation_bar.dart';
+import 'package:livit/utilities/bars_containers_fields/navigation_bar.dart';
 import 'package:livit/views/explore.dart';
 import 'package:livit/views/home.dart';
 import 'package:livit/views/profile.dart';
@@ -56,29 +56,4 @@ class _MainMenuState extends State<MainMenu> {
     TicketsView(),
     ProfileView(),
   ];
-}
-
-Future<bool> showLogOutDialog(BuildContext context) {
-  return showDialog<bool>(
-    context: context,
-    builder: (context) {
-      return AlertDialog(
-          title: const Text('Log out'),
-          content: const Text('Do you want to Log out?'),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop(false);
-              },
-              child: const Text('Cancel'),
-            ),
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop(true);
-              },
-              child: const Text('Log out'),
-            ),
-          ]);
-    },
-  ).then((value) => value ?? false);
 }

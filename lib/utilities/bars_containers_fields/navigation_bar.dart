@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:livit/constants/colors.dart';
+import 'package:livit/constants/styles/bar_style.dart';
 
 List<String> navIcons = [
   "assets/icons/home.svg",
@@ -22,7 +23,7 @@ class CustomNavigationBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 54,
+      height: LivitBarStyle.height,
       margin: const EdgeInsets.only(
         right: 10,
         left: 10,

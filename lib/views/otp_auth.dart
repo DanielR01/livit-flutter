@@ -2,8 +2,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:livit/constants/colors.dart';
 import 'package:livit/constants/routes.dart';
-import 'package:livit/utilities/main_action_button.dart';
-import 'package:livit/utilities/show_error_dialog_2t_1b.dart';
+import 'package:livit/utilities/buttons/main_action_button.dart';
+import 'package:livit/utilities/error_dialogs/show_error_dialog_2t_1b.dart';
 import 'package:pinput/pinput.dart';
 
 class OtpAuthView extends StatefulWidget {
@@ -63,7 +63,7 @@ class _OtpAuthViewState extends State<OtpAuthView> {
                     width: 60,
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(10),
-                      border: Border.all(color: LivitColors.borderGray),
+                      border: Border.all(color: LivitColors.inactiveGray),
                     ),
                     textStyle: const TextStyle(
                         fontSize: 14,

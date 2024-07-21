@@ -1,5 +1,5 @@
 import 'package:flutter/cupertino.dart';
-import 'package:livit/utilities/main_background.dart';
+import 'package:livit/utilities/background/main_background.dart';
 
 class ExploreView extends StatefulWidget {
   const ExploreView({super.key});

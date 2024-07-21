@@ -4,9 +4,9 @@ import 'package:livit/constants/routes.dart';
 import 'package:livit/enums/credential_types.dart';
 import 'package:livit/services/auth/auth_exceptions.dart';
 import 'package:livit/services/auth/auth_service.dart';
-import 'package:livit/utilities/main_action_button.dart';
-import 'package:livit/utilities/show_error_dialog_2t_1b.dart';
-import 'package:livit/utilities/show_error_dialog_2t_2b.dart';
+import 'package:livit/utilities/buttons/main_action_button.dart';
+import 'package:livit/utilities/error_dialogs/show_error_dialog_2t_1b.dart';
+import 'package:livit/utilities/error_dialogs/show_error_dialog_2t_2b.dart';
 
 class RegisterEmailView extends StatefulWidget {
   const RegisterEmailView({super.key});
@@ -82,12 +82,12 @@ class _RegisterEmailViewState extends State<RegisterEmailView> {
                   decoration: InputDecoration(
                     hintText: 'Email',
                     hintStyle: const TextStyle(
-                      color: LivitColors.borderGray,
+                      color: LivitColors.inactiveGray,
                     ),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),
                       borderSide: const BorderSide(
-                        color: LivitColors.borderGray,
+                        color: LivitColors.inactiveGray,
                       ),
                     ),
                     focusedBorder: OutlineInputBorder(
@@ -128,12 +128,12 @@ class _RegisterEmailViewState extends State<RegisterEmailView> {
                   decoration: InputDecoration(
                     hintText: 'Enter your password',
                     hintStyle: const TextStyle(
-                      color: LivitColors.borderGray,
+                      color: LivitColors.inactiveGray,
                     ),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),
                       borderSide: const BorderSide(
-                        color: LivitColors.borderGray,
+                        color: LivitColors.inactiveGray,
                       ),
                     ),
                     focusedBorder: OutlineInputBorder(
@@ -162,7 +162,7 @@ class _RegisterEmailViewState extends State<RegisterEmailView> {
                 const Text(
                   'Password must have at least 8 characters (20 max)',
                   style: TextStyle(
-                    color: LivitColors.borderGray,
+                    color: LivitColors.inactiveGray,
                   ),
                 ),
                 const SizedBox(

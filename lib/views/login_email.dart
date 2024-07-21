@@ -4,9 +4,10 @@ import 'package:livit/constants/routes.dart';
 import 'package:livit/enums/credential_types.dart';
 import 'package:livit/services/auth/auth_exceptions.dart';
 import 'package:livit/services/auth/auth_service.dart';
-import 'package:livit/utilities/main_action_button.dart';
-import 'package:livit/utilities/show_error_dialog_2t_1b.dart';
-import 'package:livit/utilities/show_error_dialog_2t_2b.dart';
+import 'package:livit/utilities/login_email_password.dart';
+import 'package:livit/utilities/buttons/main_action_button.dart';
+import 'package:livit/utilities/error_dialogs/show_error_dialog_2t_1b.dart';
+import 'package:livit/utilities/error_dialogs/show_error_dialog_2t_2b.dart';
 
 class LoginEmailView extends StatefulWidget {
   const LoginEmailView({
@@ -84,12 +85,12 @@ class _LoginEmailViewState extends State<LoginEmailView> {
                   decoration: InputDecoration(
                     hintText: 'Email',
                     hintStyle: const TextStyle(
-                      color: LivitColors.borderGray,
+                      color: LivitColors.inactiveGray,
                     ),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),
                       borderSide: const BorderSide(
-                        color: LivitColors.borderGray,
+                        color: LivitColors.inactiveGray,
                       ),
                     ),
                     focusedBorder: OutlineInputBorder(
@@ -130,12 +131,12 @@ class _LoginEmailViewState extends State<LoginEmailView> {
                   decoration: InputDecoration(
                     hintText: 'Enter your password',
                     hintStyle: const TextStyle(
-                      color: LivitColors.borderGray,
+                      color: LivitColors.inactiveGray,
                     ),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),
                       borderSide: const BorderSide(
-                        color: LivitColors.borderGray,
+                        color: LivitColors.inactiveGray,
                       ),
                     ),
                     focusedBorder: OutlineInputBorder(
@@ -164,7 +165,7 @@ class _LoginEmailViewState extends State<LoginEmailView> {
                 const Text(
                   'Password must have at least 8 characters (20 max)',
                   style: TextStyle(
-                    color: LivitColors.borderGray,
+                    color: LivitColors.inactiveGray,
                   ),
                 ),
                 const SizedBox(
@@ -193,57 +194,4 @@ class _LoginEmailViewState extends State<LoginEmailView> {
   }
 }
 
-void logInWithEmailAndPassword(
-    GlobalKey key, BuildContext context, email, String password) async {
-  try {
-    await AuthService.firebase().logIn(
-      credentialType: CredentialType.emailAndPassword,
-      credentials: [email, password],
-    );
-    final bool emailVerified =
-        AuthService.firebase().currentUser?.isEmailVerified ?? false;
-    if (!emailVerified) {
-      if (context.mounted) {
-        await Navigator.of(context).pushNamed(
-          Routes.verifyEmailRoute,
-        );
-      }
-    } else {
-      if (context.mounted) {
-        await Navigator.of(context)
-            .pushNamedAndRemoveUntil(Routes.mainviewRoute, (route) => false);
-      }
-    }
-  } on InvalidCredentialsAuthException {
-    await showErrorDialog2b(
-      [key, null],
-      'Invalid email or password',
-      'Check if your email and password are correct or try creating an account',
-      [
-        'Try Again',
-        () {
-          Navigator.of(context).pop(false);
-        },
-      ],
-      [
-        'Create an account',
-        () {
-          Navigator.of(context)
-              .pushNamedAndRemoveUntil(Routes.registerRoute, (route) => false);
-        },
-      ],
-    );
-  } on TooManyRequestsAuthException {
-    await showErrorDialog(
-      key,
-      'Too many requests',
-      'Try again in a few minutes',
-    );
-  } on GenericAuthException {
-    await showErrorDialog(
-      key,
-      'Something went wrong',
-      'Try again in a few minutes',
-    );
-  }
-}
+

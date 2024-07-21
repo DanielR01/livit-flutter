@@ -1,5 +1,5 @@
 import 'package:flutter/cupertino.dart';
-import 'package:livit/utilities/main_background.dart';
+import 'package:livit/utilities/background/main_background.dart';
 
 class HomeView extends StatefulWidget {
   const HomeView({super.key});

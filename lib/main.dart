@@ -20,6 +20,11 @@ class StartPage extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'Livit',
       theme: ThemeData(
+        textSelectionTheme: const TextSelectionThemeData(
+          selectionColor: LivitColors.whiteInactive,
+          selectionHandleColor: LivitColors.whiteActive,
+          cursorColor: LivitColors.whiteActive,
+        ),
         scaffoldBackgroundColor: LivitColors.mainBlack,
         appBarTheme: const AppBarTheme(
           color: LivitColors.mainBlack,
@@ -40,6 +45,7 @@ class StartPage extends StatelessWidget {
             color: LivitColors.whiteActive,
           ),
         ),
+        fontFamily: 'HelveticaNowDisplay',
       ),
       initialRoute: '/',
       onGenerateRoute: RouteGenerator.generateRoute,

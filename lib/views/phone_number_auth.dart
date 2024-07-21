@@ -3,8 +3,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:livit/constants/colors.dart';
 import 'package:livit/constants/routes.dart';
-import 'package:livit/utilities/main_action_button.dart';
-import 'package:livit/utilities/show_error_dialog_2t_1b.dart';
+import 'package:livit/utilities/buttons/main_action_button.dart';
+import 'package:livit/utilities/error_dialogs/show_error_dialog_2t_1b.dart';
 
 class AuthNumberView extends StatefulWidget {
   final bool isLogin;
@@ -86,10 +86,8 @@ class AuthNumberViewState extends State<AuthNumberView> {
                   keyboardType: TextInputType.number,
                   onChanged: (value) {
                     setState(() {
-                      if (_numberFieldController.text.length < 9 ||
-                          _numberFieldController.text.length > 15 ||
-                          !RegExp(r'^[0-9]+$')
-                              .hasMatch(_numberFieldController.text)) {
+                      if (!RegExp(r'^\d{4,15}$')
+                          .hasMatch(_numberFieldController.text)) {
                         valid = false;
                       } else {
                         valid = true;
@@ -106,12 +104,12 @@ class AuthNumberViewState extends State<AuthNumberView> {
                       hintStyle: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.normal,
-                        color: LivitColors.borderGray,
+                        color: LivitColors.inactiveGray,
                       ),
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10),
                         borderSide: const BorderSide(
-                          color: LivitColors.borderGray,
+                          color: LivitColors.inactiveGray,
                         ),
                       ),
                       focusedBorder: OutlineInputBorder(
@@ -130,11 +128,12 @@ class AuthNumberViewState extends State<AuthNumberView> {
                               appBarBackgroundColour: LivitColors.mainBlack,
                               backgroundColour: LivitColors.mainBlack,
                               countryTextColour: LivitColors.whiteActive,
-                              searchBarBorderColor: LivitColors.borderGray,
-                              searchBarHintColor: LivitColors.borderGray,
+                              searchBarBorderColor: LivitColors.inactiveGray,
+                              searchBarHintColor: LivitColors.inactiveGray,
                               searchBarTextColor: LivitColors.whiteActive,
                               context: context,
                               onSelect: (value) {
+                                print(value.example);
                                 setState(
                                   () {
                                     selectedCountry = value;

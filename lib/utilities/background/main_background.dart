@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:livit/constants/colors.dart';
-import 'package:livit/utilities/blend_mask.dart';
+import 'package:livit/utilities/background/blend_mask.dart';
 
 class MainBackground extends StatefulWidget {
   const MainBackground({super.key});
@@ -27,39 +27,39 @@ List<double> blobHeights = [
 ];
 List<List<List<double>>> blobPositions = [
   [
-    [256, -206],
-    [270, -186],
-    [206, -206],
-    [205, -137],
-    [23, -392],
+    [306,-206],
+    [354,24],
+    [358,-146],
+    [330,622],
+    [330,622],
   ],
   [
-    [-495, 732],
-    [-641, 753],
     [-495, 739],
-    [-454, 685],
-    [-442, 693],
+    [-495, 739],
+    [-182, 842],
+    [-182, 842],
+    [-182, 842],
   ],
   [
     [-500, 179],
-    [-517, 146],
-    [-297, 544],
-    [-448, 64],
-    [-428, 350],
+    [-500, 422],
+    [-469, -63],
+    [-469, 388],
+    [-469, 388],
   ],
   [
     [235, 488],
-    [235, 488],
-    [235, 594],
-    [154, 482],
-    [157, 604],
+    [296, 726],
+    [340, 347],
+    [284, 36],
+    [310, 190],
   ],
   [
     [-312, -126],
-    [-507, -117],
-    [-165, -171],
-    [163, -168],
-    [-408, 339],
+    [-162, -261],
+    [0, -265],
+    [-17, -191],
+    [-486, -36],
   ],
 ];
 List<List<Color>> blobColorStates = [
@@ -93,12 +93,10 @@ List<List<Color>> blobColorStates = [
   ],
   [
     LivitColors.mainBlueActive,
+    LivitColors.mainBlueActive,
+    LivitColors.mainBlueActive,
     LivitColors.whiteActive,
-    const Color.fromARGB(255, 182, 182, 182),
-
     LivitColors.whiteActive,
-    //LivitColors.greenActive,
-    const Color.fromARGB(255, 136, 136, 136),
   ],
 ];
 
