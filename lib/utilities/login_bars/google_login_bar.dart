@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:livit/constants/colors.dart';
 import 'package:livit/constants/styles/bar_style.dart';
 import 'package:livit/constants/styles/text_style.dart';
-import 'package:livit/utilities/sign_in/signin_google.dart';
+import 'package:livit/enums/credential_types.dart';
+import 'package:livit/services/auth/auth_service.dart';
 
 class GoogleLoginBar extends StatelessWidget {
   final GlobalKey<ScaffoldState> scaffoldKey;
@@ -18,10 +19,8 @@ class GoogleLoginBar extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
-        signInWithGoogle(
-          context,
-          scaffoldKey,
-        );
+        AuthService.firebase()
+            .logIn(credentialType: CredentialType.google, credentials: []);
       },
       child: Container(
         height: 54,

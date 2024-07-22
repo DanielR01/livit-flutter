@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:livit/enums/credential_types.dart';
 import 'package:livit/services/auth/auth_provider.dart';
 import 'package:livit/services/auth/auth_user.dart';
@@ -37,4 +38,8 @@ class AuthService implements AuthProvider {
 
   @override
   Future<void> sendEmailVerification() => provider.sendEmailVerification();
+
+  @override
+  Future<void> sendOtpCode(String phoneCode, String phoneNumber, ValueChanged<List> onUpdate) =>
+      provider.sendOtpCode(phoneCode, phoneNumber, onUpdate);
 }

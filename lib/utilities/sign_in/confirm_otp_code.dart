@@ -3,11 +3,15 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:livit/constants/colors.dart';
+import 'package:livit/constants/routes.dart';
 import 'package:livit/constants/styles/bar_style.dart';
 import 'package:livit/constants/styles/container_style.dart';
 import 'package:livit/constants/styles/shadows.dart';
 import 'package:livit/constants/styles/spaces.dart';
 import 'package:livit/constants/styles/text_style.dart';
+import 'package:livit/enums/credential_types.dart';
+import 'package:livit/services/auth/auth_service.dart';
+import 'package:livit/services/auth/firebase_auth_provider.dart';
 import 'package:livit/utilities/bars_containers_fields/bar.dart';
 import 'package:livit/utilities/bars_containers_fields/glass_container.dart';
 import 'package:livit/utilities/bars_containers_fields/text_field.dart';
@@ -17,9 +21,15 @@ import 'package:livit/utilities/buttons/secondary_action_button.dart';
 import 'package:pinput/pinput.dart';
 
 class ConfirmOTPCode extends StatefulWidget {
-  final String? phoneNumber;
+  final String phoneNumber;
+  final String verificationId;
   final ValueChanged<int> onBack;
-  const ConfirmOTPCode({super.key, this.phoneNumber, required this.onBack});
+  const ConfirmOTPCode({
+    super.key,
+    required this.verificationId,
+    required this.phoneNumber,
+    required this.onBack,
+  });
 
   @override
   State<ConfirmOTPCode> createState() => _ConfirmOTPCodeState();
@@ -135,7 +145,21 @@ class _ConfirmOTPCodeState extends State<ConfirmOTPCode> {
                         MainActionButton(
                           text: 'Confirmar',
                           isActive: isOtpCodeValid,
-                          onPressed: () {},
+                          onPressed: () async {
+                            await AuthService.firebase().logIn(
+                              credentialType: CredentialType.phoneAndOtp,
+                              credentials: [
+                                widget.verificationId,
+                                otpController.text,
+                              ],
+                            );
+                            if (AuthService.firebase().currentUser != null) {
+                              if (context.mounted) {
+                                Navigator.of(context).pushNamedAndRemoveUntil(
+                                    Routes.mainviewRoute, (route) => false);
+                              }
+                            }
+                          },
                         ),
                       ],
                     ),

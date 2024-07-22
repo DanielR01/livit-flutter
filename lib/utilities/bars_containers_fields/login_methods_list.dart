@@ -4,6 +4,7 @@ import 'package:livit/constants/colors.dart';
 import 'package:livit/constants/styles/container_style.dart';
 import 'package:livit/constants/styles/spaces.dart';
 import 'package:livit/constants/styles/text_style.dart';
+import 'package:livit/services/auth/auth_service.dart';
 import 'package:livit/utilities/bars_containers_fields/glass_container.dart';
 import 'package:livit/utilities/bars_containers_fields/text_field.dart';
 import 'package:livit/utilities/buttons/main_action_button.dart';
@@ -12,7 +13,7 @@ import 'package:livit/utilities/login_bars/google_login_bar.dart';
 
 class LoginMethodsList extends StatefulWidget {
   final GlobalKey<ScaffoldState> scaffoldKey;
-  final ValueChanged<String> phoneLoginCallback;
+  final ValueChanged<List<String>> phoneLoginCallback;
 
   const LoginMethodsList({
     super.key,
@@ -29,6 +30,8 @@ class _LoginMethodsListState extends State<LoginMethodsList> {
   String? selectedCountryCode;
 
   bool isPhoneValid = false;
+
+  bool isCodeSent = false;
 
   Country initialCountry = Country(
     phoneCode: '57',
@@ -70,6 +73,21 @@ class _LoginMethodsListState extends State<LoginMethodsList> {
     setState(
       () {
         selectedCountryCode = countryCode;
+      },
+    );
+  }
+
+  void onSendCode(List values) {
+    setState(
+      () {
+        if (values[0]) {
+          widget.phoneLoginCallback(
+            [
+              '+$selectedCountryCode ${phoneController.text}',
+              values[1],
+            ],
+          );
+        }
       },
     );
   }
@@ -127,9 +145,12 @@ class _LoginMethodsListState extends State<LoginMethodsList> {
                   MainActionButton(
                     text: 'Continuar',
                     isActive: isPhoneValid,
-                    onPressed: () {
-                      widget.phoneLoginCallback(
-                          '+$selectedCountryCode ${phoneController.text}');
+                    onPressed: () async {
+                      await AuthService.firebase().sendOtpCode(
+                        selectedCountryCode ?? '',
+                        phoneController.text,
+                        onSendCode,
+                      );
                     },
                   ),
                 ],

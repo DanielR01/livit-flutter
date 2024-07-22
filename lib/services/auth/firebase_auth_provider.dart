@@ -1,4 +1,6 @@
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/material.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:livit/enums/credential_types.dart';
 import 'package:livit/firebase_options.dart';
 import 'package:livit/services/auth/auth_user.dart';
@@ -6,7 +8,12 @@ import 'package:livit/services/auth/auth_exceptions.dart';
 import 'package:livit/services/auth/auth_provider.dart';
 
 import 'package:firebase_auth/firebase_auth.dart'
-    show FirebaseAuth, FirebaseAuthException;
+    show
+        FirebaseAuth,
+        FirebaseAuthException,
+        GoogleAuthProvider,
+        PhoneAuthCredential,
+        PhoneAuthProvider;
 
 class FirebaseAuthProvider implements AuthProvider {
   @override
@@ -79,18 +86,58 @@ class FirebaseAuthProvider implements AuthProvider {
   }
 
   @override
+  Future<void> sendOtpCode(
+    String phoneCode,
+    String phoneNumber,
+    ValueChanged<List> onUpdate,
+  ) async {
+    await FirebaseAuth.instance.verifyPhoneNumber(
+      phoneNumber: '+$phoneCode $phoneNumber',
+      verificationCompleted: (PhoneAuthCredential credential) async {
+        await FirebaseAuth.instance.signInWithCredential(credential);
+      },
+      verificationFailed: (error) {
+        onUpdate([
+          false,
+          null,
+        ]);
+      },
+      codeSent: (verificationId, forceResendingToken) {
+        onUpdate([
+          true,
+          verificationId,
+        ]);
+      },
+      codeAutoRetrievalTimeout: (verificationId) {},
+    );
+  }
+
+  @override
   Future<AuthUser> logIn({
     required CredentialType credentialType,
-    required List<String> credentials,
+    List<String>? credentials,
   }) async {
     try {
       switch (credentialType) {
         case CredentialType.emailAndPassword:
-          await FirebaseAuth.instance.signInWithEmailAndPassword(
-            email: credentials[0],
-            password: credentials[1],
-          );
+          if (credentials != null) {
+            await FirebaseAuth.instance.signInWithEmailAndPassword(
+              email: credentials[0],
+              password: credentials[1],
+            );
+          }
           break;
+        case CredentialType.phoneAndOtp:
+          if (credentials != null) {
+            String verificationId = credentials[0];
+            String otpCode = credentials[1];
+            await signInWithPhoneNumber(verificationId, otpCode);
+          }
+          break;
+        case CredentialType.google:
+          await signInWithGoogle();
+          break;
+
         default:
           throw GenericAuthException();
       }
@@ -123,4 +170,31 @@ class FirebaseAuthProvider implements AuthProvider {
       throw UserNotLoggedInAuthException();
     }
   }
+}
+
+Future<void> signInWithGoogle() async {
+  final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
+
+  final GoogleSignInAuthentication? googleAuth =
+      await googleUser?.authentication;
+  if (googleUser == null) {
+    return;
+  }
+
+  final credential = GoogleAuthProvider.credential(
+    accessToken: googleAuth?.accessToken,
+    idToken: googleAuth?.idToken,
+  );
+
+  await FirebaseAuth.instance.signInWithCredential(credential);
+}
+
+Future<void> signInWithPhoneNumber(
+    String verificationId, String otpCode) async {
+  PhoneAuthCredential credential = PhoneAuthProvider.credential(
+    verificationId: verificationId,
+    smsCode: otpCode,
+  );
+
+  await FirebaseAuth.instance.signInWithCredential(credential);
 }

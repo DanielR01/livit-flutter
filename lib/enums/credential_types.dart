@@ -1,6 +1,6 @@
 enum CredentialType {
   emailAndPassword,
-  otp,
+  phoneAndOtp,
   google,
   apple,
 }

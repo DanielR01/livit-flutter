@@ -1,14 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:livit/constants/colors.dart';
-import 'package:livit/constants/styles/container_style.dart';
-import 'package:livit/constants/styles/spaces.dart';
-import 'package:livit/constants/styles/text_style.dart';
 import 'package:livit/utilities/bars_containers_fields/login_methods_list.dart';
-import 'package:livit/utilities/login_bars/apple_login_bar.dart';
-import 'package:livit/utilities/login_bars/google_login_bar.dart';
-import 'package:livit/utilities/buttons/main_action_button.dart';
-import 'package:livit/utilities/bars_containers_fields/text_field.dart';
-import 'package:livit/utilities/bars_containers_fields/glass_container.dart';
 import 'package:livit/utilities/sign_in/confirm_otp_code.dart';
 
 class SignInView extends StatefulWidget {
@@ -27,12 +18,14 @@ class SignInView extends StatefulWidget {
 
 class _SignInViewState extends State<SignInView> {
   int actualIndex = 0;
-  String? phoneNumber;
+  String phoneNumber = '';
+  String verificationId = '';
 
-  void onPhoneLoginPressed(String passedPhoneNumber) {
+  void onPhoneLoginPressed(List<String> credentials) {
     setState(
       () {
-        phoneNumber = passedPhoneNumber;
+        phoneNumber = credentials[0];
+        verificationId = credentials[1];
         actualIndex = 1;
       },
     );
@@ -49,6 +42,7 @@ class _SignInViewState extends State<SignInView> {
         ),
         ConfirmOTPCode(
           phoneNumber: phoneNumber,
+          verificationId: verificationId,
           onBack: (value) {
             setState(
               () {
