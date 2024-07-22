@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:livit/constants/routes.dart';
-import 'package:livit/views/auth.dart';
-import 'package:livit/views/check_initial_auth.dart';
+import 'package:livit/views/auth/sign_in/auth.dart';
+import 'package:livit/views/auth/check_initial_auth.dart';
 import 'package:livit/views/error_route.dart';
-import 'package:livit/views/mainmenu.dart';
+import 'package:livit/views/main_pages/mainmenu.dart';
 
 class RouteGenerator {
   static Route<dynamic> generateRoute(RouteSettings settings) {

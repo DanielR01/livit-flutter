@@ -8,8 +8,8 @@ import 'package:livit/services/auth/auth_service.dart';
 import 'package:livit/utilities/bars_containers_fields/glass_container.dart';
 import 'package:livit/utilities/bars_containers_fields/text_field.dart';
 import 'package:livit/utilities/buttons/main_action_button.dart';
-import 'package:livit/utilities/login_bars/apple_login_bar.dart';
-import 'package:livit/utilities/login_bars/google_login_bar.dart';
+import 'package:livit/utilities/buttons/login_buttons/apple_login_bar.dart';
+import 'package:livit/utilities/buttons/login_buttons/google_login_bar.dart';
 
 class LoginMethodsList extends StatefulWidget {
   final GlobalKey<ScaffoldState> scaffoldKey;

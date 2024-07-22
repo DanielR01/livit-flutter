@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:livit/utilities/bars_containers_fields/navigation_bar.dart';
-import 'package:livit/views/explore.dart';
-import 'package:livit/views/home.dart';
-import 'package:livit/views/profile.dart';
-import 'package:livit/views/tickets.dart';
+import 'package:livit/views/main_pages/explore.dart';
+import 'package:livit/views/main_pages/home.dart';
+import 'package:livit/views/main_pages/profile.dart';
+import 'package:livit/views/main_pages/tickets.dart';
 
 class MainMenu extends StatefulWidget {
   const MainMenu({super.key});

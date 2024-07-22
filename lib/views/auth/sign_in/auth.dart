@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:livit/utilities/background/main_background.dart';
-import 'package:livit/views/sign_in.dart';
-import 'package:livit/views/welcome.dart';
+import 'package:livit/views/auth/sign_in/sign_in.dart';
+import 'package:livit/views/auth/sign_in/welcome.dart';
 
 class AuthView extends StatefulWidget {
   const AuthView({super.key});
