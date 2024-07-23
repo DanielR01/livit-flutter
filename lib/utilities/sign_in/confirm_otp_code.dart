@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
@@ -9,6 +11,7 @@ import 'package:livit/constants/styles/shadows.dart';
 import 'package:livit/constants/styles/spaces.dart';
 import 'package:livit/constants/styles/text_style.dart';
 import 'package:livit/enums/credential_types.dart';
+import 'package:livit/services/auth/auth_exceptions.dart';
 import 'package:livit/services/auth/auth_service.dart';
 import 'package:livit/utilities/bars_containers_fields/glass_container.dart';
 import 'package:livit/utilities/buttons/arrow_back_button.dart';
@@ -17,12 +20,14 @@ import 'package:livit/utilities/buttons/secondary_action_button.dart';
 import 'package:pinput/pinput.dart';
 
 class ConfirmOTPCode extends StatefulWidget {
+  final String phoneCode;
   final String phoneNumber;
-  final String verificationId;
+  final String initialVerificationId;
   final ValueChanged<int> onBack;
   const ConfirmOTPCode({
     super.key,
-    required this.verificationId,
+    required this.phoneCode,
+    required this.initialVerificationId,
     required this.phoneNumber,
     required this.onBack,
   });
@@ -33,17 +38,64 @@ class ConfirmOTPCode extends StatefulWidget {
 
 class _ConfirmOTPCodeState extends State<ConfirmOTPCode> {
   late final TextEditingController otpController;
+
+  late String verificationId;
+
   String? otpCode;
   bool isOtpCodeValid = false;
+  bool invalidCode = false;
+  late Timer _timer;
+  int countdown = 0;
+  bool isResendButtonActive = false;
+
+  void onResendedCode(List values) {
+    setState(
+      () {
+        if (values[0]) {
+          verificationId = values[1];
+        } else {
+          //TODO implement generic error handler for resended codes
+        }
+      },
+    );
+  }
+
+  void startTimer() {
+    setState(
+      () {
+        isResendButtonActive = false;
+        countdown = 35;
+      },
+    );
+
+    _timer = Timer.periodic(
+      const Duration(seconds: 1),
+      (timer) {
+        setState(
+          () {
+            if (countdown > 1) {
+              countdown--;
+            } else {
+              isResendButtonActive = true;
+              _timer.cancel();
+            }
+          },
+        );
+      },
+    );
+  }
 
   @override
   void initState() {
     otpController = TextEditingController();
+    verificationId = widget.initialVerificationId;
+    startTimer();
     super.initState();
   }
 
   @override
   void dispose() {
+    _timer.cancel();
     otpController.dispose();
     super.dispose();
   }
@@ -58,7 +110,7 @@ class _ConfirmOTPCodeState extends State<ConfirmOTPCode> {
             horizontal: 10,
           ),
           child: GlassContainer(
-            opacity: 1,
+            //opacity: 1,
             child: SizedBox(
               width: double.infinity,
               child: Padding(
@@ -77,6 +129,7 @@ class _ConfirmOTPCodeState extends State<ConfirmOTPCode> {
                               onPressed: () {
                                 widget.onBack(0);
                                 otpController.text = '';
+                                invalidCode = false;
                               },
                             ),
                           ),
@@ -129,31 +182,63 @@ class _ConfirmOTPCodeState extends State<ConfirmOTPCode> {
                         );
                       },
                     ),
-                    LivitSpaces.medium16spacer,
+                    invalidCode
+                        ? Column(
+                            children: [
+                              LivitSpaces.small8spacer,
+                              Text(
+                                'Codigo invalido',
+                                style: LivitTextStyle(
+                                  textColor: LivitColors.whiteActive,
+                                ).smallTextStyle,
+                              ),
+                              LivitSpaces.small8spacer,
+                            ],
+                          )
+                        : LivitSpaces.medium16spacer,
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       mainAxisSize: MainAxisSize.max,
                       children: [
-                        const SecondaryActionButton(
-                          text: 'No recibí el codigo',
-                          isActive: false,
+                        SecondaryActionButton(
+                          text: isResendButtonActive
+                              ? 'Reenviar codigo'
+                              : 'Reenviar codigo... $countdown',
+                          isActive: isResendButtonActive,
+                          onPressed: () {
+                            startTimer();
+                            invalidCode = false;
+                            AuthService.firebase().sendOtpCode(
+                              widget.phoneCode,
+                              widget.phoneNumber,
+                              (value) {},
+                            );
+                          },
                         ),
                         MainActionButton(
                           text: 'Confirmar',
                           isActive: isOtpCodeValid,
                           onPressed: () async {
-                            await AuthService.firebase().logIn(
-                              credentialType: CredentialType.phoneAndOtp,
-                              credentials: [
-                                widget.verificationId,
-                                otpController.text,
-                              ],
-                            );
-                            if (AuthService.firebase().currentUser != null) {
-                              if (context.mounted) {
-                                Navigator.of(context).pushNamedAndRemoveUntil(
-                                    Routes.mainviewRoute, (route) => false);
+                            try {
+                              await AuthService.firebase().logIn(
+                                credentialType: CredentialType.phoneAndOtp,
+                                credentials: [
+                                  verificationId,
+                                  otpController.text,
+                                ],
+                              );
+                              if (AuthService.firebase().currentUser != null) {
+                                if (context.mounted) {
+                                  Navigator.of(context).pushNamedAndRemoveUntil(
+                                      Routes.mainviewRoute, (route) => false);
+                                }
                               }
+                            } on InvalidVerificationCodeAuthException {
+                              otpController.text = '';
+                              invalidCode = true;
+                              // TODO implement invalidverificationCodeAuthException
+                            } on GenericAuthException {
+                              //TODO implement genericAuthException
                             }
                           },
                         ),

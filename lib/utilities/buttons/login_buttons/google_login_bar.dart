@@ -4,6 +4,7 @@ import 'package:livit/constants/routes.dart';
 import 'package:livit/constants/styles/bar_style.dart';
 import 'package:livit/constants/styles/text_style.dart';
 import 'package:livit/enums/credential_types.dart';
+import 'package:livit/services/auth/auth_exceptions.dart';
 import 'package:livit/services/auth/auth_service.dart';
 
 class GoogleLoginBar extends StatelessWidget {
@@ -20,13 +21,19 @@ class GoogleLoginBar extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () async {
-        await AuthService.firebase()
-            .logIn(credentialType: CredentialType.google, credentials: []);
-        if (AuthService.firebase().currentUser != null) {
-          if (context.mounted) {
-            Navigator.of(context).pushNamedAndRemoveUntil(
-                Routes.mainviewRoute, (route) => false);
+        try {
+          await AuthService.firebase()
+              .logIn(credentialType: CredentialType.google, credentials: []);
+          if (AuthService.firebase().currentUser != null) {
+            if (context.mounted) {
+              Navigator.of(context).pushNamedAndRemoveUntil(
+                  Routes.mainviewRoute, (route) => false);
+            }
           }
+        } on UserNotLoggedInAuthException {
+          //Do nothing
+        } on GenericAuthException {
+          //TODO implement genericAuthException
         }
       },
       child: Container(
@@ -49,7 +56,7 @@ class GoogleLoginBar extends StatelessWidget {
             Text(
               'Continuar con Google',
               style: LivitTextStyle(
-                textWeight: FontWeight.bold,
+                //textWeight: FontWeight.bold,
                 textColor: LivitColors.mainBlack,
               ).regularTextStyle,
             ),

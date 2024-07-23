@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:livit/utilities/bars_containers_fields/login_methods_list.dart';
+import 'package:livit/utilities/sign_in/login_methods_list.dart';
 import 'package:livit/utilities/sign_in/confirm_otp_code.dart';
 
 class SignInView extends StatefulWidget {
@@ -18,14 +18,16 @@ class SignInView extends StatefulWidget {
 
 class _SignInViewState extends State<SignInView> {
   int actualIndex = 0;
+  String phoneCode = '';
   String phoneNumber = '';
   String verificationId = '';
 
   void onPhoneLoginPressed(List<String> credentials) {
     setState(
       () {
-        phoneNumber = credentials[0];
-        verificationId = credentials[1];
+        phoneCode = credentials[0];
+        phoneNumber = credentials[1];
+        verificationId = credentials[2];
         actualIndex = 1;
       },
     );
@@ -33,25 +35,24 @@ class _SignInViewState extends State<SignInView> {
 
   @override
   Widget build(BuildContext context) {
-    return IndexedStack(
-      index: actualIndex,
-      children: [
-        LoginMethodsList(
-          scaffoldKey: widget.scaffoldKey,
-          phoneLoginCallback: onPhoneLoginPressed,
-        ),
-        ConfirmOTPCode(
-          phoneNumber: phoneNumber,
-          verificationId: verificationId,
-          onBack: (value) {
-            setState(
-              () {
-                actualIndex = 0;
-              },
-            );
-          },
-        ),
-      ],
-    );
+    if (actualIndex == 0) {
+      return LoginMethodsList(
+        scaffoldKey: widget.scaffoldKey,
+        phoneLoginCallback: onPhoneLoginPressed,
+      );
+    } else {
+      return ConfirmOTPCode(
+        phoneCode: phoneCode,
+        phoneNumber: phoneNumber,
+        initialVerificationId: verificationId,
+        onBack: (value) {
+          setState(
+            () {
+              actualIndex = 0;
+            },
+          );
+        },
+      );
+    }
   }
 }

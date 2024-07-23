@@ -16,8 +16,7 @@ class InvalidPhoneNumberAuthException implements Exception {}
 class InvalidVerificationCodeAuthException implements Exception {}
 
 //generic exceptions
-class GenericAuthException implements Exception {
-}
+class GenericAuthException implements Exception {}
 
 class UserNotLoggedInAuthException implements Exception {}
 

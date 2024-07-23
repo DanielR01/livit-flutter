@@ -2,6 +2,7 @@ import 'package:country_picker_pro/country_picker_pro.dart';
 import 'package:flutter/material.dart';
 import 'package:livit/constants/colors.dart';
 import 'package:livit/constants/styles/bar_style.dart';
+import 'package:livit/constants/styles/spaces.dart';
 import 'package:livit/constants/styles/text_style.dart';
 
 class LivitTextField extends StatefulWidget {
@@ -15,6 +16,8 @@ class LivitTextField extends StatefulWidget {
   final bool phoneNumberField;
   final ValueChanged<String>? onCountryCodeChanged;
   final Country? initialCountry;
+  final String? bottomCaptionText;
+  final TextStyle? bottomCaptionStyle;
 
   const LivitTextField({
     super.key,
@@ -28,6 +31,8 @@ class LivitTextField extends StatefulWidget {
     this.phoneNumberField = false,
     this.onCountryCodeChanged,
     this.initialCountry,
+    this.bottomCaptionStyle,
+    this.bottomCaptionText,
   });
 
   @override
@@ -68,12 +73,97 @@ class _LivitTextFieldState extends State<LivitTextField> {
 
   @override
   Widget build(BuildContext context) {
-    late final RegExp? regExp;
+    late final RegExp regExp;
     if (widget.phoneNumberField) {
       regExp = RegExp(r'^\d{4,15}$');
     } else {
-      regExp = widget.regExp;
+      regExp = widget.regExp ?? RegExp(r'.+');
     }
+    if (widget.bottomCaptionText == null) {
+      return NoBottomCaption(
+        controller: widget.controller,
+        hint: widget.hint,
+        blurInput: widget.blurInput,
+        inputType: widget.inputType,
+        regExp: regExp,
+        icon: widget.icon,
+        onChanged: widget.onChanged,
+        phoneNumberField: widget.phoneNumberField,
+        onCountryCodeChanged: widget.onCountryCodeChanged,
+        initialCountry: selectedCountry,
+      );
+    } else {
+      return WithBottomCaption(
+        controller: widget.controller,
+        hint: widget.hint,
+        blurInput: widget.blurInput,
+        inputType: widget.inputType,
+        regExp: regExp,
+        icon: widget.icon,
+        onChanged: widget.onChanged,
+        phoneNumberField: widget.phoneNumberField,
+        onCountryCodeChanged: widget.onCountryCodeChanged,
+        initialCountry: selectedCountry,
+        bottomCaptionStyle: widget.bottomCaptionStyle ??
+            LivitTextStyle(
+              textColor: LivitColors.whiteActive,
+            ).regularTextStyle,
+        bottomCaptionText: widget.bottomCaptionText ?? '',
+      );
+    }
+  }
+}
+
+class NoBottomCaption extends StatefulWidget {
+  final TextEditingController controller;
+  final String? hint;
+  final bool? blurInput;
+  final TextInputType? inputType;
+  final RegExp regExp;
+  final Icon? icon;
+  final ValueChanged<bool>? onChanged;
+  final bool phoneNumberField;
+  final ValueChanged<String>? onCountryCodeChanged;
+  final Country initialCountry;
+
+  const NoBottomCaption({
+    super.key,
+    required this.controller,
+    this.hint,
+    this.blurInput,
+    this.inputType,
+    required this.regExp,
+    this.icon,
+    this.onChanged,
+    this.phoneNumberField = false,
+    this.onCountryCodeChanged,
+    required this.initialCountry,
+  });
+
+  @override
+  State<NoBottomCaption> createState() => _NoBottomCaptionState();
+}
+
+class _NoBottomCaptionState extends State<NoBottomCaption> {
+  bool isFocused = false;
+  bool isValid = false;
+
+  late Country selectedCountry;
+
+  @override
+  void initState() {
+    super.initState();
+
+    selectedCountry = widget.initialCountry;
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return FocusScope(
       child: Focus(
         onFocusChange: (value) {
@@ -90,18 +180,15 @@ class _LivitTextFieldState extends State<LivitTextField> {
           height: LivitBarStyle.height,
           child: TextFormField(
             controller: widget.controller,
-            keyboardType: widget.inputType,
+            keyboardType: widget.inputType ??
+                (widget.phoneNumberField ? TextInputType.number : null),
             onChanged: (value) {
               setState(
                 () {
-                  if (regExp != null) {
-                    if (!regExp.hasMatch(widget.controller.text)) {
-                      isValid = false;
-                    } else {
-                      isValid = true;
-                    }
-                  } else {
+                  if (widget.regExp.hasMatch(widget.controller.text)) {
                     isValid = true;
+                  } else {
+                    isValid = false;
                   }
                 },
               );
@@ -120,7 +207,7 @@ class _LivitTextFieldState extends State<LivitTextField> {
               focusedBorder: const OutlineInputBorder(
                 borderSide: BorderSide.none,
               ),
-              suffixIcon: isValid & (regExp != null)
+              suffixIcon: isValid
                   ? Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 16),
                       child: widget.icon ??
@@ -194,6 +281,192 @@ class _LivitTextFieldState extends State<LivitTextField> {
           ),
         ),
       ),
+    );
+  }
+}
+
+class WithBottomCaption extends StatefulWidget {
+  final TextEditingController controller;
+  final String? hint;
+  final bool? blurInput;
+  final TextInputType? inputType;
+  final RegExp regExp;
+  final Icon? icon;
+  final ValueChanged<bool>? onChanged;
+  final bool phoneNumberField;
+  final ValueChanged<String>? onCountryCodeChanged;
+  final Country initialCountry;
+  final String bottomCaptionText;
+  final TextStyle bottomCaptionStyle;
+
+  const WithBottomCaption({
+    super.key,
+    required this.controller,
+    this.hint,
+    this.blurInput,
+    this.inputType,
+    required this.regExp,
+    this.icon,
+    this.onChanged,
+    this.phoneNumberField = false,
+    this.onCountryCodeChanged,
+    required this.initialCountry,
+    required this.bottomCaptionStyle,
+    required this.bottomCaptionText,
+  });
+
+  @override
+  State<WithBottomCaption> createState() => _WithBottomCaptionState();
+}
+
+class _WithBottomCaptionState extends State<WithBottomCaption> {
+  bool isFocused = false;
+  bool isValid = false;
+
+  late Country selectedCountry;
+
+  @override
+  void initState() {
+    super.initState();
+
+    selectedCountry = widget.initialCountry;
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        FocusScope(
+          child: Focus(
+            onFocusChange: (value) {
+              setState(
+                () {
+                  isFocused = value;
+                },
+              );
+            },
+            child: Container(
+              decoration: isFocused
+                  ? LivitBarStyle.strongShadowDecoration
+                  : LivitBarStyle.shadowDecoration,
+              height: LivitBarStyle.height,
+              child: TextFormField(
+                controller: widget.controller,
+                keyboardType: widget.inputType ??
+                    (widget.phoneNumberField ? TextInputType.number : null),
+                onChanged: (value) {
+                  setState(
+                    () {
+                      if (widget.regExp.hasMatch(widget.controller.text)) {
+                        isValid = true;
+                      } else {
+                        isValid = false;
+                      }
+                    },
+                  );
+                  if (widget.onChanged != null) {
+                    widget.onChanged!(isValid);
+                  }
+                },
+                decoration: InputDecoration(
+                  hintText: widget.hint,
+                  hintStyle: LivitTextStyle(
+                    textColor: LivitColors.gray,
+                  ).smallTextStyle,
+                  enabledBorder: const OutlineInputBorder(
+                    borderSide: BorderSide.none,
+                  ),
+                  focusedBorder: const OutlineInputBorder(
+                    borderSide: BorderSide.none,
+                  ),
+                  suffixIcon: isValid
+                      ? Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          child: widget.icon ??
+                              const Icon(
+                                Icons.done,
+                                color: Color.fromARGB(255, 255, 255, 255),
+                                size: 18,
+                              ),
+                        )
+                      : null,
+                  prefixIcon: widget.phoneNumberField
+                      ? Padding(
+                          padding: const EdgeInsets.only(left: 16, right: 16),
+                          child: GestureDetector(
+                            onTap: () {
+                              showCountryListView(
+                                appBarFontSize: 20,
+                                countryTitleSize: 13,
+                                countryFontStyle: FontStyle.normal,
+                                appBarFontStyle: FontStyle.normal,
+                                searchBarOuterBackgroundColor:
+                                    LivitColors.mainBlack,
+                                searchBarBackgroundColor: LivitColors.mainBlack,
+                                appBarBackgroundColour: LivitColors.mainBlack,
+                                backgroundColour: LivitColors.mainBlack,
+                                countryTextColour: LivitColors.whiteActive,
+                                searchBarBorderColor: LivitColors.gray,
+                                searchBarHintColor: LivitColors.gray,
+                                searchBarTextColor: LivitColors.whiteActive,
+                                context: context,
+                                onSelect: (value) {
+                                  setState(
+                                    () {
+                                      selectedCountry = value;
+                                      if (widget.onCountryCodeChanged != null) {
+                                        widget.onCountryCodeChanged!(
+                                            selectedCountry.phoneCode);
+                                      }
+                                    },
+                                  );
+                                },
+                              );
+                            },
+                            // ignore: sized_box_for_whitespace
+                            child: Container(
+                              height: LivitBarStyle.height,
+                              child: Text(
+                                '${selectedCountry.flagEmoji} +${selectedCountry.phoneCode}',
+                                style: LivitTextStyle(
+                                  textColor: LivitColors.whiteActive,
+                                ).regularTextStyle,
+                              ),
+                            ),
+                          ),
+                        )
+                      : null,
+                  suffixIconConstraints: const BoxConstraints(maxHeight: 20),
+                  prefixIconConstraints: const BoxConstraints(maxHeight: 20),
+                  contentPadding: const EdgeInsets.symmetric(
+                    vertical: 20,
+                    horizontal: 16,
+                  ),
+                  isCollapsed: true,
+                ),
+                style: LivitTextStyle(
+                  textColor: LivitColors.whiteActive,
+                ).regularTextStyle,
+                obscureText: widget.blurInput ?? false,
+                enableSuggestions: !(widget.blurInput ?? true),
+                autocorrect: !(widget.blurInput ?? true),
+              ),
+            ),
+          ),
+        ),
+        LivitSpaces.small8spacer,
+        Text(
+          widget.bottomCaptionText,
+          style: widget.bottomCaptionStyle,
+        ),
+      ],
     );
   }
 }

@@ -27,11 +27,12 @@ class LoginMethodsList extends StatefulWidget {
 
 class _LoginMethodsListState extends State<LoginMethodsList> {
   late final TextEditingController phoneController;
-  String? selectedCountryCode;
+  String selectedCountryCode = '';
 
   bool isPhoneValid = false;
-
   bool isCodeSent = false;
+
+  bool invalidPhoneError = false;
 
   Country initialCountry = Country(
     phoneCode: '57',
@@ -82,11 +83,15 @@ class _LoginMethodsListState extends State<LoginMethodsList> {
       () {
         if (values[0]) {
           widget.phoneLoginCallback(
-            [
-              '+$selectedCountryCode ${phoneController.text}',
+            [ selectedCountryCode,
+              phoneController.text,
               values[1],
             ],
           );
+        } else {
+          if (values[1] == 'invalid-phone-number') {
+            invalidPhoneError = true;
+          }
         }
       },
     );
@@ -140,6 +145,12 @@ class _LoginMethodsListState extends State<LoginMethodsList> {
                         },
                       );
                     },
+                    bottomCaptionText: invalidPhoneError
+                        ? 'Número de teléfono invalido'
+                        : null,
+                    bottomCaptionStyle: LivitTextStyle(
+                      textColor: LivitColors.whiteActive,
+                    ).smallTextStyle,
                   ),
                   LivitSpaces.medium16spacer,
                   MainActionButton(
@@ -147,7 +158,7 @@ class _LoginMethodsListState extends State<LoginMethodsList> {
                     isActive: isPhoneValid,
                     onPressed: () async {
                       await AuthService.firebase().sendOtpCode(
-                        selectedCountryCode ?? '',
+                        selectedCountryCode,
                         phoneController.text,
                         onSendCode,
                       );

@@ -33,7 +33,7 @@ class AppleLoginBar extends StatelessWidget {
             Text(
               'Continuar con Apple',
               style: LivitTextStyle(
-                textWeight: FontWeight.bold,
+                //textWeight: FontWeight.bold,
                 textColor: LivitColors.whiteActive,
               ).regularTextStyle,
             ),

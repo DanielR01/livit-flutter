@@ -97,10 +97,12 @@ class FirebaseAuthProvider implements AuthProvider {
         await FirebaseAuth.instance.signInWithCredential(credential);
       },
       verificationFailed: (error) {
-        onUpdate([
-          false,
-          null,
-        ]);
+        if (error.code != 'web-context-cancelled') {
+          onUpdate([
+            false,
+            error.code,
+          ]);
+        }
       },
       codeSent: (verificationId, forceResendingToken) {
         onUpdate([
@@ -153,9 +155,13 @@ class FirebaseAuthProvider implements AuthProvider {
           throw InvalidCredentialsAuthException();
         case "too-many-requests":
           throw TooManyRequestsAuthException();
+        case "invalid-verification-code":
+          throw InvalidVerificationCodeAuthException();
         default:
           throw GenericAuthException();
       }
+    } on UserNotLoggedInAuthException {
+      throw UserNotLoggedInAuthException();
     } catch (_) {
       throw GenericAuthException();
     }
