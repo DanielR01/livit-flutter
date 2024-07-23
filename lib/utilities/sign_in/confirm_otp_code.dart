@@ -1,5 +1,4 @@
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:livit/constants/colors.dart';
@@ -11,10 +10,7 @@ import 'package:livit/constants/styles/spaces.dart';
 import 'package:livit/constants/styles/text_style.dart';
 import 'package:livit/enums/credential_types.dart';
 import 'package:livit/services/auth/auth_service.dart';
-import 'package:livit/services/auth/firebase_auth_provider.dart';
-import 'package:livit/utilities/bars_containers_fields/bar.dart';
 import 'package:livit/utilities/bars_containers_fields/glass_container.dart';
-import 'package:livit/utilities/bars_containers_fields/text_field.dart';
 import 'package:livit/utilities/buttons/arrow_back_button.dart';
 import 'package:livit/utilities/buttons/main_action_button.dart';
 import 'package:livit/utilities/buttons/secondary_action_button.dart';

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:livit/constants/colors.dart';
+import 'package:livit/constants/routes.dart';
 import 'package:livit/constants/styles/bar_style.dart';
 import 'package:livit/constants/styles/text_style.dart';
 import 'package:livit/enums/credential_types.dart';
@@ -18,9 +19,15 @@ class GoogleLoginBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () {
-        AuthService.firebase()
+      onTap: () async {
+        await AuthService.firebase()
             .logIn(credentialType: CredentialType.google, credentials: []);
+        if (AuthService.firebase().currentUser != null) {
+          if (context.mounted) {
+            Navigator.of(context).pushNamedAndRemoveUntil(
+                Routes.mainviewRoute, (route) => false);
+          }
+        }
       },
       child: Container(
         height: 54,

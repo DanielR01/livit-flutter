@@ -37,7 +37,7 @@ class _ProfileViewState extends State<ProfileView> {
                 await AuthService.firebase().logOut();
                 if (context.mounted) {
                   Navigator.of(context).pushNamedAndRemoveUntil(
-                      Routes.loginRoute, (route) => false);
+                      Routes.authRoute, (route) => false);
                 }
               },
             ],
