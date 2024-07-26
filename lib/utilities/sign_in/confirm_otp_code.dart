@@ -143,7 +143,7 @@ class _ConfirmOTPCodeState extends State<ConfirmOTPCode> {
                       ),
                     ),
                     Text(
-                      'Hemos enviado un codigo al ${widget.phoneNumber}, ingresalo aqui para confirmar tu cuenta:',
+                      'Hemos enviado un codigo al +${widget.phoneCode} ${widget.phoneNumber}, ingresalo aqui para confirmar tu cuenta:',
                       style: LivitTextStyle(
                         textColor: LivitColors.whiteActive,
                       ).regularTextStyle,

@@ -83,7 +83,8 @@ class _LoginMethodsListState extends State<LoginMethodsList> {
       () {
         if (values[0]) {
           widget.phoneLoginCallback(
-            [ selectedCountryCode,
+            [
+              selectedCountryCode,
               phoneController.text,
               values[1],
             ],
@@ -150,6 +151,7 @@ class _LoginMethodsListState extends State<LoginMethodsList> {
                         : null,
                     bottomCaptionStyle: LivitTextStyle(
                       textColor: LivitColors.whiteActive,
+                      textWeight: FontWeight.bold,
                     ).smallTextStyle,
                   ),
                   LivitSpaces.medium16spacer,
