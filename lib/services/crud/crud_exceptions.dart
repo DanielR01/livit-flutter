@@ -8,9 +8,9 @@ class DatabaseIsNotOpen implements Exception {}
 
 class CouldNotDeleteUser implements Exception {}
 
-class UserUsernameAlreadyInUse implements Exception {}
+class UserAlreadyExists implements Exception {}
 
-class CouldNotFindUser implements Exception {}
+class UserNotFound implements Exception {}
 
 // Promoters exceptions
 
@@ -25,3 +25,5 @@ class PromoterEmailAlreadyInUse implements Exception {}
 class CouldNotFindEvent implements Exception {}
 
 class CouldNotUpdateEvent implements Exception {}
+
+class CouldNotDeleteEvent implements Exception {}

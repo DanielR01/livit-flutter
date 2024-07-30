@@ -24,8 +24,7 @@ class _CheckInitialAuthState extends State<CheckInitialAuth> {
   }
 
   void _routeUser() {
-    if (isAuth) {
-      Navigator.of(context)
+    if (isAuth) {      Navigator.of(context)
           .pushNamedAndRemoveUntil(Routes.mainviewRoute, (route) => false);
     } else {
       Navigator.of(context)
@@ -37,13 +36,8 @@ class _CheckInitialAuthState extends State<CheckInitialAuth> {
     final user = AuthService.firebase().currentUser;
     if (user == null) {
       return false;
-    } else if (user.isEmailVerified) {
-      return true;
-    } else if (user.hasPhoneNumber) {
-      return true;
-    } else {
-      return false;
     }
+    return true;
   }
 
   @override

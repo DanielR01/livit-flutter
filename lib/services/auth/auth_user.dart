@@ -3,16 +3,9 @@ import 'package:flutter/material.dart';
 
 @immutable
 class AuthUser {
-  final bool isEmailVerified;
-  final bool hasPhoneNumber;
+  final String id;
 
-  const AuthUser(
-    this.isEmailVerified,
-    this.hasPhoneNumber,
-  );
+  const AuthUser(this.id);
 
-  factory AuthUser.fromFirebase(User user) => AuthUser(
-        user.emailVerified,
-        user.phoneNumber != null,
-      );
+  factory AuthUser.fromFirebase(User user) => AuthUser(user.uid);
 }

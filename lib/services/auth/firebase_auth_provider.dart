@@ -1,7 +1,7 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-import 'package:livit/enums/credential_types.dart';
+import 'package:livit/services/auth/credential_types.dart';
 import 'package:livit/firebase_options.dart';
 import 'package:livit/services/auth/auth_user.dart';
 import 'package:livit/services/auth/auth_exceptions.dart';

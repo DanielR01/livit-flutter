@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:livit/enums/credential_types.dart';
+import 'package:livit/services/auth/credential_types.dart';
 import 'package:livit/services/auth/auth_user.dart';
 
 abstract class AuthProvider {

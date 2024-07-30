@@ -12,13 +12,13 @@ class LivitTextStyle {
     FontWeight? textWeight,
   })  : smallTextStyle = TextStyle(
           fontFamily: 'HelveticaNowDisplay',
-          fontSize: 13,
+          fontSize: 11,
           fontWeight: textWeight ?? FontWeight.w500,
           color: textColor,
         ),
         regularTextStyle = TextStyle(
           fontFamily: 'HelveticaNowDisplay',
-          fontSize: 14,
+          fontSize: 12,
           fontWeight: textWeight ?? FontWeight.w500,
           color: textColor,
         ),

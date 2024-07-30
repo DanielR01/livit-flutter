@@ -10,7 +10,7 @@ import 'package:livit/constants/styles/container_style.dart';
 import 'package:livit/constants/styles/shadows.dart';
 import 'package:livit/constants/styles/spaces.dart';
 import 'package:livit/constants/styles/text_style.dart';
-import 'package:livit/enums/credential_types.dart';
+import 'package:livit/services/auth/credential_types.dart';
 import 'package:livit/services/auth/auth_exceptions.dart';
 import 'package:livit/services/auth/auth_service.dart';
 import 'package:livit/utilities/bars_containers_fields/glass_container.dart';

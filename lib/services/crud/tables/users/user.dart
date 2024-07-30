@@ -6,16 +6,16 @@ import 'package:path/path.dart' show join;
 
 @immutable
 class LivitUser {
-  final int id;
-  final String name;
+  final String id;
+  final String? name;
   final String? phoneNumber;
-  final String username;
+  final String? username;
 
   const LivitUser({
     required this.id,
     this.phoneNumber,
-    required this.name,
-    required this.username,
+     this.name,
+     this.username,
   });
 
   static const idColumn = 'id';
@@ -24,7 +24,7 @@ class LivitUser {
   static const nameColumn = 'name';
 
   LivitUser.fromRow(Map<String, Object?> map)
-      : id = map[idColumn] as int,
+      : id = map[idColumn] as String,
         phoneNumber = map[phoneNumberColumn] as String,
         name = map[nameColumn] as String,
         username = map[usernameColumn] as String;

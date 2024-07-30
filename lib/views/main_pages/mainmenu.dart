@@ -1,4 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
+import 'package:livit/constants/colors.dart';
+import 'package:livit/services/auth/auth_service.dart';
+import 'package:livit/services/crud/livit_db_service.dart';
+import 'package:livit/utilities/background/main_background.dart';
 import 'package:livit/utilities/bars_containers_fields/navigation_bar.dart';
 import 'package:livit/views/main_pages/explore.dart';
 import 'package:livit/views/main_pages/home.dart';
@@ -15,6 +20,8 @@ class MainMenu extends StatefulWidget {
 class _MainMenuState extends State<MainMenu> {
   final GlobalKey<ScaffoldState> scaffoldKey = GlobalKey();
   int selectedIndex = 0;
+  late final LivitDBService _livitDBService;
+  String get userId => AuthService.firebase().currentUser!.id;
 
   void onItemPressed(value) {
     setState(
@@ -26,26 +33,54 @@ class _MainMenuState extends State<MainMenu> {
 
   @override
   void initState() {
+    _livitDBService = LivitDBService();
     super.initState();
+  }
+
+  @override
+  void dispose() {
+    _livitDBService.close();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Stack(
-        children: [
-          IndexedStack(
-            index: selectedIndex,
-            children: viewsList,
-          ),
-          Align(
-            alignment: Alignment.bottomCenter,
-            child: CustomNavigationBar(
-              currentIndex: selectedIndex,
-              onItemTapped: onItemPressed,
-            ),
-          ),
-        ],
+      body: FutureBuilder(
+        future: _livitDBService.getOrCreateUser(userId: userId),
+        builder: (context, snapshot) {
+          switch (snapshot.connectionState) {
+            case ConnectionState.done:
+              return StreamBuilder(
+                stream: _livitDBService.allEvents,
+                builder: (context, snapshot) {
+                  switch (snapshot.connectionState) {
+                    case ConnectionState.waiting:
+                      return Stack(
+                        children: [
+                          IndexedStack(
+                            index: selectedIndex,
+                            children: viewsList,
+                          ),
+                          Align(
+                            alignment: Alignment.bottomCenter,
+                            child: CustomNavigationBar(
+                              currentIndex: selectedIndex,
+                              onItemTapped: onItemPressed,
+                            ),
+                          ),
+                        ],
+                      );
+
+                    default:
+                      return const LoadingScreen();
+                  }
+                },
+              );
+            default:
+              return const LoadingScreen();
+          }
+        },
       ),
     );
   }
@@ -56,4 +91,27 @@ class _MainMenuState extends State<MainMenu> {
     TicketsView(),
     ProfileView(),
   ];
+}
+
+class LoadingScreen extends StatefulWidget {
+  const LoadingScreen({super.key});
+
+  @override
+  State<LoadingScreen> createState() => _LoadingScreenState();
+}
+
+class _LoadingScreenState extends State<LoadingScreen> {
+  @override
+  Widget build(BuildContext context) {
+    return const Stack(
+      children: [
+        MainBackground(),
+        Center(
+          child: CircularProgressIndicator(
+            color: LivitColors.whiteInactive,
+          ),
+        ),
+      ],
+    );
+  }
 }
