@@ -24,7 +24,8 @@ class _CheckInitialAuthState extends State<CheckInitialAuth> {
   }
 
   void _routeUser() {
-    if (isAuth) {      Navigator.of(context)
+    if (isAuth) {
+      Navigator.of(context)
           .pushNamedAndRemoveUntil(Routes.mainviewRoute, (route) => false);
     } else {
       Navigator.of(context)
@@ -34,7 +35,7 @@ class _CheckInitialAuthState extends State<CheckInitialAuth> {
 
   bool _checkIfLoggedIn() {
     final user = AuthService.firebase().currentUser;
-    if (user == null) {
+    if (user?.id == null) {
       return false;
     }
     return true;

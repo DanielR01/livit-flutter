@@ -40,6 +40,11 @@ class AuthService implements AuthProvider {
   Future<void> sendEmailVerification() => provider.sendEmailVerification();
 
   @override
-  Future<void> sendOtpCode(String phoneCode, String phoneNumber, ValueChanged<List> onUpdate) =>
+  Future<void> sendOtpCode(
+          String phoneCode, String phoneNumber, ValueChanged<List> onUpdate) =>
       provider.sendOtpCode(phoneCode, phoneNumber, onUpdate);
+
+  @override
+  Future<void> sendPasswordReset(String email) =>
+      provider.sendPasswordReset(email);
 }

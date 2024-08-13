@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:livit/constants/routes.dart';
+import 'package:livit/constants/styles/spaces.dart';
 import 'package:livit/services/auth/auth_service.dart';
-import 'package:livit/utilities/buttons/main_action_button.dart';
+import 'package:livit/utilities/background/main_background.dart';
+import 'package:livit/utilities/buttons/action_button.dart';
 import 'package:livit/utilities/error_dialogs/show_error_dialog_2t_2b.dart';
 
 class ProfileView extends StatefulWidget {
@@ -16,34 +18,74 @@ class ProfileView extends StatefulWidget {
 class _ProfileViewState extends State<ProfileView> {
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: MainActionButton(
-        text: 'Log Out',
-        isActive: true,
-        onPressed: () {
-          showErrorDialog2b(
-            [null, context],
-            'Log Out',
-            'Do you want to log out?',
-            [
-              'Cancel',
-              () {
-                Navigator.of(context).pop(false);
-              },
+    return Stack(
+      children: [
+        const MainBackground(
+          blurred: true,
+        ),
+        Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.max,
+            children: [
+              LogOutButton(
+                context: context,
+              ),
+              LivitSpaces.medium16spacer,
+              ActionButton(
+                mainAction: true,
+                text: 'Create new event',
+                isActive: true,
+                onPressed: () {
+                  Navigator.of(context).pushNamed(
+                    Routes.newEventRoute,
+                  );
+                },
+              )
             ],
-            [
-              'Log out',
-              () async {
-                await AuthService.firebase().logOut();
-                if (context.mounted) {
-                  Navigator.of(context).pushNamedAndRemoveUntil(
-                      Routes.authRoute, (route) => false);
-                }
-              },
-            ],
-          );
-        },
-      ),
+          ),
+        )
+      ],
+    );
+  }
+}
+
+class LogOutButton extends StatelessWidget {
+  final BuildContext context;
+  const LogOutButton({
+    super.key,
+    required this.context,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return ActionButton(
+      mainAction: true,
+      text: 'Log Out',
+      isActive: true,
+      onPressed: () {
+        showErrorDialog2b(
+          [null, context],
+          'Log Out',
+          'Do you want to log out?',
+          [
+            'Cancel',
+            () {
+              Navigator.of(context).pop(false);
+            },
+          ],
+          [
+            'Log out',
+            () async {
+              await AuthService.firebase().logOut();
+              if (context.mounted) {
+                Navigator.of(context).pushNamedAndRemoveUntil(
+                    Routes.authRoute, (route) => false);
+              }
+            },
+          ],
+        );
+      },
     );
   }
 }

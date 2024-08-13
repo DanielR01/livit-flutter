@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 class LivitColors {
   static const mainBlueActive = Color.fromARGB(255, 30, 157, 249);
+  static const mainBlueInactive = Color.fromARGB(255, 88, 117, 137);
   static const whiteActive = Colors.white;
   static const whiteInactive = Color.fromARGB(255, 112, 112, 112);
   static const gray = Color.fromARGB(255, 179, 179, 179);

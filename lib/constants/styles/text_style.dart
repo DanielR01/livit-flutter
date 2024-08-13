@@ -6,6 +6,7 @@ class LivitTextStyle {
   final TextStyle regularTextStyle;
   final TextStyle bigTitleTextStyle;
   final TextStyle normalTitleTextStyle;
+  final TextStyle smallTitleTextStyle;
 
   LivitTextStyle({
     textColor = LivitColors.mainBlack,
@@ -30,8 +31,16 @@ class LivitTextStyle {
         ),
         normalTitleTextStyle = TextStyle(
           fontFamily: 'HelveticaNowDisplay',
-          fontSize: 24,
+          fontSize: 20,
           fontWeight: textWeight ?? FontWeight.bold,
           color: textColor,
+          height: 1.2,
+        ),
+        smallTitleTextStyle = TextStyle(
+          fontFamily: 'HelveticaNowDisplay',
+          fontSize: 16,
+          fontWeight: textWeight ?? FontWeight.bold,
+          color: textColor,
+          height: 1.2,
         );
 }

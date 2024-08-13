@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:livit/constants/colors.dart';
+import 'package:livit/constants/routes.dart';
 import 'package:livit/services/auth/auth_service.dart';
 import 'package:livit/services/crud/livit_db_service.dart';
 import 'package:livit/utilities/background/main_background.dart';
@@ -21,7 +22,7 @@ class _MainMenuState extends State<MainMenu> {
   final GlobalKey<ScaffoldState> scaffoldKey = GlobalKey();
   int selectedIndex = 0;
   late final LivitDBService _livitDBService;
-  String get userId => AuthService.firebase().currentUser!.id;
+  String get userId => AuthService.firebase().currentUser?.id ?? '';
 
   void onItemPressed(value) {
     setState(
@@ -31,10 +32,20 @@ class _MainMenuState extends State<MainMenu> {
     );
   }
 
+  void _checkIfLoggedIn() {
+    if (userId == '') {
+      Navigator.of(context)
+          .pushNamedAndRemoveUntil(Routes.authRoute, (route) => false);
+    }
+  }
+
   @override
   void initState() {
     _livitDBService = LivitDBService();
     super.initState();
+    SchedulerBinding.instance.addPostFrameCallback((_) {
+      _checkIfLoggedIn();
+    });
   }
 
   @override
@@ -46,6 +57,7 @@ class _MainMenuState extends State<MainMenu> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      key: scaffoldKey,
       body: FutureBuilder(
         future: _livitDBService.getOrCreateUser(userId: userId),
         builder: (context, snapshot) {
@@ -56,6 +68,7 @@ class _MainMenuState extends State<MainMenu> {
                 builder: (context, snapshot) {
                   switch (snapshot.connectionState) {
                     case ConnectionState.waiting:
+                    case ConnectionState.active:
                       return Stack(
                         children: [
                           IndexedStack(
@@ -71,7 +84,6 @@ class _MainMenuState extends State<MainMenu> {
                           ),
                         ],
                       );
-
                     default:
                       return const LoadingScreen();
                   }

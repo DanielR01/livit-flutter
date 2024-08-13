@@ -6,7 +6,7 @@ import 'package:path/path.dart' show join;
 
 @immutable
 class LivitPromoter {
-  final int id;
+  final String id;
   final String username;
   final String email;
   final String name;
@@ -19,7 +19,7 @@ class LivitPromoter {
   });
 
   LivitPromoter.fromRow(Map<String, Object?> map)
-      : id = map[idColumn] as int,
+      : id = map[idColumn] as String,
         name = map[nameColumn] as String,
         username = map[usernameColumn] as String,
         email = map[emailColumn] as String;

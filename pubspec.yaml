@@ -103,6 +103,7 @@ flutter:
 
       - assets/images/dots.svg
       - assets/images/dots.png
+      - assets/images/dots-blurred.png
       - assets/images/blobs/blob1.svg
       - assets/images/blobs/blob2.svg
       - assets/images/blobs/blob3.svg

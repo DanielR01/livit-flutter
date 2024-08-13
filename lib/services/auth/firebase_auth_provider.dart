@@ -35,7 +35,7 @@ class FirebaseAuthProvider implements AuthProvider {
             email: credentials[0],
             password: credentials[1],
           );
-
+          sendEmailVerification();
         default:
           throw GenericAuthException();
       }
@@ -64,11 +64,14 @@ class FirebaseAuthProvider implements AuthProvider {
   @override
   AuthUser? get currentUser {
     final user = FirebaseAuth.instance.currentUser;
-    if (user != null) {
-      return AuthUser.fromFirebase(user);
-    } else {
+    if (user == null) {
       return null;
+    } else {
+      if (user.email != null && !user.emailVerified) {
+        return AuthUser.notVerifiedEmailFromFirebase(user);
+      }
     }
+    return AuthUser.fromFirebase(user);
   }
 
   @override
@@ -97,12 +100,7 @@ class FirebaseAuthProvider implements AuthProvider {
         await FirebaseAuth.instance.signInWithCredential(credential);
       },
       verificationFailed: (error) {
-        if (error.code != 'web-context-cancelled') {
-          onUpdate([
-            false,
-            error.code,
-          ]);
-        }
+        onUpdate([false, error.code]);
       },
       codeSent: (verificationId, forceResendingToken) {
         onUpdate([
@@ -175,6 +173,11 @@ class FirebaseAuthProvider implements AuthProvider {
     } else {
       throw UserNotLoggedInAuthException();
     }
+  }
+
+  @override
+  Future<void> sendPasswordReset(String email) async {
+    await FirebaseAuth.instance.sendPasswordResetEmail(email: email);
   }
 }
 

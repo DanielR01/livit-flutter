@@ -18,6 +18,7 @@ class LivitTextField extends StatefulWidget {
   final Country? initialCountry;
   final String? bottomCaptionText;
   final TextStyle? bottomCaptionStyle;
+  final bool? externalIsValid;
 
   const LivitTextField({
     super.key,
@@ -33,6 +34,7 @@ class LivitTextField extends StatefulWidget {
     this.initialCountry,
     this.bottomCaptionStyle,
     this.bottomCaptionText,
+    this.externalIsValid,
   });
 
   @override
@@ -91,6 +93,7 @@ class _LivitTextFieldState extends State<LivitTextField> {
         phoneNumberField: widget.phoneNumberField,
         onCountryCodeChanged: widget.onCountryCodeChanged,
         initialCountry: selectedCountry,
+        externalIsValid: widget.externalIsValid,
       );
     } else {
       return WithBottomCaption(
@@ -109,6 +112,7 @@ class _LivitTextFieldState extends State<LivitTextField> {
               textColor: LivitColors.whiteActive,
             ).regularTextStyle,
         bottomCaptionText: widget.bottomCaptionText ?? '',
+        externalIsValid: widget.externalIsValid,
       );
     }
   }
@@ -125,6 +129,7 @@ class NoBottomCaption extends StatefulWidget {
   final bool phoneNumberField;
   final ValueChanged<String>? onCountryCodeChanged;
   final Country initialCountry;
+  final bool? externalIsValid;
 
   const NoBottomCaption({
     super.key,
@@ -138,6 +143,7 @@ class NoBottomCaption extends StatefulWidget {
     this.phoneNumberField = false,
     this.onCountryCodeChanged,
     required this.initialCountry,
+    this.externalIsValid,
   });
 
   @override
@@ -207,7 +213,8 @@ class _NoBottomCaptionState extends State<NoBottomCaption> {
               focusedBorder: const OutlineInputBorder(
                 borderSide: BorderSide.none,
               ),
-              suffixIcon: isValid
+              suffixIcon: (widget.externalIsValid == null && isValid) ||
+                      (widget.externalIsValid ?? false)
                   ? Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 16),
                       child: widget.icon ??
@@ -298,6 +305,7 @@ class WithBottomCaption extends StatefulWidget {
   final Country initialCountry;
   final String bottomCaptionText;
   final TextStyle bottomCaptionStyle;
+  final bool? externalIsValid;
 
   const WithBottomCaption({
     super.key,
@@ -313,6 +321,7 @@ class WithBottomCaption extends StatefulWidget {
     required this.initialCountry,
     required this.bottomCaptionStyle,
     required this.bottomCaptionText,
+    this.externalIsValid,
   });
 
   @override

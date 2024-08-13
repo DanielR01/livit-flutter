@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
 import 'package:livit/constants/colors.dart';
 import 'package:livit/constants/routes.dart';
@@ -15,15 +16,14 @@ import 'package:livit/services/auth/auth_exceptions.dart';
 import 'package:livit/services/auth/auth_service.dart';
 import 'package:livit/utilities/bars_containers_fields/glass_container.dart';
 import 'package:livit/utilities/buttons/arrow_back_button.dart';
-import 'package:livit/utilities/buttons/main_action_button.dart';
-import 'package:livit/utilities/buttons/secondary_action_button.dart';
+import 'package:livit/utilities/buttons/action_button.dart';
 import 'package:pinput/pinput.dart';
 
 class ConfirmOTPCode extends StatefulWidget {
   final String phoneCode;
   final String phoneNumber;
   final String initialVerificationId;
-  final ValueChanged<int> onBack;
+  final VoidCallback onBack;
   const ConfirmOTPCode({
     super.key,
     required this.phoneCode,
@@ -47,6 +47,7 @@ class _ConfirmOTPCodeState extends State<ConfirmOTPCode> {
   late Timer _timer;
   int countdown = 0;
   bool isResendButtonActive = false;
+  bool _isVerifyingCode = false;
 
   void onResendedCode(List values) {
     setState(
@@ -127,7 +128,7 @@ class _ConfirmOTPCodeState extends State<ConfirmOTPCode> {
                             left: 0,
                             child: ArrowBackButton(
                               onPressed: () {
-                                widget.onBack(0);
+                                widget.onBack();
                                 otpController.text = '';
                                 invalidCode = false;
                               },
@@ -200,7 +201,10 @@ class _ConfirmOTPCodeState extends State<ConfirmOTPCode> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       mainAxisSize: MainAxisSize.max,
                       children: [
-                        SecondaryActionButton(
+                        ActionButton(
+                          isShadowActive: false,
+                          blueStyle: false,
+                          mainAction: false,
                           text: isResendButtonActive
                               ? 'Reenviar codigo'
                               : 'Reenviar codigo... $countdown',
@@ -215,10 +219,18 @@ class _ConfirmOTPCodeState extends State<ConfirmOTPCode> {
                             );
                           },
                         ),
-                        MainActionButton(
-                          text: 'Confirmar',
+                        ActionButton(
+                          blueStyle: false,
+                          mainAction: true,
+                          text:
+                              _isVerifyingCode ? 'Verificando...' : 'Confirmar',
                           isActive: isOtpCodeValid,
                           onPressed: () async {
+                            setState(
+                              () {
+                                _isVerifyingCode = true;
+                              },
+                            );
                             try {
                               await AuthService.firebase().logIn(
                                 credentialType: CredentialType.phoneAndOtp,
@@ -240,6 +252,11 @@ class _ConfirmOTPCodeState extends State<ConfirmOTPCode> {
                             } on GenericAuthException {
                               //TODO implement genericAuthException
                             }
+                            setState(
+                              () {
+                                _isVerifyingCode = false;
+                              },
+                            );
                           },
                         ),
                       ],

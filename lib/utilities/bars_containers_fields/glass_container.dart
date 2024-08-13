@@ -26,7 +26,7 @@ class GlassContainer extends StatelessWidget {
         child: Container(
           decoration: BoxDecoration(
             color: (backgroundColor ?? LivitColors.mainBlack)
-                .withOpacity(opacity ?? 0.4),
+                .withOpacity(opacity ?? 0.1),
             borderRadius: LivitContainerStyle.radius,
           ),
           child: child,

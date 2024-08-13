@@ -28,16 +28,34 @@ class LivitDBService {
     _eventsStreamController.add(_events);
   }
 
-  Future<LivitPromoter> getPromoter({
-    required String name,
+  Future<LivitPromoter> getPromoterWithId({
+    required String id,
   }) async {
     await _ensureDbIsOpen();
     final db = _getDatabaseOrThrow();
 
     final results = await db.query(
       LivitDB.promotersTableName,
-      where: 'name = ?',
-      whereArgs: [name],
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+
+    if (results.isEmpty) {
+      throw CouldNotFindPromoter();
+    }
+    return LivitPromoter.fromRow(results.first);
+  }
+
+  Future<LivitPromoter> getPromoterWithUsername({
+    required String username,
+  }) async {
+    await _ensureDbIsOpen();
+    final db = _getDatabaseOrThrow();
+
+    final results = await db.query(
+      LivitDB.promotersTableName,
+      where: 'username = ?',
+      whereArgs: [username],
     );
 
     if (results.isEmpty) {
@@ -47,6 +65,7 @@ class LivitDBService {
   }
 
   Future<LivitPromoter> createPromoter({
+    required String id,
     required String name,
     required String email,
     required String username,
@@ -75,16 +94,17 @@ class LivitDBService {
       throw PromoterEmailAlreadyInUse();
     }
 
-    final promoterId = await db.insert(
+    await db.insert(
       LivitDB.promotersTableName,
       {
+        LivitPromoter.idColumn: id,
         LivitPromoter.emailColumn: email,
         LivitPromoter.nameColumn: name,
         LivitPromoter.usernameColumn: username,
       },
     );
     return LivitPromoter(
-      id: promoterId,
+      id: id,
       username: username,
       email: email,
       name: name,
@@ -125,31 +145,37 @@ class LivitDBService {
   }
 
   Future<LivitEvent> createEvent({
-    required LivitPromoter promoter,
-    required String name,
+    //required LivitPromoter promoter,
+    required String title,
+    required String date,
+    required String description,
     required String location,
   }) async {
     await _ensureDbIsOpen();
     final db = _getDatabaseOrThrow();
 
-    final dbPromoter = await getPromoter(name: name);
+    // final dbPromoter = await getPromoterWithId(id: promoter.id);
 
-    if (promoter != dbPromoter) {
-      throw CouldNotFindPromoter();
-    }
+    // if (promoter != dbPromoter) {
+    //   throw CouldNotFindPromoter();
+    // }
     final eventId = await db.insert(
       LivitDB.eventsTableName,
       {
-        LivitEvent.promoterIdColumn: promoter.id,
+        // LivitEvent.promoterIdColumn: promoter.id,
         LivitEvent.locationColumn: location,
-        LivitEvent.nameColumn: name,
+        LivitEvent.titleColumn: title,
+        LivitEvent.dateColumn: date,
+        LivitEvent.descriptionColumn: description,
       },
     );
     final LivitEvent event = LivitEvent(
       id: eventId,
-      promoterId: promoter.id,
-      name: name,
+      // promoterId: promoter.id,
+      title: title,
       location: location,
+      date: date,
+      description: description,
     );
     _events.add(event);
     _eventsStreamController.add(_events);

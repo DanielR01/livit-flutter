@@ -4,13 +4,16 @@ import 'package:livit/constants/colors.dart';
 import 'package:livit/utilities/background/blend_mask.dart';
 
 class MainBackground extends StatefulWidget {
-  const MainBackground({super.key});
+  final bool blurred;
+  const MainBackground({
+    super.key,
+    this.blurred = false,
+  });
 
   @override
   State<MainBackground> createState() => _MainBackgroundState();
 }
 
-const String imagePath = 'assets/images/dots.png';
 List<String> blobPaths = [
   "assets/images/blobs/blob5.png",
   "assets/images/blobs/blob4.png",
@@ -27,11 +30,11 @@ List<double> blobHeights = [
 ];
 List<List<List<double>>> blobPositions = [
   [
-    [306,-206],
-    [354,24],
-    [358,-146],
-    [330,622],
-    [330,622],
+    [306, -206],
+    [354, 24],
+    [358, -146],
+    [330, 622],
+    [330, 622],
   ],
   [
     [-495, 739],
@@ -222,7 +225,10 @@ class _MainBackgroundState extends State<MainBackground>
             opacity: 1,
             blendMode: BlendMode.multiply,
             child: DotsBackground(
-                screenHeight: screenHeight, screenWidth: screenWidth),
+              blurred: widget.blurred,
+              screenHeight: screenHeight,
+              screenWidth: screenWidth,
+            ),
           ),
         ],
       ),
@@ -231,10 +237,12 @@ class _MainBackgroundState extends State<MainBackground>
 }
 
 class DotsBackground extends StatelessWidget {
+  final bool blurred;
   final double screenWidth;
   final double screenHeight;
   const DotsBackground({
     super.key,
+    required this.blurred,
     required this.screenHeight,
     required this.screenWidth,
   });
@@ -244,9 +252,11 @@ class DotsBackground extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    String imagePath =
+        blurred ? 'assets/images/dots-blurred.png' : 'assets/images/dots.png';
     return SizedBox(
       child: Image(
-        image: const AssetImage(imagePath),
+        image: AssetImage(imagePath),
         width: screenWidth,
         height: screenHeight,
         fit: BoxFit.fill,

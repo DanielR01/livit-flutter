@@ -21,7 +21,7 @@ class LivitBarStyle {
     ],
   );
 
-    static BoxDecoration strongShadowDecoration = BoxDecoration(
+  static BoxDecoration strongShadowDecoration = BoxDecoration(
     borderRadius: LivitContainerStyle.radius,
     color: LivitColors.mainBlack,
     boxShadow: [

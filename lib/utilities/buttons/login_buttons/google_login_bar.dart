@@ -7,20 +7,27 @@ import 'package:livit/services/auth/credential_types.dart';
 import 'package:livit/services/auth/auth_exceptions.dart';
 import 'package:livit/services/auth/auth_service.dart';
 
-class GoogleLoginBar extends StatelessWidget {
-  final GlobalKey<ScaffoldState> scaffoldKey;
-  final BuildContext parentContext;
-
+class GoogleLoginBar extends StatefulWidget {
   const GoogleLoginBar({
     super.key,
-    required this.parentContext,
-    required this.scaffoldKey,
   });
+
+  @override
+  State<GoogleLoginBar> createState() => _GoogleLoginBarState();
+}
+
+class _GoogleLoginBarState extends State<GoogleLoginBar> {
+  bool _isSigningIn = false;
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () async {
+        setState(
+          () {
+            _isSigningIn = true;
+          },
+        );
         try {
           await AuthService.firebase()
               .logIn(credentialType: CredentialType.google, credentials: []);
@@ -35,6 +42,11 @@ class GoogleLoginBar extends StatelessWidget {
         } on GenericAuthException {
           //TODO implement genericAuthException
         }
+        setState(
+          () {
+            _isSigningIn = false;
+          },
+        );
       },
       child: Container(
         height: 54,
@@ -60,6 +72,18 @@ class GoogleLoginBar extends StatelessWidget {
                 textColor: LivitColors.mainBlack,
               ).regularTextStyle,
             ),
+            _isSigningIn
+                ? const Positioned(
+                    right: 16,
+                    child: SizedBox(
+                      height: 13,
+                      width: 13,
+                      child: CircularProgressIndicator(
+                        color: LivitColors.mainBlack,
+                      ),
+                    ),
+                  )
+                : const SizedBox(),
           ],
         ),
       ),

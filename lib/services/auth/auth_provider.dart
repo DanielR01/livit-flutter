@@ -21,6 +21,8 @@ abstract class AuthProvider {
 
   Future<void> sendEmailVerification();
 
-  Future<void> sendOtpCode(String phoneCode, String phoneNumber, ValueChanged<List> onUpdate);
+  Future<void> sendOtpCode(
+      String phoneCode, String phoneNumber, ValueChanged<List> onUpdate);
 
+  Future<void> sendPasswordReset(String email);
 }
