@@ -1,82 +1,51 @@
 import 'package:flutter/material.dart';
-import 'package:livit/constants/styles/button_style.dart';
 import 'package:livit/constants/colors.dart';
-import 'package:path/path.dart';
+import 'package:livit/constants/styles/button_style.dart';
+import 'package:livit/constants/styles/shadows.dart';
+import 'package:livit/constants/styles/text_style.dart';
 
-class ActionButton extends StatefulWidget {
+class MainActionButton extends StatefulWidget {
   final String text;
   final VoidCallback onPressed;
   final bool isActive;
   final double? width;
-  final bool mainAction;
   final bool blueStyle;
-  final bool isShadowActive;
 
-  const ActionButton({
+  const MainActionButton({
     super.key,
     required this.text,
     required this.isActive,
     required this.onPressed,
     this.width,
-    required this.mainAction,
     this.blueStyle = false,
-    this.isShadowActive = true,
   });
 
   @override
-  State<ActionButton> createState() => _ActionButtonState();
+  State<MainActionButton> createState() => _MainActionButtonState();
 }
 
-class _ActionButtonState extends State<ActionButton> {
-  late Color buttonColor;
-  late TextStyle textStyle;
-  late BoxShadow? shadow;
-  late List<BoxShadow>? shadowList;
-
+class _MainActionButtonState extends State<MainActionButton> {
   @override
   Widget build(BuildContext context) {
     if (widget.isActive) {
-      buttonColor = widget.blueStyle
-          ? widget.mainAction
-              ? LivitButtonStyle.main.blue.backgroundColor.active
-              : LivitButtonStyle.secondary.blue.backgroundColor.active
-          : widget.mainAction
-              ? LivitButtonStyle.main.white.backgroundColor.active
-              : LivitButtonStyle.secondary.white.backgroundColor.active;
-      textStyle = widget.blueStyle
-          ? widget.mainAction
-              ? LivitButtonStyle.main.blue.textStyle.active
-              : LivitButtonStyle.secondary.blue.textStyle.active
-          : widget.mainAction
-              ? LivitButtonStyle.main.white.textStyle.active
-              : LivitButtonStyle.secondary.white.textStyle.active;
-      shadow = widget.mainAction
-          ? widget.blueStyle
-              ? LivitButtonStyle.main.blue.shadow.active
-              : LivitButtonStyle.main.white.shadow.active
-          : widget.blueStyle
-              ? LivitButtonStyle.secondary.blue.shadow.active
-              : LivitButtonStyle.secondary.white.shadow.active;
-      shadow == null || !widget.isShadowActive
-          ? shadowList = []
-          : shadowList = [shadow!];
       return GestureDetector(
         child: Container(
           width: widget.width,
           height: LivitButtonStyle.height,
           decoration: BoxDecoration(
             borderRadius: LivitButtonStyle.radius,
-            color: buttonColor,
-            boxShadow: shadowList,
+            color: widget.blueStyle
+                ? LivitColors.mainBlueActive
+                : LivitColors.whiteActive,
           ),
           child: Padding(
             padding: LivitButtonStyle.horizontalPadding,
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Text(
+                LivitText(
                   widget.text,
-                  style: textStyle,
+                  color: LivitColors.mainBlack,
                   textAlign: TextAlign.center,
                 ),
               ],
@@ -88,39 +57,12 @@ class _ActionButtonState extends State<ActionButton> {
         },
       );
     } else {
-      buttonColor = widget.blueStyle
-          ? widget.mainAction
-              ? LivitButtonStyle.main.blue.backgroundColor.inactive
-              : LivitButtonStyle.secondary.blue.backgroundColor.inactive
-          : widget.mainAction
-              ? LivitButtonStyle.main.white.backgroundColor.inactive
-              : LivitButtonStyle.secondary.white.backgroundColor.inactive;
-      textStyle = widget.blueStyle
-          ? widget.mainAction
-              ? LivitButtonStyle.main.blue.textStyle.inactive
-              : LivitButtonStyle.secondary.blue.textStyle.inactive
-          : widget.mainAction
-              ? LivitButtonStyle.main.white.textStyle.inactive
-              : LivitButtonStyle.secondary.white.textStyle.inactive;
-
-      shadow = widget.mainAction
-          ? widget.blueStyle
-              ? LivitButtonStyle.main.blue.shadow.inactive
-              : LivitButtonStyle.main.white.shadow.inactive
-          : widget.blueStyle
-              ? LivitButtonStyle.secondary.blue.shadow.inactive
-              : LivitButtonStyle.secondary.white.shadow.inactive;
-      shadow == null || !widget.isShadowActive
-          ? shadowList = []
-          : shadowList = [shadow!];
-
       return Container(
         width: widget.width,
         height: LivitButtonStyle.height,
         decoration: BoxDecoration(
           borderRadius: LivitButtonStyle.radius,
-          color: buttonColor,
-          boxShadow: shadowList,
+          color: LivitColors.whiteInactive,
         ),
         child: Padding(
           padding: LivitButtonStyle.horizontalPadding,
@@ -129,7 +71,108 @@ class _ActionButtonState extends State<ActionButton> {
             children: [
               Text(
                 widget.text,
-                style: textStyle,
+                style: LivitTextStyle.regularBlackText,
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+  }
+}
+
+class SecondaryActionButton extends StatefulWidget {
+  final String text;
+  final VoidCallback onPressed;
+  final bool isActive;
+  final double? width;
+  final bool blueStyle;
+  final bool isShadowActive;
+  final bool transparent;
+
+  const SecondaryActionButton({
+    super.key,
+    required this.text,
+    required this.isActive,
+    required this.onPressed,
+    this.width,
+    this.blueStyle = false,
+    this.isShadowActive = true,
+    this.transparent = false,
+  });
+
+  @override
+  State<SecondaryActionButton> createState() => _SecondaryActionButtonState();
+}
+
+class _SecondaryActionButtonState extends State<SecondaryActionButton> {
+  List<BoxShadow> _boxShadow = [];
+  @override
+  Widget build(BuildContext context) {
+    if (widget.isActive) {
+      if (widget.isShadowActive) {
+        if (widget.blueStyle) {
+          _boxShadow = [LivitShadows.activeBlueShadow];
+        } else {
+          _boxShadow = [LivitShadows.activeWhiteShadow];
+        }
+      }
+      return GestureDetector(
+        child: Container(
+          width: widget.width,
+          height: LivitButtonStyle.height,
+          decoration: BoxDecoration(
+            borderRadius: LivitButtonStyle.radius,
+            color: LivitColors.mainBlack,
+            boxShadow: _boxShadow,
+          ),
+          child: Padding(
+            padding: LivitButtonStyle.horizontalPadding,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  widget.text,
+                  style: widget.blueStyle
+                      ? LivitTextStyle.regularBlueActiveText
+                      : LivitTextStyle.regularWhiteActiveText,
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
+          ),
+        ),
+        onTap: () async {
+          widget.onPressed();
+        },
+      );
+    } else {
+      if (widget.isShadowActive) {
+        if (widget.blueStyle) {
+          _boxShadow = [LivitShadows.inactiveBlueShadow];
+        } else {
+          _boxShadow = [LivitShadows.inactiveWhiteShadow];
+        }
+      }
+      return Container(
+        width: widget.width,
+        height: LivitButtonStyle.height,
+        decoration: BoxDecoration(
+          borderRadius: LivitButtonStyle.radius,
+          color: LivitColors.mainBlack,
+          boxShadow: _boxShadow,
+        ),
+        child: Padding(
+          padding: LivitButtonStyle.horizontalPadding,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                widget.text,
+                style: widget.blueStyle
+                    ? LivitTextStyle.regularBlueInactiveText
+                    : LivitTextStyle.regularWhiteInactiveText,
                 textAlign: TextAlign.center,
               ),
             ],

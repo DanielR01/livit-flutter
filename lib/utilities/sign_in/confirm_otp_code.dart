@@ -4,6 +4,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:livit/constants/colors.dart';
 import 'package:livit/constants/routes.dart';
 import 'package:livit/constants/styles/bar_style.dart';
@@ -14,6 +15,7 @@ import 'package:livit/constants/styles/text_style.dart';
 import 'package:livit/services/auth/credential_types.dart';
 import 'package:livit/services/auth/auth_exceptions.dart';
 import 'package:livit/services/auth/auth_service.dart';
+import 'package:livit/services/crud/livit_db_service.dart';
 import 'package:livit/utilities/bars_containers_fields/glass_container.dart';
 import 'package:livit/utilities/buttons/arrow_back_button.dart';
 import 'package:livit/utilities/buttons/action_button.dart';
@@ -65,7 +67,7 @@ class _ConfirmOTPCodeState extends State<ConfirmOTPCode> {
     setState(
       () {
         isResendButtonActive = false;
-        countdown = 35;
+        countdown = 45;
       },
     );
 
@@ -107,8 +109,8 @@ class _ConfirmOTPCodeState extends State<ConfirmOTPCode> {
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Padding(
-          padding: const EdgeInsets.symmetric(
-            horizontal: 10,
+          padding: EdgeInsets.symmetric(
+            horizontal: 10.sp,
           ),
           child: GlassContainer(
             //opacity: 1,
@@ -134,21 +136,15 @@ class _ConfirmOTPCodeState extends State<ConfirmOTPCode> {
                               },
                             ),
                           ),
-                          Text(
+                          const LivitText(
                             'Ingresa el código',
-                            style: LivitTextStyle(
-                              textColor: LivitColors.whiteActive,
-                            ).normalTitleTextStyle,
+                            textType: TextType.normalTitle,
                           ),
                         ],
                       ),
                     ),
-                    Text(
-                      'Hemos enviado un codigo al +${widget.phoneCode} ${widget.phoneNumber}, ingresalo aqui para confirmar tu cuenta:',
-                      style: LivitTextStyle(
-                        textColor: LivitColors.whiteActive,
-                      ).regularTextStyle,
-                      textAlign: TextAlign.center,
+                    LivitText(
+                      'Hemos enviado un codigo al +${widget.phoneCode} ${widget.phoneNumber}, ingresalo aqui para verificar tu cuenta:',
                     ),
                     LivitSpaces.mediumPlus24spacer,
                     Pinput(
@@ -166,9 +162,7 @@ class _ConfirmOTPCodeState extends State<ConfirmOTPCode> {
                             LivitShadows.activeWhiteShadow,
                           ],
                         ),
-                        textStyle: LivitTextStyle(
-                          textColor: LivitColors.whiteActive,
-                        ).regularTextStyle,
+                        textStyle: LivitTextStyle.regularWhiteActiveText,
                       ),
                       onChanged: (value) {
                         setState(
@@ -187,11 +181,9 @@ class _ConfirmOTPCodeState extends State<ConfirmOTPCode> {
                         ? Column(
                             children: [
                               LivitSpaces.small8spacer,
-                              Text(
+                              const LivitText(
                                 'Codigo invalido',
-                                style: LivitTextStyle(
-                                  textColor: LivitColors.whiteActive,
-                                ).smallTextStyle,
+                                textType: TextType.small,
                               ),
                               LivitSpaces.small8spacer,
                             ],
@@ -201,29 +193,25 @@ class _ConfirmOTPCodeState extends State<ConfirmOTPCode> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       mainAxisSize: MainAxisSize.max,
                       children: [
-                        ActionButton(
-                          isShadowActive: false,
+                        SecondaryActionButton(
                           blueStyle: false,
-                          mainAction: false,
                           text: isResendButtonActive
                               ? 'Reenviar codigo'
                               : 'Reenviar codigo... $countdown',
                           isActive: isResendButtonActive,
-                          onPressed: () {
-                            startTimer();
+                          onPressed: () async {
                             invalidCode = false;
-                            AuthService.firebase().sendOtpCode(
+                            await AuthService.firebase().sendOtpCode(
                               widget.phoneCode,
                               widget.phoneNumber,
                               (value) {},
                             );
+                            startTimer();
                           },
                         ),
-                        ActionButton(
-                          blueStyle: false,
-                          mainAction: true,
+                        MainActionButton(
                           text:
-                              _isVerifyingCode ? 'Verificando...' : 'Confirmar',
+                              _isVerifyingCode ? 'Verificando...' : 'Verificar',
                           isActive: isOtpCodeValid,
                           onPressed: () async {
                             setState(
@@ -242,7 +230,9 @@ class _ConfirmOTPCodeState extends State<ConfirmOTPCode> {
                               if (AuthService.firebase().currentUser != null) {
                                 if (context.mounted) {
                                   Navigator.of(context).pushNamedAndRemoveUntil(
-                                      Routes.mainviewRoute, (route) => false);
+                                      Routes.getOrCreateUserRoute,
+                                      arguments: UserType.user,
+                                      (route) => false);
                                 }
                               }
                             } on InvalidVerificationCodeAuthException {

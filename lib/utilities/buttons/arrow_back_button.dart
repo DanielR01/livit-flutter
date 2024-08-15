@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:livit/constants/styles/container_style.dart';
 
@@ -19,14 +20,14 @@ class ArrowBackButton extends StatelessWidget {
         child: Padding(
           padding: EdgeInsets.only(
             right: LivitContainerStyle.horizontalPadding,
-            bottom: 10,
-            top: 10,
+            bottom: 10.sp,
+            top: 10.sp,
           ),
           child: SizedBox(
-            height: 12,
+            height: 12.sp,
             child: SvgPicture.asset(
               'assets/icons/arrow-back.svg',
-              height: 12,
+              height: 12.sp,
             ),
           ),
         ),

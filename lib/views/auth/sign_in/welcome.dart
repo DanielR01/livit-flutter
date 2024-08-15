@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import 'package:livit/constants/colors.dart';
 import 'package:livit/constants/styles/spaces.dart';
 import 'package:livit/constants/styles/text_style.dart';
 import 'package:livit/utilities/buttons/action_button.dart';
@@ -34,11 +33,9 @@ class _WelcomeViewState extends State<WelcomeView> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text(
+            const LivitText(
               'Livit',
-              style: LivitTextStyle(
-                textColor: LivitColors.whiteActive,
-              ).bigTitleTextStyle,
+              textType: TextType.bigTitle,
             )
                 .animate()
                 .fade(delay: 1600.ms, duration: 300.ms, curve: Curves.easeOut)
@@ -80,24 +77,15 @@ class WelcomeMessage extends StatelessWidget {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Text(
+        const LivitText(
           'Encuentra mas de lo que te gusta,',
-          style: LivitTextStyle(
-            textColor: LivitColors.whiteActive,
-          ).regularTextStyle,
         ),
-        Text(
+        const LivitText(
           'mas eventos, mas lugares, mas personas.',
-          style: LivitTextStyle(
-            textColor: LivitColors.whiteActive,
-          ).regularTextStyle,
         ),
         LivitSpaces.mediumPlus24spacer,
-        ActionButton(
-          isShadowActive: false,
-          blueStyle: false,
-          mainAction: true,
-          text: 'Iniciar sesión',
+        MainActionButton(
+          text: 'Comenzar',
           isActive: true,
           onPressed: () => signInCallback(1),
         ),

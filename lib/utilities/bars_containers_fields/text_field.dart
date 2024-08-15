@@ -108,9 +108,7 @@ class _LivitTextFieldState extends State<LivitTextField> {
         onCountryCodeChanged: widget.onCountryCodeChanged,
         initialCountry: selectedCountry,
         bottomCaptionStyle: widget.bottomCaptionStyle ??
-            LivitTextStyle(
-              textColor: LivitColors.whiteActive,
-            ).regularTextStyle,
+            LivitTextStyle.regularWhiteActiveBoldText,
         bottomCaptionText: widget.bottomCaptionText ?? '',
         externalIsValid: widget.externalIsValid,
       );
@@ -204,9 +202,7 @@ class _NoBottomCaptionState extends State<NoBottomCaption> {
             },
             decoration: InputDecoration(
               hintText: widget.hint,
-              hintStyle: LivitTextStyle(
-                textColor: LivitColors.gray,
-              ).smallTextStyle,
+              hintStyle: LivitTextStyle.regularWhiteInactiveText,
               enabledBorder: const OutlineInputBorder(
                 borderSide: BorderSide.none,
               ),
@@ -263,9 +259,7 @@ class _NoBottomCaptionState extends State<NoBottomCaption> {
                           height: LivitBarStyle.height,
                           child: Text(
                             '${selectedCountry.flagEmoji} +${selectedCountry.phoneCode}',
-                            style: LivitTextStyle(
-                              textColor: LivitColors.whiteActive,
-                            ).regularTextStyle,
+                            style: LivitTextStyle.regularWhiteActiveText,
                           ),
                         ),
                       ),
@@ -279,9 +273,7 @@ class _NoBottomCaptionState extends State<NoBottomCaption> {
               ),
               isCollapsed: true,
             ),
-            style: LivitTextStyle(
-              textColor: LivitColors.whiteActive,
-            ).regularTextStyle,
+            style: LivitTextStyle.regularWhiteActiveText,
             obscureText: widget.blurInput ?? false,
             enableSuggestions: !(widget.blurInput ?? true),
             autocorrect: !(widget.blurInput ?? true),
@@ -386,9 +378,7 @@ class _WithBottomCaptionState extends State<WithBottomCaption> {
                 },
                 decoration: InputDecoration(
                   hintText: widget.hint,
-                  hintStyle: LivitTextStyle(
-                    textColor: LivitColors.gray,
-                  ).smallTextStyle,
+                  hintStyle: LivitTextStyle.regularWhiteInactiveText,
                   enabledBorder: const OutlineInputBorder(
                     borderSide: BorderSide.none,
                   ),
@@ -444,9 +434,7 @@ class _WithBottomCaptionState extends State<WithBottomCaption> {
                               height: LivitBarStyle.height,
                               child: Text(
                                 '${selectedCountry.flagEmoji} +${selectedCountry.phoneCode}',
-                                style: LivitTextStyle(
-                                  textColor: LivitColors.whiteActive,
-                                ).regularTextStyle,
+                                style: LivitTextStyle.regularWhiteActiveText,
                               ),
                             ),
                           ),
@@ -460,9 +448,7 @@ class _WithBottomCaptionState extends State<WithBottomCaption> {
                   ),
                   isCollapsed: true,
                 ),
-                style: LivitTextStyle(
-                  textColor: LivitColors.whiteActive,
-                ).regularTextStyle,
+                style: LivitTextStyle.regularWhiteActiveText,
                 obscureText: widget.blurInput ?? false,
                 enableSuggestions: !(widget.blurInput ?? true),
                 autocorrect: !(widget.blurInput ?? true),

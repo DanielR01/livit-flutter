@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:livit/constants/colors.dart';
 import 'package:livit/constants/styles/bar_style.dart';
 import 'package:livit/constants/styles/shadows.dart';
 import 'package:livit/constants/styles/text_style.dart';
@@ -13,7 +13,7 @@ class AppleLoginBar extends StatelessWidget {
     return GestureDetector(
       onTap: () {},
       child: Container(
-        height: 54,
+        height: 54.sp,
         width: double.infinity,
         decoration: BoxDecoration(
           color: Colors.black,
@@ -27,15 +27,11 @@ class AppleLoginBar extends StatelessWidget {
               left: 0,
               child: SvgPicture.asset(
                 'assets/logos/apple-logo-black.svg',
-                height: 54,
+                height: 54.sp,
               ),
             ),
-            Text(
-              'Continuar con Apple',
-              style: LivitTextStyle(
-                //textWeight: FontWeight.bold,
-                textColor: LivitColors.whiteActive,
-              ).regularTextStyle,
+            const LivitText(
+               'Continuar con Apple',
             ),
           ],
         ),

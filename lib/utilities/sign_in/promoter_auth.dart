@@ -1,8 +1,5 @@
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:flutter/widgets.dart';
 import 'package:livit/constants/colors.dart';
 import 'package:livit/constants/routes.dart';
 import 'package:livit/constants/styles/bar_style.dart';
@@ -13,11 +10,11 @@ import 'package:livit/services/auth/auth_exceptions.dart';
 import 'package:livit/services/auth/auth_service.dart';
 import 'package:livit/services/auth/auth_user.dart';
 import 'package:livit/services/auth/credential_types.dart';
+import 'package:livit/services/crud/livit_db_service.dart';
 import 'package:livit/utilities/bars_containers_fields/glass_container.dart';
 import 'package:livit/utilities/bars_containers_fields/text_field.dart';
 import 'package:livit/utilities/buttons/action_button.dart';
 import 'package:livit/utilities/buttons/arrow_back_button.dart';
-import 'package:path/path.dart';
 
 class PromoterAuth extends StatefulWidget {
   final VoidCallback onBack;
@@ -82,21 +79,15 @@ class _PromoterAuthState extends State<PromoterAuth> {
                               onPressed: widget.onBack,
                             ),
                           ),
-                          Text(
+                          const LivitText(
                             'Promocionador',
-                            style: LivitTextStyle(
-                              textColor: LivitColors.whiteActive,
-                            ).normalTitleTextStyle,
+                            textType: TextType.normalTitle,
                           ),
                         ],
                       ),
                     ),
-                    Text(
+                    const LivitText(
                       'En LIVIT podras promocionar tus eventos y negocio, permitiendo que muchos mas clientes te encuentren y tengan una gran experiencia de compra.',
-                      style: LivitTextStyle(
-                        textColor: LivitColors.whiteActive,
-                      ).regularTextStyle,
-                      textAlign: TextAlign.center,
                     ),
                     LivitSpaces.medium16spacer,
                     Row(
@@ -117,15 +108,11 @@ class _PromoterAuthState extends State<PromoterAuth> {
                                 )),
                               ),
                               child: Center(
-                                child: Text(
+                                child: LivitText(
                                   'Iniciar sesión',
-                                  style: LivitTextStyle(
-                                    textColor:
-                                        _currentView == PromoterViews.login
-                                            ? LivitColors.whiteActive
-                                            : LivitColors.whiteInactive,
-                                    textWeight: FontWeight.bold,
-                                  ).regularTextStyle,
+                                  color: _currentView == PromoterViews.login
+                                      ? LivitColors.whiteActive
+                                      : LivitColors.whiteInactive,
                                 ),
                               ),
                             ),
@@ -146,15 +133,11 @@ class _PromoterAuthState extends State<PromoterAuth> {
                                 )),
                               ),
                               child: Center(
-                                child: Text(
+                                child: LivitText(
                                   'Crear cuenta',
-                                  style: LivitTextStyle(
-                                    textColor:
-                                        _currentView == PromoterViews.register
-                                            ? LivitColors.whiteActive
-                                            : LivitColors.whiteInactive,
-                                    textWeight: FontWeight.bold,
-                                  ).regularTextStyle,
+                                  color: _currentView == PromoterViews.register
+                                      ? LivitColors.whiteActive
+                                      : LivitColors.whiteInactive,
                                 ),
                               ),
                             ),
@@ -282,8 +265,7 @@ class _SignInState extends State<SignIn> {
           regExp: RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'),
           onChanged: _onEmailChange,
           bottomCaptionText: emailCaptionText,
-          bottomCaptionStyle: LivitTextStyle(textColor: LivitColors.whiteActive)
-              .regularTextStyle,
+          bottomCaptionStyle: LivitTextStyle.regularBlackBoldText,
         ),
         LivitSpaces.medium16spacer,
         LivitTextField(
@@ -293,13 +275,10 @@ class _SignInState extends State<SignIn> {
           onChanged: _onPasswordChange,
           regExp: RegExp(r'^.{6,}$'),
           bottomCaptionText: passwordCaptionText,
-          bottomCaptionStyle: LivitTextStyle(
-                  textColor: LivitColors.whiteActive,
-                  textWeight: FontWeight.bold)
-              .regularTextStyle,
+          bottomCaptionStyle: LivitTextStyle.regularBlackBoldText,
         ),
         LivitSpaces.medium16spacer,
-        ActionButton(
+        MainActionButton(
           text: _isSigningIn ? 'Iniciando sesión' : 'Iniciar sesión',
           isActive: _isEmailValid & _isPasswordValid,
           onPressed: () async {
@@ -324,7 +303,9 @@ class _SignInState extends State<SignIn> {
                 AuthService.firebase().sendEmailVerification();
               } else {
                 Navigator.of(context).pushNamedAndRemoveUntil(
-                    Routes.mainviewRoute, (route) => false);
+                    Routes.getOrCreateUserRoute,
+                    arguments: UserType.promoter,
+                    (route) => false);
               }
             } on InvalidCredentialsAuthException {
               passwordCaptionText = 'Email o contraseña incorrectos';
@@ -344,7 +325,6 @@ class _SignInState extends State<SignIn> {
               },
             );
           },
-          mainAction: true,
         ),
         emailToVerify == null
             ? const SizedBox()
@@ -454,10 +434,7 @@ class _RegisterState extends State<Register> {
           regExp: RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'),
           onChanged: _onEmailChange,
           bottomCaptionText: emailCaptionText,
-          bottomCaptionStyle: LivitTextStyle(
-                  textColor: LivitColors.whiteActive,
-                  textWeight: FontWeight.bold)
-              .regularTextStyle,
+          bottomCaptionStyle: LivitTextStyle.regularWhiteActiveBoldText,
         ),
         LivitSpaces.medium16spacer,
         LivitTextField(
@@ -467,8 +444,7 @@ class _RegisterState extends State<Register> {
           onChanged: _onPasswordChange,
           regExp: RegExp(r'^.{6,}$'),
           bottomCaptionText: passwordCaptionText,
-          bottomCaptionStyle: LivitTextStyle(textColor: LivitColors.whiteActive)
-              .regularTextStyle,
+          bottomCaptionStyle: LivitTextStyle.regularBlackBoldText,
         ),
         LivitSpaces.medium16spacer,
         LivitTextField(
@@ -478,11 +454,10 @@ class _RegisterState extends State<Register> {
           onChanged: _onConfirmPasswordChange,
           externalIsValid: _arePasswordsEqual,
           bottomCaptionText: confirmPasswordCaptionText,
-          bottomCaptionStyle: LivitTextStyle(textColor: LivitColors.whiteActive)
-              .regularTextStyle,
+          bottomCaptionStyle: LivitTextStyle.regularBlackBoldText,
         ),
         LivitSpaces.medium16spacer,
-        ActionButton(
+        MainActionButton(
           text: _isSigningIn ? 'Creando cuenta' : 'Crear cuenta',
           isActive: _isEmailValid & _isPasswordValid & _arePasswordsEqual,
           onPressed: () async {
@@ -541,7 +516,6 @@ class _RegisterState extends State<Register> {
               },
             );
           },
-          mainAction: true,
         ),
         emailToVerify == null
             ? SizedBox()
@@ -587,38 +561,28 @@ class _VerifyEmail extends State<VerifyEmail> {
               children: [
                 Expanded(
                   child: widget.isLoginVariant
-                      ? Text(
+                      ? const LivitText(
                           'Termina de confirmar tu cuenta con el email que te hemos enviado.',
-                          style: LivitTextStyle(
-                            textColor: LivitColors.whiteActive,
-                          ).regularTextStyle,
                         )
                       : RichText(
                           text: TextSpan(
                             text: 'Hemos enviado un email a ',
-                            style: LivitTextStyle(
-                                    textColor: LivitColors.whiteActive)
-                                .regularTextStyle,
+                            style: LivitTextStyle.regularWhiteActiveText,
                             children: <TextSpan>[
                               TextSpan(
                                 text: widget.email,
-                                style: LivitTextStyle(
-                                  textColor: LivitColors.whiteActive,
-                                  textWeight: FontWeight.bold,
-                                ).regularTextStyle,
+                                style: LivitTextStyle.regularWhiteActiveText,
                               ),
                               TextSpan(
                                 text:
                                     ' para que termines de confirmar tu cuenta.',
-                                style: LivitTextStyle(
-                                  textColor: LivitColors.whiteActive,
-                                ).regularTextStyle,
+                                style: LivitTextStyle.regularWhiteActiveText,
                               ),
                             ],
                           ),
                         ),
                 ),
-                ActionButton(
+                MainActionButton(
                   text: _isSendingCode ? 'Reenviando' : 'Reenviar',
                   isActive: true,
                   onPressed: () async {
@@ -636,8 +600,6 @@ class _VerifyEmail extends State<VerifyEmail> {
                       },
                     );
                   },
-                  mainAction: true,
-                  blueStyle: false,
                 ),
               ],
             ),
@@ -697,18 +659,13 @@ class _ForgotPassword extends State<ForgotPassword> {
         padding: LivitContainerStyle.padding(null),
         child: Column(
           children: [
-            Text(
+            const LivitText(
               '¿Olvidaste tu contraseña?',
-              style: LivitTextStyle(
-                textColor: LivitColors.whiteActive,
-              ).smallTitleTextStyle,
+              textType: TextType.smallTitle,
             ),
             LivitSpaces.small8spacer,
-            Text(
+            const LivitText(
               'Digita tu correo y te enviaremos un mensaje para que reestablezcas tu contraseña.',
-              style: LivitTextStyle(textColor: LivitColors.whiteActive)
-                  .regularTextStyle,
-              textAlign: TextAlign.center,
             ),
             LivitSpaces.medium16spacer,
             Row(
@@ -722,49 +679,45 @@ class _ForgotPassword extends State<ForgotPassword> {
                         r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'),
                     onChanged: _onEmailChange,
                     bottomCaptionText: emailCaptionText,
-                    bottomCaptionStyle: LivitTextStyle(
-                            textColor: LivitColors.whiteActive,
-                            textWeight: FontWeight.bold)
-                        .regularTextStyle,
                   ),
                 ),
                 LivitSpaces.medium16spacer,
-                ActionButton(
-                    text: _isSendingEmail
-                        ? 'Enviando'
-                        : _isEmailSent
-                            ? 'Enviado'
-                            : 'Enviar',
-                    isActive: _isEmailValid,
-                    onPressed: () async {
-                      setState(
-                        () {
-                          _isSendingEmail = true;
-                        },
-                      );
-                      try {
-                        await AuthService.firebase()
-                            .sendPasswordReset(_emailController.text.trim());
-                        _isEmailSent = true;
-                        emailCaptionText = '¡Listo!, revisa tu correo.';
-                      } on FirebaseAuthException catch (e) {
-                        switch (e.code) {
-                          case 'network-request-failed':
-                            emailCaptionText = 'Error de conexión';
-                            break;
-                          default:
-                        }
-                      } catch (e) {
-                        _isEmailSent = false;
-                        emailCaptionText = 'Error, intenta mas tarde';
+                MainActionButton(
+                  text: _isSendingEmail
+                      ? 'Enviando'
+                      : _isEmailSent
+                          ? 'Enviado'
+                          : 'Enviar',
+                  isActive: _isEmailValid,
+                  onPressed: () async {
+                    setState(
+                      () {
+                        _isSendingEmail = true;
+                      },
+                    );
+                    try {
+                      await AuthService.firebase()
+                          .sendPasswordReset(_emailController.text.trim());
+                      _isEmailSent = true;
+                      emailCaptionText = '¡Listo!, revisa tu correo.';
+                    } on FirebaseAuthException catch (e) {
+                      switch (e.code) {
+                        case 'network-request-failed':
+                          emailCaptionText = 'Error de conexión';
+                          break;
+                        default:
                       }
-                      setState(
-                        () {
-                          _isSendingEmail = false;
-                        },
-                      );
-                    },
-                    mainAction: true),
+                    } catch (e) {
+                      _isEmailSent = false;
+                      emailCaptionText = 'Error, intenta mas tarde';
+                    }
+                    setState(
+                      () {
+                        _isSendingEmail = false;
+                      },
+                    );
+                  },
+                ),
               ],
             ),
           ],

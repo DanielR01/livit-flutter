@@ -92,9 +92,8 @@ class _NewEventViewState extends State<NewEventView> {
                                   minLines: 1,
                                   decoration: InputDecoration(
                                     hintText: 'Titulo del evento',
-                                    hintStyle: LivitTextStyle(
-                                      textColor: LivitColors.whiteActive,
-                                    ).regularTextStyle,
+                                    hintStyle:
+                                        LivitTextStyle.regularWhiteActiveText,
                                   ),
                                 ),
                               ),
@@ -110,9 +109,8 @@ class _NewEventViewState extends State<NewEventView> {
                                   minLines: 1,
                                   decoration: InputDecoration(
                                     hintText: 'Fecha del evento',
-                                    hintStyle: LivitTextStyle(
-                                      textColor: LivitColors.whiteActive,
-                                    ).regularTextStyle,
+                                    hintStyle:
+                                        LivitTextStyle.regularWhiteActiveText,
                                   ),
                                 ),
                               ),
@@ -151,9 +149,7 @@ class _NewEventViewState extends State<NewEventView> {
                             minLines: 1,
                             decoration: InputDecoration(
                               hintText: 'Descripción',
-                              hintStyle: LivitTextStyle(
-                                textColor: LivitColors.whiteActive,
-                              ).regularTextStyle,
+                              hintStyle: LivitTextStyle.regularWhiteActiveText,
                             ),
                           ),
                         ),
@@ -177,9 +173,7 @@ class _NewEventViewState extends State<NewEventView> {
                             minLines: 1,
                             decoration: InputDecoration(
                               hintText: 'Localización',
-                              hintStyle: LivitTextStyle(
-                                textColor: LivitColors.whiteActive,
-                              ).regularTextStyle,
+                              hintStyle: LivitTextStyle.regularWhiteActiveText,
                             ),
                           ),
                         ),
@@ -187,8 +181,8 @@ class _NewEventViewState extends State<NewEventView> {
                     ),
                   ),
                   LivitSpaces.mediumPlus24spacer,
-                  ActionButton(
-                    mainAction: true,
+                  MainActionButton(
+                    
                     text: 'Crear evento',
                     isActive: true,
                     onPressed: () {},

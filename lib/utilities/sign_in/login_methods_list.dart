@@ -1,6 +1,5 @@
 import 'package:country_picker_pro/country_picker_pro.dart';
 import 'package:flutter/material.dart';
-import 'package:livit/constants/colors.dart';
 import 'package:livit/constants/styles/container_style.dart';
 import 'package:livit/constants/styles/spaces.dart';
 import 'package:livit/constants/styles/text_style.dart';
@@ -124,22 +123,17 @@ class _LoginMethodsListState extends State<LoginMethodsList> {
                   padding: LivitContainerStyle.padding(null),
                   child: Column(
                     children: [
-                      Text(
-                        'Iniciar sesión',
-                        style: LivitTextStyle(
-                          textColor: LivitColors.whiteActive,
-                        ).normalTitleTextStyle,
+                      const LivitText(
+                         'Iniciar sesión',
+                        textType: TextType.normalTitle,
                       ),
                       LivitSpaces.medium16spacer,
                       const GoogleLoginBar(),
                       LivitSpaces.medium16spacer,
                       const AppleLoginBar(),
                       LivitSpaces.medium16spacer,
-                      Text(
-                        'O usa tu número de teléfono',
-                        style: LivitTextStyle(
-                          textColor: LivitColors.whiteActive,
-                        ).regularTextStyle,
+                      const LivitText(
+                         'O usa tu número de teléfono',
                       ),
                       LivitSpaces.medium16spacer,
                       LivitTextField(
@@ -160,14 +154,10 @@ class _LoginMethodsListState extends State<LoginMethodsList> {
                             : networkRequestFailedError
                                 ? 'Error de red'
                                 : null,
-                        bottomCaptionStyle: LivitTextStyle(
-                          textColor: LivitColors.whiteActive,
-                          textWeight: FontWeight.bold,
-                        ).smallTextStyle,
                       ),
                       LivitSpaces.medium16spacer,
-                      ActionButton(
-                        mainAction: true,
+                      MainActionButton(
+                        
                         text:
                             _isCodeSending ? 'Enviando codigo...' : 'Continuar',
                         isActive: isPhoneValid,
@@ -194,11 +184,8 @@ class _LoginMethodsListState extends State<LoginMethodsList> {
                 padding: LivitContainerStyle.padding(null),
                 child: Column(
                   children: [
-                    Text(
-                      'Estas interesado en promocionar tus eventos?',
-                      style: LivitTextStyle(
-                        textColor: LivitColors.whiteActive,
-                      ).regularTextStyle,
+                    const LivitText(
+                       'Estas interesado en promocionar tus eventos?',
                     ),
                     LivitSpaces.medium16spacer,
                     PromoterLoginBar(

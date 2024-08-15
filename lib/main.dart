@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:livit/constants/colors.dart';
 import 'package:livit/services/auth/auth_service.dart';
 import 'package:livit/utilities/route_generator.dart';
@@ -16,6 +17,7 @@ class StartPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    ScreenUtil.init(context, designSize: const Size(390, 844));
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Livit',

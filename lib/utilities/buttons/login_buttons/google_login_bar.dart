@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:livit/constants/colors.dart';
 import 'package:livit/constants/routes.dart';
 import 'package:livit/constants/styles/bar_style.dart';
@@ -6,6 +7,7 @@ import 'package:livit/constants/styles/text_style.dart';
 import 'package:livit/services/auth/credential_types.dart';
 import 'package:livit/services/auth/auth_exceptions.dart';
 import 'package:livit/services/auth/auth_service.dart';
+import 'package:livit/services/crud/livit_db_service.dart';
 
 class GoogleLoginBar extends StatefulWidget {
   const GoogleLoginBar({
@@ -34,7 +36,9 @@ class _GoogleLoginBarState extends State<GoogleLoginBar> {
           if (AuthService.firebase().currentUser != null) {
             if (context.mounted) {
               Navigator.of(context).pushNamedAndRemoveUntil(
-                  Routes.mainviewRoute, (route) => false);
+                  Routes.getOrCreateUserRoute,
+                  arguments: UserType.user,
+                  (route) => false);
             }
           }
         } on UserNotLoggedInAuthException {
@@ -49,7 +53,7 @@ class _GoogleLoginBarState extends State<GoogleLoginBar> {
         );
       },
       child: Container(
-        height: 54,
+        height: 54.sp,
         width: double.infinity,
         decoration: BoxDecoration(
           color: Colors.white,
@@ -59,26 +63,23 @@ class _GoogleLoginBarState extends State<GoogleLoginBar> {
           alignment: Alignment.center,
           children: [
             Positioned(
-              left: 16,
+              left: 16.sp,
               child: Image.asset(
                 'assets/logos/google-logo.png',
-                height: 20,
+                height: 20.sp,
               ),
             ),
-            Text(
+            const LivitText(
               'Continuar con Google',
-              style: LivitTextStyle(
-                //textWeight: FontWeight.bold,
-                textColor: LivitColors.mainBlack,
-              ).regularTextStyle,
+              color: LivitColors.mainBlack,
             ),
             _isSigningIn
-                ? const Positioned(
-                    right: 16,
+                ? Positioned(
+                    right: 16.sp,
                     child: SizedBox(
-                      height: 13,
-                      width: 13,
-                      child: CircularProgressIndicator(
+                      height: 13.sp,
+                      width: 13.sp,
+                      child: const CircularProgressIndicator(
                         color: LivitColors.mainBlack,
                       ),
                     ),
