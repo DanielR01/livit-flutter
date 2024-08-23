@@ -2,14 +2,13 @@ import 'dart:async';
 import 'package:livit/services/crud/crud_exceptions.dart';
 import 'package:livit/services/crud/livit_db.dart';
 import 'package:livit/services/crud/tables/events/event.dart';
-import 'package:livit/services/crud/tables/promoters/promoter.dart';
 import 'package:livit/services/crud/tables/users/user.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' show join;
 
 enum UserType {
-  user,
+  consumer,
   promoter,
 }
 
@@ -31,89 +30,6 @@ class LivitDBService {
     final allEvents = await getAllEvents();
     _events = allEvents.toList();
     _eventsStreamController.add(_events);
-  }
-
-  Future<LivitPromoter> getPromoterWithId({
-    required String id,
-  }) async {
-    await _ensureDbIsOpen();
-    final db = _getDatabaseOrThrow();
-
-    final results = await db.query(
-      LivitDB.promotersTableName,
-      where: 'id = ?',
-      whereArgs: [id],
-    );
-
-    if (results.isEmpty) {
-      throw CouldNotFindPromoter();
-    }
-    return LivitPromoter.fromRow(results.first);
-  }
-
-  Future<LivitPromoter> getPromoterWithUsername({
-    required String username,
-  }) async {
-    await _ensureDbIsOpen();
-    final db = _getDatabaseOrThrow();
-
-    final results = await db.query(
-      LivitDB.promotersTableName,
-      where: 'username = ?',
-      whereArgs: [username],
-    );
-
-    if (results.isEmpty) {
-      throw CouldNotFindPromoter();
-    }
-    return LivitPromoter.fromRow(results.first);
-  }
-
-  Future<LivitPromoter> createPromoter({
-    required String id,
-    required String name,
-    required String email,
-    required String username,
-  }) async {
-    await _ensureDbIsOpen();
-    final db = _getDatabaseOrThrow();
-
-    final usernameResults = await db.query(
-      LivitDB.promotersTableName,
-      limit: 1,
-      where: 'username = ?',
-      whereArgs: [username],
-    );
-
-    final emailResults = await db.query(
-      LivitDB.promotersTableName,
-      limit: 1,
-      where: 'email = ?',
-      whereArgs: [email],
-    );
-
-    if (usernameResults.isNotEmpty) {
-      throw PromoterUsernameAlreadyInUse();
-    }
-    if (emailResults.isNotEmpty) {
-      throw PromoterEmailAlreadyInUse();
-    }
-
-    await db.insert(
-      LivitDB.promotersTableName,
-      {
-        LivitPromoter.idColumn: id,
-        LivitPromoter.emailColumn: email,
-        LivitPromoter.nameColumn: name,
-        LivitPromoter.usernameColumn: username,
-      },
-    );
-    return LivitPromoter(
-      id: id,
-      username: username,
-      email: email,
-      name: name,
-    );
   }
 
   Future<LivitEvent> getEvent({required int eventId}) async {
@@ -150,37 +66,30 @@ class LivitDBService {
   }
 
   Future<LivitEvent> createEvent({
-    //required LivitPromoter promoter,
+    required LivitUser userCreator,
     required String title,
-    required String date,
-    required String description,
     required String location,
   }) async {
     await _ensureDbIsOpen();
     final db = _getDatabaseOrThrow();
+    final dbUserCreator = await getUserWithId(id: userCreator.id);
 
-    // final dbPromoter = await getPromoterWithId(id: promoter.id);
-
-    // if (promoter != dbPromoter) {
-    //   throw CouldNotFindPromoter();
-    // }
+    if (userCreator != dbUserCreator) {
+      throw UserNotFound();
+    }
     final eventId = await db.insert(
       LivitDB.eventsTableName,
       {
-        // LivitEvent.promoterIdColumn: promoter.id,
+        LivitEvent.creatorIdColumn: userCreator.id,
         LivitEvent.locationColumn: location,
         LivitEvent.titleColumn: title,
-        LivitEvent.dateColumn: date,
-        LivitEvent.descriptionColumn: description,
       },
     );
     final LivitEvent event = LivitEvent(
       id: eventId,
-      // promoterId: promoter.id,
+      creatorId: userCreator.id,
       title: title,
       location: location,
-      date: date,
-      description: description,
     );
     _events.add(event);
     _eventsStreamController.add(_events);
@@ -208,8 +117,10 @@ class LivitDBService {
   }
 
   Future<LivitEvent> updateEvent({
+    // TODO this update function needs to be modified so that it doesnt update everything
     required LivitEvent event,
     required String location,
+    required String title,
   }) async {
     await _ensureDbIsOpen();
     final db = _getDatabaseOrThrow();
@@ -223,6 +134,7 @@ class LivitDBService {
     final updatesCount = await db.update(
       LivitDB.eventsTableName,
       {
+        LivitEvent.titleColumn: title,
         LivitEvent.locationColumn: location,
       },
     );
@@ -238,25 +150,9 @@ class LivitDBService {
     }
   }
 
-  Future<LivitUser> getUserWithUsername({required String username}) async {
-    await _ensureDbIsOpen();
-    final db = _getDatabaseOrThrow();
-
-    final results = await db.query(
-      LivitDB.usersTableName,
-      limit: 1,
-      where: 'username = ?',
-      whereArgs: [username],
-    );
-
-    if (results.isEmpty) {
-      throw UserNotFound();
-    } else {
-      return LivitUser.fromRow(results.first);
-    }
-  }
-
-  Future<LivitUser> getUserWithId({required String id}) async {
+  Future<LivitUser> getUserWithId({
+    required String id,
+  }) async {
     await _ensureDbIsOpen();
     final db = _getDatabaseOrThrow();
 
@@ -266,7 +162,6 @@ class LivitDBService {
       where: 'id = ?',
       whereArgs: [id],
     );
-
     if (results.isEmpty) {
       throw UserNotFound();
     } else {
@@ -274,11 +169,65 @@ class LivitDBService {
     }
   }
 
+  // Future<LivitUser> createUser({
+  //   required String userId,
+  // }) async {
+  //   await _ensureDbIsOpen();
+  //   final db = _getDatabaseOrThrow();
+  //   final results = await db.query(
+  //     LivitDB.usersTableName,
+  //     limit: 1,
+  //     where: 'id = ?',
+  //     whereArgs: [userId],
+  //   );
+  //   if (results.isNotEmpty) {
+  //     throw UserAlreadyExists();
+  //   }
+  //   await db.insert(
+  //     LivitDB.usersTableName,
+  //     {
+  //       LivitUser.idColumn: userId,
+  //     },
+  //   );
+  //   return LivitUser(
+  //     id: userId,
+  //   );
+  // }
+
+  // Future<LivitUser> getOrCreateUser({
+  //   required String userId,
+  //   required UserType? userType,
+  // }) async {
+  //   try {
+  //     final user = await getUserWithId(id: userId);
+  //     return user;
+  //   } on UserNotFound {
+  //     final user = await createUser(userId: userId);
+  //     return user;
+  //   } catch (e) {
+  //     rethrow;
+  //   }
+  // }
+
+  // Future<void> deleteUser({required String username}) async {
+  //   await _ensureDbIsOpen();
+  //   final db = _getDatabaseOrThrow();
+  //   final deleteCount = await db.delete(
+  //     LivitDB.usersTableName,
+  //     where: 'username = ?',
+  //     whereArgs: [username],
+  //   );
+  //   if (deleteCount != 1) {
+  //     throw CouldNotDeleteUser();
+  //   } else {}
+  // }
+
   Future<LivitUser> createUser({
     required String userId,
   }) async {
     await _ensureDbIsOpen();
     final db = _getDatabaseOrThrow();
+
     final results = await db.query(
       LivitDB.usersTableName,
       limit: 1,
@@ -288,15 +237,21 @@ class LivitDBService {
     if (results.isNotEmpty) {
       throw UserAlreadyExists();
     }
-    await db.insert(
-      LivitDB.usersTableName,
-      {
-        LivitUser.idColumn: userId,
-      },
-    );
-    return LivitUser(
-      id: userId,
-    );
+    try {
+      final user = await db.insert(
+        LivitDB.usersTableName,
+        {
+          LivitUser.idColumn: userId,
+          LivitUser.usernameColumn: userId,
+        },
+      );
+      return LivitUser(
+        id: userId,
+        username: userId,
+      );
+    } catch (e) {
+      throw CouldNotCreateUser();
+    }
   }
 
   Future<LivitUser> getOrCreateUser({
@@ -306,20 +261,26 @@ class LivitDBService {
       final user = await getUserWithId(id: userId);
       return user;
     } on UserNotFound {
-      final user = await createUser(userId: userId);
-      return user;
+      try {
+        final user = await createUser(
+          userId: userId,
+        );
+        return user;
+      } on CouldNotCreateUser {
+        throw CouldNotCreateNorGetUser();
+      }
     } catch (e) {
       rethrow;
     }
   }
 
-  Future<void> deleteUser({required String username}) async {
+  Future<void> deleteUser({required String id}) async {
     await _ensureDbIsOpen();
     final db = _getDatabaseOrThrow();
     final deleteCount = await db.delete(
       LivitDB.usersTableName,
-      where: 'username = ?',
-      whereArgs: [username],
+      where: 'id = ?',
+      whereArgs: [id],
     );
     if (deleteCount != 1) {
       throw CouldNotDeleteUser();
@@ -345,12 +306,11 @@ class LivitDBService {
         docsPath.path,
         LivitDB.dbName,
       );
+
       final db = await openDatabase(dbPath);
       _db = db;
 
       await db.execute(createUsersTable);
-
-      await db.execute(createPromotersTable);
 
       await db.execute(createEventsTable);
 
@@ -364,7 +324,7 @@ class LivitDBService {
     try {
       await open();
     } on DatabaseAlreadyOpenException {
-      //
+      //print('database already open');
     }
   }
 
@@ -380,28 +340,14 @@ class LivitDBService {
 
   static const createEventsTable = '''CREATE TABLE IF NOT EXISTS "events" (
 	"id"	INTEGER NOT NULL UNIQUE,
-	"promoter_id"	INTEGER NOT NULL,
-	"name"	TEXT NOT NULL,
+	"promoter_id"	TEXT NOT NULL,
+	"title"	TEXT NOT NULL,
 	"location"	TEXT NOT NULL,
+	"is_synced_with_cloud"	INTEGER NOT NULL DEFAULT 0,
 	PRIMARY KEY("id" AUTOINCREMENT),
-	FOREIGN KEY("promoter_id") REFERENCES "promoters"("id")
+	FOREIGN KEY("promoter_id") REFERENCES "events"("id")
 );''';
 
-  static const createPromotersTable =
-      '''CREATE TABLE IF NOT EXISTS "promoters" (
-	"id"	INTEGER NOT NULL UNIQUE,
-	"name"	TEXT NOT NULL,
-	"email"	TEXT NOT NULL UNIQUE,
-	"description"	TEXT,
-	"username"	TEXT NOT NULL UNIQUE,
-	PRIMARY KEY("id" AUTOINCREMENT)
-);''';
-
-  static const createUsersTable = '''CREATE TABLE IF NOT EXISTS "users" (
-	"id"	TEXT NOT NULL UNIQUE,
-	"name"	TEXT NOT NULL,
-	"user_name"	TEXT NOT NULL UNIQUE,
-	"phone_number"	TEXT UNIQUE,
-	PRIMARY KEY("id")
-);''';
+  static const createUsersTable =
+      '''CREATE TABLE IF NOT EXISTS "users" ("id"	TEXT NOT NULL UNIQUE,	"username"	TEXT NOT NULL UNIQUE,	PRIMARY KEY("id"))''';
 }

@@ -49,7 +49,7 @@ class LivitText extends StatelessWidget {
       case TextType.regular:
         _fontSize = fontSize ?? 13.sp;
         _fontWeight = fontWeight ?? FontWeight.w500;
-        _height = null;
+        _height = 1.2;
         break;
       case TextType.smallTitle:
         _fontSize = fontSize ?? 18.sp;
@@ -57,7 +57,7 @@ class LivitText extends StatelessWidget {
         _height = 1.2;
         break;
       case TextType.normalTitle:
-        _fontSize = fontSize ?? 22.sp;
+        _fontSize = fontSize ?? 26.sp;
         _fontWeight = fontWeight ?? FontWeight.bold;
         _height = 1.2;
         break;
@@ -125,5 +125,16 @@ class LivitTextStyle {
     color: LivitColors.mainBlueInactive,
     fontFamily: 'HelveticaNowDisplay',
     fontSize: 13.sp,
+  );
+  static TextStyle smallWhiteActiveText = TextStyle(
+    color: LivitColors.whiteActive,
+    fontFamily: 'HelveticaNowDisplay',
+    fontSize: 12.sp,
+  );
+  static TextStyle smallWhiteActiveBoldText = TextStyle(
+    color: LivitColors.whiteActive,
+    fontFamily: 'HelveticaNowDisplay',
+    fontWeight: FontWeight.bold,
+    fontSize: 12.sp,
   );
 }

@@ -231,7 +231,7 @@ class _ConfirmOTPCodeState extends State<ConfirmOTPCode> {
                                 if (context.mounted) {
                                   Navigator.of(context).pushNamedAndRemoveUntil(
                                       Routes.getOrCreateUserRoute,
-                                      arguments: UserType.user,
+                                      arguments: UserType.consumer,
                                       (route) => false);
                                 }
                               }

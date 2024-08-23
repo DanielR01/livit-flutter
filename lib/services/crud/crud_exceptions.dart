@@ -12,13 +12,9 @@ class UserAlreadyExists implements Exception {}
 
 class UserNotFound implements Exception {}
 
-// Promoters exceptions
+class CouldNotCreateUser implements Exception {}
 
-class CouldNotFindPromoter implements Exception {}
-
-class PromoterUsernameAlreadyInUse implements Exception {}
-
-class PromoterEmailAlreadyInUse implements Exception {}
+class CouldNotCreateNorGetUser implements Exception {}
 
 // Events exceptions
 

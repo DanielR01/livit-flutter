@@ -119,12 +119,13 @@ class _LoginMethodsListState extends State<LoginMethodsList> {
             mainAxisSize: MainAxisSize.min,
             children: [
               GlassContainer(
+                
                 child: Padding(
                   padding: LivitContainerStyle.padding(null),
                   child: Column(
                     children: [
                       const LivitText(
-                         'Iniciar sesión',
+                        'Iniciar sesión',
                         textType: TextType.normalTitle,
                       ),
                       LivitSpaces.medium16spacer,
@@ -133,7 +134,7 @@ class _LoginMethodsListState extends State<LoginMethodsList> {
                       const AppleLoginBar(),
                       LivitSpaces.medium16spacer,
                       const LivitText(
-                         'O usa tu número de teléfono',
+                        'O usa tu número de teléfono',
                       ),
                       LivitSpaces.medium16spacer,
                       LivitTextField(
@@ -157,7 +158,6 @@ class _LoginMethodsListState extends State<LoginMethodsList> {
                       ),
                       LivitSpaces.medium16spacer,
                       MainActionButton(
-                        
                         text:
                             _isCodeSending ? 'Enviando codigo...' : 'Continuar',
                         isActive: isPhoneValid,
@@ -185,7 +185,7 @@ class _LoginMethodsListState extends State<LoginMethodsList> {
                 child: Column(
                   children: [
                     const LivitText(
-                       'Estas interesado en promocionar tus eventos?',
+                      'Estas interesado en promocionar tus eventos?',
                     ),
                     LivitSpaces.medium16spacer,
                     PromoterLoginBar(

@@ -108,7 +108,7 @@ class _LivitTextFieldState extends State<LivitTextField> {
         onCountryCodeChanged: widget.onCountryCodeChanged,
         initialCountry: selectedCountry,
         bottomCaptionStyle: widget.bottomCaptionStyle ??
-            LivitTextStyle.regularWhiteActiveBoldText,
+            LivitTextStyle.smallWhiteActiveBoldText,
         bottomCaptionText: widget.bottomCaptionText ?? '',
         externalIsValid: widget.externalIsValid,
       );

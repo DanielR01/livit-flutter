@@ -22,11 +22,11 @@ class GlassContainer extends StatelessWidget {
     return ClipRRect(
       borderRadius: borderRadius ?? LivitContainerStyle.radius,
       child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+        filter: ImageFilter.blur(sigmaX: 6, sigmaY: 6),
         child: Container(
           decoration: BoxDecoration(
             color: (backgroundColor ?? LivitColors.mainBlack)
-                .withOpacity(opacity ?? 0.1),
+                .withOpacity(opacity ?? 0),
             borderRadius: LivitContainerStyle.radius,
           ),
           child: child,

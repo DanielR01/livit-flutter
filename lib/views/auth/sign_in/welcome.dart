@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:livit/constants/styles/spaces.dart';
 import 'package:livit/constants/styles/text_style.dart';
 import 'package:livit/utilities/buttons/action_button.dart';
@@ -39,7 +40,7 @@ class _WelcomeViewState extends State<WelcomeView> {
             )
                 .animate()
                 .fade(delay: 1600.ms, duration: 300.ms, curve: Curves.easeOut)
-                .slideY(begin: 0.2, end: 0, curve: Curves.easeOut)
+                .slideY(begin: 0.2.sp, end: 0, curve: Curves.easeOut)
                 .callback(
                   delay: 3600.ms,
                   callback: (_) {
@@ -56,7 +57,7 @@ class _WelcomeViewState extends State<WelcomeView> {
                   )
                     .animate()
                     .fade(duration: 300.ms, curve: Curves.easeOut)
-                    .slideY(begin: 0.2, end: 0, curve: Curves.easeOut)
+                    .slideY(begin: 0.2.sp, end: 0, curve: Curves.easeOut)
                 : const SizedBox()
           ],
         ),
@@ -74,22 +75,28 @@ class WelcomeMessage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        const LivitText(
-          'Encuentra mas de lo que te gusta,',
-        ),
-        const LivitText(
-          'mas eventos, mas lugares, mas personas.',
-        ),
-        LivitSpaces.mediumPlus24spacer,
-        MainActionButton(
-          text: 'Comenzar',
-          isActive: true,
-          onPressed: () => signInCallback(1),
-        ),
-      ],
+    return Padding(
+      padding: EdgeInsets.symmetric(
+        horizontal: 10.sp,
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          LivitSpaces.small8spacer,
+          const LivitText(
+            'Encuentra mas de lo que te gusta,',
+          ),
+          const LivitText(
+            'mas eventos, mas lugares, mas personas.',
+          ),
+          LivitSpaces.mediumPlus24spacer,
+          MainActionButton(
+            text: 'Comenzar',
+            isActive: true,
+            onPressed: () => signInCallback(1),
+          ),
+        ],
+      ),
     );
   }
 }

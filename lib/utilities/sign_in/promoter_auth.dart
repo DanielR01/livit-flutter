@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:livit/constants/colors.dart';
 import 'package:livit/constants/routes.dart';
 import 'package:livit/constants/styles/bar_style.dart';
@@ -57,9 +58,7 @@ class _PromoterAuthState extends State<PromoterAuth> {
       mainAxisSize: MainAxisSize.max,
       children: [
         Padding(
-          padding: const EdgeInsets.symmetric(
-            horizontal: 10,
-          ),
+          padding: LivitContainerStyle.paddingFromScreen,
           child: GlassContainer(
             child: SizedBox(
               width: double.infinity,
@@ -97,7 +96,7 @@ class _PromoterAuthState extends State<PromoterAuth> {
                           child: GestureDetector(
                             onTap: _onLoginPressed,
                             child: Container(
-                              padding: const EdgeInsets.only(bottom: 8),
+                              padding: EdgeInsets.only(bottom: 8.sp),
                               width: double.infinity,
                               decoration: BoxDecoration(
                                 border: Border(
@@ -113,6 +112,10 @@ class _PromoterAuthState extends State<PromoterAuth> {
                                   color: _currentView == PromoterViews.login
                                       ? LivitColors.whiteActive
                                       : LivitColors.whiteInactive,
+                                  fontWeight:
+                                      _currentView == PromoterViews.login
+                                          ? FontWeight.bold
+                                          : null,
                                 ),
                               ),
                             ),
@@ -122,7 +125,7 @@ class _PromoterAuthState extends State<PromoterAuth> {
                           child: GestureDetector(
                             onTap: _onRegisterPressed,
                             child: Container(
-                              padding: const EdgeInsets.only(bottom: 8),
+                              padding: EdgeInsets.only(bottom: 8.sp),
                               width: double.infinity,
                               decoration: BoxDecoration(
                                 border: Border(
@@ -161,12 +164,12 @@ class _PromoterAuthState extends State<PromoterAuth> {
                 children: [
                   LivitSpaces.medium16spacer,
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 10),
-                    child: ForgotPassword(),
+                    padding: LivitContainerStyle.paddingFromScreen,
+                    child: const ForgotPassword(),
                   ),
                 ],
               )
-            : SizedBox(
+            : const SizedBox(
                 height: 0,
               ),
       ],
@@ -265,7 +268,6 @@ class _SignInState extends State<SignIn> {
           regExp: RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'),
           onChanged: _onEmailChange,
           bottomCaptionText: emailCaptionText,
-          bottomCaptionStyle: LivitTextStyle.regularBlackBoldText,
         ),
         LivitSpaces.medium16spacer,
         LivitTextField(
@@ -275,7 +277,6 @@ class _SignInState extends State<SignIn> {
           onChanged: _onPasswordChange,
           regExp: RegExp(r'^.{6,}$'),
           bottomCaptionText: passwordCaptionText,
-          bottomCaptionStyle: LivitTextStyle.regularBlackBoldText,
         ),
         LivitSpaces.medium16spacer,
         MainActionButton(
@@ -434,7 +435,6 @@ class _RegisterState extends State<Register> {
           regExp: RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'),
           onChanged: _onEmailChange,
           bottomCaptionText: emailCaptionText,
-          bottomCaptionStyle: LivitTextStyle.regularWhiteActiveBoldText,
         ),
         LivitSpaces.medium16spacer,
         LivitTextField(
@@ -444,7 +444,6 @@ class _RegisterState extends State<Register> {
           onChanged: _onPasswordChange,
           regExp: RegExp(r'^.{6,}$'),
           bottomCaptionText: passwordCaptionText,
-          bottomCaptionStyle: LivitTextStyle.regularBlackBoldText,
         ),
         LivitSpaces.medium16spacer,
         LivitTextField(
@@ -454,7 +453,6 @@ class _RegisterState extends State<Register> {
           onChanged: _onConfirmPasswordChange,
           externalIsValid: _arePasswordsEqual,
           bottomCaptionText: confirmPasswordCaptionText,
-          bottomCaptionStyle: LivitTextStyle.regularBlackBoldText,
         ),
         LivitSpaces.medium16spacer,
         MainActionButton(

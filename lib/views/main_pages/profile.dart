@@ -3,13 +3,16 @@ import 'package:livit/constants/routes.dart';
 import 'package:livit/constants/styles/spaces.dart';
 import 'package:livit/constants/styles/text_style.dart';
 import 'package:livit/services/auth/auth_service.dart';
+import 'package:livit/services/crud/tables/users/user.dart';
 import 'package:livit/utilities/background/main_background.dart';
 import 'package:livit/utilities/buttons/action_button.dart';
 import 'package:livit/utilities/error_dialogs/show_error_dialog_2t_2b.dart';
 
 class ProfileView extends StatefulWidget {
+  final LivitUser? user;
   const ProfileView({
     super.key,
+    required this.user,
   });
 
   @override

@@ -3,6 +3,7 @@ import 'dart:ffi';
 import 'package:flutter/material.dart';
 import 'package:livit/constants/routes.dart';
 import 'package:livit/services/crud/livit_db_service.dart';
+import 'package:livit/services/crud/tables/users/user.dart';
 import 'package:livit/views/auth/get_or_create_user.dart';
 import 'package:livit/views/auth/sign_in/auth.dart';
 import 'package:livit/views/auth/check_initial_auth.dart';
@@ -19,11 +20,18 @@ class RouteGenerator {
       case Routes.authRoute:
         return MaterialPageRoute(builder: (_) => const AuthView());
       case Routes.mainviewRoute:
-        return MaterialPageRoute(builder: (_) => const MainMenu());
+        if (args is LivitUser?) {
+          return MaterialPageRoute(
+            builder: (_) => MainMenu(
+              user: args,
+            ),
+          );
+        }
+        return MaterialPageRoute(builder: (_) => const ErrorView());
       case Routes.newEventRoute:
         return MaterialPageRoute(builder: (_) => const NewEventView());
       case Routes.getOrCreateUserRoute:
-        if (args is UserType) {
+        if (args is UserType?) {
           return MaterialPageRoute(
             builder: (_) => GetOrCreateUserView(
               userType: args,

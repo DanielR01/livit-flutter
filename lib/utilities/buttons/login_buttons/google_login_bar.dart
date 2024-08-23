@@ -37,7 +37,7 @@ class _GoogleLoginBarState extends State<GoogleLoginBar> {
             if (context.mounted) {
               Navigator.of(context).pushNamedAndRemoveUntil(
                   Routes.getOrCreateUserRoute,
-                  arguments: UserType.user,
+                  arguments: UserType.consumer,
                   (route) => false);
             }
           }
