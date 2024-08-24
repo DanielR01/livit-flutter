@@ -1,5 +1,7 @@
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import 'package:livit/constants/styles/container_style.dart';
+import 'package:livit/constants/styles/spaces.dart';
 import 'package:livit/constants/styles/text_style.dart';
 import 'package:livit/services/crud/crud_exceptions.dart';
 import 'package:livit/services/crud/livit_db_service.dart';
@@ -22,7 +24,7 @@ class HomeView extends StatefulWidget {
 
 class _HomeViewState extends State<HomeView> {
   late final LivitDBService _livitDBService;
-  List<LivitEvent> _events = [];
+
   @override
   void initState() {
     _livitDBService = LivitDBService();
@@ -31,40 +33,43 @@ class _HomeViewState extends State<HomeView> {
   }
 
   @override
-  void dispose() {
-    _livitDBService.close();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
     return StreamBuilder(
         stream: _livitDBService.allEvents,
         builder: (context, snapshot) {
           switch (snapshot.connectionState) {
-            case ConnectionState.waiting:
-              return const LoadingScreen();
             case ConnectionState.active:
-              _events = snapshot.data!;
-              return Stack(
-                children: [
-                  const MainBackground(),
-                  SafeArea(
-                    child: Padding(
-                      padding: LivitContainerStyle.paddingFromScreen,
-                      child: Column(
-                        children: [
-                          for (LivitEvent event in _events)
-                            EventPreview(event: event),
-                        ],
+              if (snapshot.hasData) {
+                List<LivitEvent> events = snapshot.data as List<LivitEvent>;
+                return Stack(
+                  children: [
+                    const MainBackground(),
+                    SafeArea(
+                      child: Padding(
+                        padding: LivitContainerStyle.paddingFromScreen,
+                        child: ListView.builder(
+                          itemCount: events.length,
+                          itemBuilder: (context, index) {
+                            final LivitEvent event = events[index];
+                            return Column(
+                              children: [
+                                EventPreview(event: event),
+                                LivitSpaces.medium16spacer,
+                              ],
+                            );
+                          },
+                        ),
                       ),
                     ),
-                  ),
-                ],
-              );
-            default:
-              return const LoadingScreen();
+                  ],
+                );
+              }
+            case ConnectionState.none:
+            case ConnectionState.done:
+            case ConnectionState.waiting:
+              break;
           }
+          return const LoadingScreen();
         });
   }
 }
@@ -123,7 +128,10 @@ class _EventPreviewState extends State<EventPreview> {
                 if (snapshot.data == true) {
                   return Column(
                     children: [
-                      LivitText(_title),
+                      LivitText(
+                        _title,
+                        textType: TextType.smallTitle,
+                      ),
                       LivitText(_location),
                       LivitText(_creatorUsername),
                     ],

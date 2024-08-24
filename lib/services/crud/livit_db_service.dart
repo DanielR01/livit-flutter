@@ -17,12 +17,19 @@ class LivitDBService {
 
   List<LivitEvent> _events = [];
 
-  LivitDBService._sharedInstance();
+  LivitDBService._sharedInstance()
+  {
+    _eventsStreamController = StreamController<List<LivitEvent>>.broadcast(
+      onListen: () {
+        _eventsStreamController.sink.add(_events);
+      },
+    );
+  }
+
   static final LivitDBService _shared = LivitDBService._sharedInstance();
   factory LivitDBService() => _shared;
 
-  final _eventsStreamController =
-      StreamController<List<LivitEvent>>.broadcast();
+  late final StreamController<List<LivitEvent>> _eventsStreamController;
 
   Stream<List<LivitEvent>> get allEvents => _eventsStreamController.stream;
 

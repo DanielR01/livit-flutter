@@ -31,11 +31,6 @@ class _GetOrCreateUserViewState extends State<GetOrCreateUserView> {
   }
 
   @override
-  void dispose() {
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
     return FutureBuilder(
       future: _livitDBService.getOrCreateUser(
