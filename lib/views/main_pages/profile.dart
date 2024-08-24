@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:livit/constants/routes.dart';
 import 'package:livit/constants/styles/spaces.dart';
-import 'package:livit/constants/styles/text_style.dart';
 import 'package:livit/services/auth/auth_service.dart';
 import 'package:livit/services/crud/tables/users/user.dart';
 import 'package:livit/utilities/background/main_background.dart';
@@ -24,9 +23,7 @@ class _ProfileViewState extends State<ProfileView> {
   Widget build(BuildContext context) {
     return Stack(
       children: [
-        const MainBackground(
-          blurred: true,
-        ),
+        const MainBackground(),
         Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -37,7 +34,7 @@ class _ProfileViewState extends State<ProfileView> {
               ),
               LivitSpaces.medium16spacer,
               MainActionButton(
-                text: 'Create new event',
+                text: 'Crear un nuevo evento',
                 isActive: true,
                 onPressed: () {
                   Navigator.of(context).pushNamed(
@@ -63,21 +60,21 @@ class LogOutButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MainActionButton(
-      text: 'Log Out',
+      text: 'Cerrar sesión',
       isActive: true,
       onPressed: () {
         showErrorDialog2b(
           [null, context],
-          'Log Out',
-          'Do you want to log out?',
+          '¿Deseas cerrar sesión?',
+          'Tendras que volver a ingresar con tu cuenta para seguir usando Livit.',
           [
-            'Cancel',
+            'Cancelar',
             () {
               Navigator.of(context).pop(false);
             },
           ],
           [
-            'Log out',
+            'Cerrar sesión',
             () async {
               await AuthService.firebase().logOut();
               if (context.mounted) {

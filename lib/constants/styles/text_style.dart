@@ -84,6 +84,7 @@ class LivitText extends StatelessWidget {
 class LivitTextStyle {
   static TextStyle regularWhiteActiveText = TextStyle(
     color: LivitColors.whiteActive,
+    fontWeight: FontWeight.w500,
     fontFamily: 'HelveticaNowDisplay',
     fontSize: 13.sp,
   );
@@ -121,10 +122,22 @@ class LivitTextStyle {
     fontFamily: 'HelveticaNowDisplay',
     fontSize: 13.sp,
   );
+  static TextStyle regularBlueBoldActiveText = TextStyle(
+    color: LivitColors.mainBlueActive,
+    fontFamily: 'HelveticaNowDisplay',
+    fontSize: 13.sp,
+    fontWeight: FontWeight.bold,
+  );
   static TextStyle regularBlueInactiveText = TextStyle(
     color: LivitColors.mainBlueInactive,
     fontFamily: 'HelveticaNowDisplay',
     fontSize: 13.sp,
+  );
+  static TextStyle regularBlueBoldInactiveText = TextStyle(
+    color: LivitColors.mainBlueInactive,
+    fontFamily: 'HelveticaNowDisplay',
+    fontSize: 13.sp,
+    fontWeight: FontWeight.bold,
   );
   static TextStyle smallWhiteActiveText = TextStyle(
     color: LivitColors.whiteActive,

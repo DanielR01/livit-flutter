@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:livit/constants/colors.dart';
+import 'package:livit/constants/styles/container_style.dart';
+import 'package:livit/constants/styles/spaces.dart';
+import 'package:livit/constants/styles/text_style.dart';
+import 'package:livit/utilities/bars_containers_fields/glass_container.dart';
+import 'package:livit/utilities/buttons/action_button.dart';
 //import 'dart:developer' as devtools show log;
 
 Future<void> showErrorDialog2b(
   List contextList,
   String title,
-  String body,
+  String? body,
   List button1,
   List button2,
 ) async {
@@ -13,70 +17,58 @@ Future<void> showErrorDialog2b(
   if ((context != null) && (context.mounted)) {
     showDialog<bool>(
       context: context,
-      barrierColor: const Color.fromARGB(150, 0, 0, 0),
+      barrierColor: const Color.fromARGB(0, 0, 0, 0),
       builder: (context) {
         return Dialog(
-          child: Container(
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(16),
-              color: LivitColors.mainBlack,
-              boxShadow: const [
-                BoxShadow(
-                  color: Color.fromARGB(77, 255, 255, 255),
-                  blurRadius: 9,
-                  offset: Offset(0, 0),
-                ),
-              ],
-            ),
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  title,
-                  style: const TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
+          backgroundColor: Colors.transparent,
+          surfaceTintColor: Colors.transparent,
+          child: GlassContainer(
+            opacity: 1,
+            child: Padding(
+              padding: LivitContainerStyle.padding(null),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  LivitText(
+                    title,
+                    textType: TextType.smallTitle,
                   ),
-                ),
-                const SizedBox(
-                  height: 10,
-                ),
-                Text(
-                  body,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.normal,
-                  ),
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    TextButton(
-                      onPressed: button1[1],
-                      child: Text(
-                        button1[0],
-                        style: const TextStyle(
-                          color: LivitColors.mainBlueActive,
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
+                  body == null
+                      ? LivitSpaces.small8spacer
+                      : Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            LivitSpaces.small8spacer,
+                            LivitText(body),
+                            LivitSpaces.medium16spacer,
+                          ],
                         ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    mainAxisSize: MainAxisSize.max,
+                    children: [
+                      SecondaryActionButton(
+                        bold: true,
+                        blueStyle: false,
+                        isShadowActive: true,
+                        transparent: false,
+                        text: button1[0],
+                        isActive: true,
+                        onPressed: button1[1],
                       ),
-                    ),
-                    TextButton(
-                      onPressed: button2[1],
-                      child: Text(
-                        button2[0],
-                        style: const TextStyle(
-                          color: LivitColors.mainBlueActive,
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                        ),
+                      SecondaryActionButton(
+                        bold: true,
+                        blueStyle: false,
+                        isShadowActive: true,
+                        transparent: false,
+                        text: button2[0],
+                        isActive: true,
+                        onPressed: button2[1],
                       ),
-                    ),
-                  ],
-                ),
-              ],
+                    ],
+                  )
+                ],
+              ),
             ),
           ),
         );

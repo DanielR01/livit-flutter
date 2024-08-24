@@ -90,6 +90,7 @@ class SecondaryActionButton extends StatefulWidget {
   final bool blueStyle;
   final bool isShadowActive;
   final bool transparent;
+  final bool bold;
 
   const SecondaryActionButton({
     super.key,
@@ -100,6 +101,7 @@ class SecondaryActionButton extends StatefulWidget {
     this.blueStyle = false,
     this.isShadowActive = true,
     this.transparent = false,
+    this.bold = false,
   });
 
   @override
@@ -124,7 +126,8 @@ class _SecondaryActionButtonState extends State<SecondaryActionButton> {
           height: LivitButtonStyle.height,
           decoration: BoxDecoration(
             borderRadius: LivitButtonStyle.radius,
-            color: LivitColors.mainBlack,
+            color:
+                widget.transparent ? Colors.transparent : LivitColors.mainBlack,
             boxShadow: _boxShadow,
           ),
           child: Padding(
@@ -135,8 +138,12 @@ class _SecondaryActionButtonState extends State<SecondaryActionButton> {
                 Text(
                   widget.text,
                   style: widget.blueStyle
-                      ? LivitTextStyle.regularBlueActiveText
-                      : LivitTextStyle.regularWhiteActiveText,
+                      ? widget.bold
+                          ? LivitTextStyle.regularBlueBoldActiveText
+                          : LivitTextStyle.regularBlueActiveText
+                      : widget.bold
+                          ? LivitTextStyle.regularWhiteActiveBoldText
+                          : LivitTextStyle.regularWhiteActiveText,
                   textAlign: TextAlign.center,
                 ),
               ],
@@ -160,7 +167,8 @@ class _SecondaryActionButtonState extends State<SecondaryActionButton> {
         height: LivitButtonStyle.height,
         decoration: BoxDecoration(
           borderRadius: LivitButtonStyle.radius,
-          color: LivitColors.mainBlack,
+          color:
+              widget.transparent ? Colors.transparent : LivitColors.mainBlack,
           boxShadow: _boxShadow,
         ),
         child: Padding(
@@ -171,8 +179,12 @@ class _SecondaryActionButtonState extends State<SecondaryActionButton> {
               Text(
                 widget.text,
                 style: widget.blueStyle
-                    ? LivitTextStyle.regularBlueInactiveText
-                    : LivitTextStyle.regularWhiteInactiveText,
+                    ? widget.bold
+                        ? LivitTextStyle.regularBlueBoldInactiveText
+                        : LivitTextStyle.regularBlueInactiveText
+                    : widget.bold
+                        ? LivitTextStyle.regularWhiteInactiveBoldText
+                        : LivitTextStyle.regularWhiteInactiveText,
                 textAlign: TextAlign.center,
               ),
             ],
