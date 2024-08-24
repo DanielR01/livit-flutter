@@ -61,7 +61,6 @@ class LivitDBService {
       LivitDB.eventsTableName,
       limit: 10,
     );
-
     return results.map((row) => LivitEvent.fromRow(row));
   }
 
@@ -137,8 +136,9 @@ class LivitDBService {
         LivitEvent.titleColumn: title,
         LivitEvent.locationColumn: location,
       },
+      where: 'id = ?',
+      whereArgs: [event.id],
     );
-
     if (updatesCount == 0) {
       throw CouldNotUpdateEvent();
     } else {
@@ -238,11 +238,11 @@ class LivitDBService {
       throw UserAlreadyExists();
     }
     try {
-      final user = await db.insert(
+      await db.insert(
         LivitDB.usersTableName,
         {
           LivitUser.idColumn: userId,
-          LivitUser.usernameColumn: userId,
+          LivitUser.usernameColumn: "$userId-livitUser",
         },
       );
       return LivitUser(
@@ -306,6 +306,8 @@ class LivitDBService {
         docsPath.path,
         LivitDB.dbName,
       );
+
+      //databaseFactory.deleteDatabase(dbPath);
 
       final db = await openDatabase(dbPath);
       _db = db;

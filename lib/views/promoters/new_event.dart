@@ -1,17 +1,11 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:livit/constants/colors.dart';
-import 'package:livit/constants/styles/bar_style.dart';
-import 'package:livit/constants/styles/container_style.dart';
 import 'package:livit/constants/styles/spaces.dart';
 import 'package:livit/constants/styles/text_style.dart';
 import 'package:livit/services/auth/auth_service.dart';
 import 'package:livit/services/crud/livit_db_service.dart';
 import 'package:livit/services/crud/tables/events/event.dart';
 import 'package:livit/utilities/background/main_background.dart';
-import 'package:livit/utilities/bars_containers_fields/bar.dart';
 import 'package:livit/utilities/bars_containers_fields/glass_container.dart';
 import 'package:livit/utilities/buttons/arrow_back_button.dart';
 import 'package:livit/utilities/buttons/action_button.dart';
@@ -68,16 +62,15 @@ class _NewEventViewState extends State<NewEventView> {
     return newEvent;
   }
 
-  void _deleteEventIfEmpty() async {
+  Future<void> _deleteEventIfEmpty() async {
     final event = _event;
-    if ((_titleController.text.isEmpty &&
-            _descriptionController.text.isEmpty) &&
+    if ((_titleController.text.isEmpty && _locationController.text.isEmpty) &&
         event != null) {
       await _livitDBService.deleteEvent(id: event.id);
     }
   }
 
-  void _saveEventIfNotEmpty() async {
+  Future<void> _saveEventIfNotEmpty() async {
     final event = _event;
     final title = _titleController.text;
     final location = _locationController.text;
@@ -103,16 +96,17 @@ class _NewEventViewState extends State<NewEventView> {
   }
 
   @override
-  void dispose() {
+  void dispose() async {
     _titleController.dispose();
     _dateController.dispose();
     _descriptionController.dispose();
     _locationController.dispose();
 
-    _deleteEventIfEmpty();
-    //await _saveEventIfNotEmpty();
-
     super.dispose();
+
+    await _deleteEventIfEmpty();
+    await _saveEventIfNotEmpty();
+    _livitDBService.close();
   }
 
   @override
@@ -130,8 +124,8 @@ class _NewEventViewState extends State<NewEventView> {
               child: FutureBuilder(
                   future: createNewEvent(),
                   builder: (context, snapshot) {
-                    print(
-                        'data: ${snapshot.data}, state: ${snapshot.connectionState} ');
+                    //print(
+                    //    'data: ${snapshot.data}, state: ${snapshot.connectionState} ');
                     switch (snapshot.connectionState) {
                       case ConnectionState.done:
                         _event = snapshot.data;
@@ -255,12 +249,13 @@ class _NewEventViewState extends State<NewEventView> {
                               //width: double.infinity,
                               text: 'Crear evento',
                               isActive: true,
-                              onPressed: () {},
+                              onPressed: () async {
+                              },
                             )
                           ],
                         );
                       default:
-                        return LoadingScreen();
+                        return const LoadingScreen();
                     }
                   }),
             ),

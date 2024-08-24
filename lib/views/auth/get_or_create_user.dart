@@ -7,7 +7,6 @@ import 'package:livit/services/crud/livit_db_service.dart';
 import 'package:livit/services/crud/tables/users/user.dart';
 import 'package:livit/utilities/error_screens/error_reauth_screen.dart';
 import 'package:livit/utilities/loading_screen.dart';
-import 'package:livit/views/main_pages/mainmenu.dart';
 
 class GetOrCreateUserView extends StatefulWidget {
   final UserType? userType;
@@ -33,7 +32,6 @@ class _GetOrCreateUserViewState extends State<GetOrCreateUserView> {
 
   @override
   void dispose() {
-    _livitDBService.close();
     super.dispose();
   }
 
@@ -54,7 +52,18 @@ class _GetOrCreateUserViewState extends State<GetOrCreateUserView> {
             if (snapshot.data == null) {
               return const ErrorReauthScreen();
             }
-            return RedirectorLoadingScreen(user: snapshot.data!);
+            final LivitUser user = snapshot.data!;
+            return FutureBuilder(
+              future: _livitDBService.close(),
+              builder: (context, snapshot) {
+                switch (snapshot.connectionState) {
+                  case ConnectionState.done:
+                    return RedirectorLoadingScreen(user: user);
+                  default:
+                    return const LoadingScreen();
+                }
+              },
+            );
           default:
             return const LoadingScreen();
         }

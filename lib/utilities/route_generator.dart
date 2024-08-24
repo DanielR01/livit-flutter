@@ -1,5 +1,3 @@
-import 'dart:ffi';
-
 import 'package:flutter/material.dart';
 import 'package:livit/constants/routes.dart';
 import 'package:livit/services/crud/livit_db_service.dart';
