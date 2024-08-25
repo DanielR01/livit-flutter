@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:livit/utilities/buttons/button.dart';
 import 'package:livit/utilities/dialogs/generic_dialog.dart';
 
 Future<void> showErrorDialog(
@@ -8,7 +9,10 @@ Future<void> showErrorDialog(
     title: 'An error ocurred',
     content: text,
     optionBuilder: () => {
-      'Ok': null,
+      'Ok': {
+        'return': null,
+        'buttonType': ButtonType.main,
+      },
     },
   );
 }

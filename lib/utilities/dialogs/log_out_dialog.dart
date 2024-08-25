@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:livit/constants/routes.dart';
 import 'package:livit/services/auth/auth_service.dart';
+import 'package:livit/utilities/buttons/button.dart';
 import 'package:livit/utilities/buttons/main_action_button.dart';
 import 'package:livit/utilities/buttons/secondary_action_button.dart';
 import 'package:livit/utilities/dialogs/generic_dialog.dart';
@@ -9,12 +10,18 @@ import 'package:livit/utilities/dialogs/show_dialog_2t_2b.dart';
 Future<bool> showLogOutDialog({required BuildContext context}) {
   return showGenericDialog<bool>(
     context: context,
-    title: '¿Deseas cerrar sesión',
+    title: '¿Deseas cerrar sesión?',
     content:
         'Tendras que volver a ingresar con tu cuenta para seguir usando Livit',
     optionBuilder: () => {
-      'Cancelar': false,
-      'Cerrar sesión': true,
+      'Cancelar': {
+        'return': false,
+        'buttonType': ButtonType.secondary,
+      },
+      'Cerrar sesión': {
+        'return': true,
+        'buttonType': ButtonType.redText,
+      },
     },
   ).then((value) => value ?? false);
 }

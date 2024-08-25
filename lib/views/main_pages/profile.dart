@@ -35,7 +35,18 @@ class _ProfileViewState extends State<ProfileView> {
               MainActionButton(
                 text: 'Cerrar sesión',
                 isActive: true,
-                onPressed: () {},
+                onPressed: () async {
+                  final bool shouldLogOut =
+                      await showLogOutDialog(context: context);
+                  
+                  if (shouldLogOut) {
+                    await AuthService.firebase().logOut();
+                    Navigator.of(context).pushNamedAndRemoveUntil(
+                      Routes.authRoute,
+                      (route) => false,
+                    );
+                  }
+                },
               ),
               LivitSpaces.medium16spacer,
               MainActionButton(
