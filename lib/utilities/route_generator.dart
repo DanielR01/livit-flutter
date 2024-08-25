@@ -7,7 +7,7 @@ import 'package:livit/views/auth/sign_in/auth.dart';
 import 'package:livit/views/auth/check_initial_auth.dart';
 import 'package:livit/views/error_route.dart';
 import 'package:livit/views/main_pages/mainmenu.dart';
-import 'package:livit/views/promoters/new_event.dart';
+import 'package:livit/views/promoters/create_update_event.dart';
 
 class RouteGenerator {
   static Route<dynamic> generateRoute(RouteSettings settings) {
@@ -26,8 +26,8 @@ class RouteGenerator {
           );
         }
         return MaterialPageRoute(builder: (_) => const ErrorView());
-      case Routes.newEventRoute:
-        return MaterialPageRoute(builder: (_) => const NewEventView());
+      case Routes.createUpdateEventRoute:
+        return MaterialPageRoute(builder: (_) => const CreateUpdateEventView());
       case Routes.getOrCreateUserRoute:
         if (args is UserType?) {
           return MaterialPageRoute(

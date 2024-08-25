@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:livit/constants/styles/button_style.dart';
-import 'package:livit/constants/styles/container_style.dart';
 import 'package:livit/constants/styles/spaces.dart';
 import 'package:livit/services/crud/livit_db_service.dart';
 import 'package:livit/services/crud/tables/events/event.dart';

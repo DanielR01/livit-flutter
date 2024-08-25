@@ -1,11 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/scheduler.dart';
-import 'package:livit/constants/colors.dart';
-import 'package:livit/constants/routes.dart';
-import 'package:livit/services/auth/auth_service.dart';
-import 'package:livit/services/crud/livit_db_service.dart';
 import 'package:livit/services/crud/tables/users/user.dart';
-import 'package:livit/utilities/background/main_background.dart';
 import 'package:livit/utilities/bars_containers_fields/navigation_bar.dart';
 import 'package:livit/views/main_pages/explore.dart';
 import 'package:livit/views/main_pages/home.dart';

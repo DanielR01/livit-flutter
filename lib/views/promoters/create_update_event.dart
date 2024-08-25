@@ -11,14 +11,14 @@ import 'package:livit/utilities/buttons/arrow_back_button.dart';
 import 'package:livit/utilities/buttons/main_action_button.dart';
 import 'package:livit/utilities/loading_screen.dart';
 
-class NewEventView extends StatefulWidget {
-  const NewEventView({super.key});
+class CreateUpdateEventView extends StatefulWidget {
+  const CreateUpdateEventView({super.key});
 
   @override
-  State<NewEventView> createState() => _NewEventViewState();
+  State<CreateUpdateEventView> createState() => _CreateUpdateEventViewState();
 }
 
-class _NewEventViewState extends State<NewEventView> {
+class _CreateUpdateEventViewState extends State<CreateUpdateEventView> {
   late final TextEditingController _titleController;
   late final TextEditingController _dateController;
   late final TextEditingController _descriptionController;
@@ -249,8 +249,7 @@ class _NewEventViewState extends State<NewEventView> {
                               //width: double.infinity,
                               text: 'Crear evento',
                               isActive: true,
-                              onPressed: () async {
-                              },
+                              onPressed: () async {},
                             )
                           ],
                         );
