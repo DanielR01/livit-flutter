@@ -3,6 +3,7 @@ import 'package:livit/services/crud/crud_exceptions.dart';
 import 'package:livit/services/crud/livit_db.dart';
 import 'package:livit/services/crud/tables/events/event.dart';
 import 'package:livit/services/crud/tables/users/user.dart';
+import 'package:livit/utilities/list/filter.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' show join;
@@ -17,8 +18,9 @@ class LivitDBService {
 
   List<LivitEvent> _events = [];
 
-  LivitDBService._sharedInstance()
-  {
+  LivitUser? _user;
+
+  LivitDBService._sharedInstance() {
     _eventsStreamController = StreamController<List<LivitEvent>>.broadcast(
       onListen: () {
         _eventsStreamController.sink.add(_events);
@@ -31,7 +33,15 @@ class LivitDBService {
 
   late final StreamController<List<LivitEvent>> _eventsStreamController;
 
-  Stream<List<LivitEvent>> get allEvents => _eventsStreamController.stream;
+  Stream<List<LivitEvent>> get allEvents =>
+      _eventsStreamController.stream.filter(
+        (event) {
+          if (_user == null) {
+            throw UserShouldBeSetBeforeReadingAllNotes();
+          }
+          return event.creatorId == _user!.id;
+        },
+      );
 
   Future<void> _cacheEvents() async {
     final allEvents = await getAllEvents();
@@ -263,15 +273,22 @@ class LivitDBService {
 
   Future<LivitUser> getOrCreateUser({
     required String userId,
+    bool setAsCurrentUser = true,
   }) async {
     try {
       final user = await getUserWithId(id: userId);
+      if (setAsCurrentUser) {
+        _user = user;
+      }
       return user;
     } on UserNotFound {
       try {
         final user = await createUser(
           userId: userId,
         );
+        if (setAsCurrentUser) {
+          _user = user;
+        }
         return user;
       } on CouldNotCreateUser {
         throw CouldNotCreateNorGetUser();

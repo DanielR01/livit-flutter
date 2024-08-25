@@ -23,3 +23,5 @@ class CouldNotFindEvent implements Exception {}
 class CouldNotUpdateEvent implements Exception {}
 
 class CouldNotDeleteEvent implements Exception {}
+
+class UserShouldBeSetBeforeReadingAllNotes implements Exception {}
