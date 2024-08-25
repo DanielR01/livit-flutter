@@ -5,18 +5,20 @@ import 'package:livit/constants/styles/text_style.dart';
 import 'package:livit/services/crud/tables/events/event.dart';
 import 'package:livit/services/crud/tables/users/user.dart';
 import 'package:livit/utilities/bars_containers_fields/glass_container.dart';
-import 'package:livit/utilities/buttons/secondary_action_button.dart';
+import 'package:livit/utilities/buttons/button.dart';
 
 class EventPreview extends StatefulWidget {
   final LivitEvent? event;
   final LivitUser? user;
   final VoidCallback onDeletePressed;
+  final VoidCallback onEditPressed;
   final bool error;
   const EventPreview({
     super.key,
     required this.event,
     required this.user,
     required this.onDeletePressed,
+    required this.onEditPressed,
     this.error = false,
   });
 
@@ -24,12 +26,14 @@ class EventPreview extends StatefulWidget {
         event: null,
         user: null,
         onDeletePressed: () {},
+        onEditPressed: () {},
       );
 
   factory EventPreview.error() => EventPreview(
         event: null,
         user: null,
         onDeletePressed: () {},
+        onEditPressed: () {},
         error: true,
       );
 
@@ -66,10 +70,20 @@ class _EventPreviewState extends State<EventPreview> {
                 LivitText(location),
                 LivitText(creatorUsername),
                 LivitSpaces.small8spacer,
-                SecondaryActionButton(
-                  text: 'Eliminar',
-                  isActive: true,
-                  onPressed: widget.onDeletePressed,
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  mainAxisSize: MainAxisSize.max,
+                  children: [
+                    Button.blueText(
+                        text: 'Editar',
+                        onPressed: widget.onEditPressed,
+                        isActive: widget.event != null),
+                    Button.redText(
+                      text: 'Eliminar',
+                      isActive: true,
+                      onPressed: widget.onDeletePressed,
+                    ),
+                  ],
                 ),
               ],
             ),

@@ -4,7 +4,14 @@ import 'package:livit/constants/styles/button_style.dart';
 import 'package:livit/constants/styles/shadows.dart';
 import 'package:livit/constants/styles/text_style.dart';
 
-enum ButtonType { main, secondary, whiteText, redText, blueText }
+enum ButtonType {
+  main,
+  secondary,
+  whiteText,
+  redText,
+  blueText,
+  mainRed,
+}
 
 class Button extends StatefulWidget {
   final String text;
@@ -52,6 +59,7 @@ class Button extends StatefulWidget {
           isActive: isActive,
           blueStyle: blueStyle ?? false,
         );
+
       case ButtonType.secondary:
         return Button.secondary(
           text: text,
@@ -80,13 +88,19 @@ class Button extends StatefulWidget {
           isActive: isActive,
           bold: bold ?? false,
         );
+      case ButtonType.mainRed:
+        return Button.mainRed(
+          text: text,
+          isActive: isActive,
+          onPressed: onPressed,
+        );
     }
   }
 
   factory Button.main({
     required String text,
-    required VoidCallback onPressed,
     required bool isActive,
+    required VoidCallback onPressed,
     bool blueStyle = false,
   }) {
     Color activeBackgroundColor =
@@ -108,8 +122,8 @@ class Button extends StatefulWidget {
 
   factory Button.secondary({
     required String text,
-    required VoidCallback onPressed,
     required bool isActive,
+    required VoidCallback onPressed,
     bool blueStyle = false,
   }) {
     return Button(
@@ -129,8 +143,8 @@ class Button extends StatefulWidget {
 
   factory Button.redText({
     required String text,
-    required VoidCallback onPressed,
     required bool isActive,
+    required VoidCallback onPressed,
     bool bold = true,
   }) {
     return Button(
@@ -148,8 +162,8 @@ class Button extends StatefulWidget {
 
   factory Button.whiteText({
     required String text,
-    required VoidCallback onPressed,
     required bool isActive,
+    required VoidCallback onPressed,
     bool bold = true,
   }) {
     return Button(
@@ -167,8 +181,8 @@ class Button extends StatefulWidget {
 
   factory Button.blueText({
     required String text,
-    required VoidCallback onPressed,
     required bool isActive,
+    required VoidCallback onPressed,
     bool bold = true,
   }) {
     return Button(
@@ -181,6 +195,26 @@ class Button extends StatefulWidget {
       bold: bold,
       activeTextColor: LivitColors.mainBlueActive,
       inactiveTextColor: LivitColors.whiteInactive,
+    );
+  }
+
+  factory Button.mainRed({
+    required String text,
+    required bool isActive,
+    required VoidCallback onPressed,
+  }) {
+    return Button(
+      text: text,
+      onPressed: onPressed,
+      isActive: isActive,
+      blueStyle: false,
+      isShadowActive: false,
+      transparent: false,
+      bold: true,
+      activeBackgroundColor: LivitColors.red,
+      activeTextColor: LivitColors.mainBlack,
+      inactiveBackgroundColor: LivitColors.whiteInactive,
+      inactiveTextColor: LivitColors.mainBlack,
     );
   }
 

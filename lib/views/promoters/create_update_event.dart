@@ -12,7 +12,11 @@ import 'package:livit/utilities/buttons/main_action_button.dart';
 import 'package:livit/utilities/loading_screen.dart';
 
 class CreateUpdateEventView extends StatefulWidget {
-  const CreateUpdateEventView({super.key});
+  final LivitEvent? event;
+  const CreateUpdateEventView({
+    super.key,
+    this.event,
+  });
 
   @override
   State<CreateUpdateEventView> createState() => _CreateUpdateEventViewState();
@@ -45,21 +49,28 @@ class _CreateUpdateEventViewState extends State<CreateUpdateEventView> {
     _locationController.addListener(_textControllersListener);
   }
 
-  Future<LivitEvent> createNewEvent() async {
-    final existingEvent = _event;
-    if (existingEvent != null) {
-      return existingEvent;
+  Future<void> createOfGetExistingEvent() async {
+    if (widget.event != null) {
+      final LivitEvent event = widget.event!;
+      _titleController.text = event.title;
+      _locationController.text = event.location;
+      _event = event;
+    } else {
+      final existingEvent = _event;
+      if (existingEvent != null) {
+        return;
+      }
+      final currentUser = AuthService.firebase().currentUser;
+      final user = await _livitDBService.getUserWithId(id: currentUser!.id!);
+      final String title = _titleController.text;
+      final String location = _locationController.text;
+      final newEvent = await _livitDBService.createEvent(
+        userCreator: user,
+        title: title,
+        location: location,
+      );
+      _event = newEvent;
     }
-    final currentUser = AuthService.firebase().currentUser;
-    final user = await _livitDBService.getUserWithId(id: currentUser!.id!);
-    final String title = _titleController.text;
-    final String location = _locationController.text;
-    final newEvent = await _livitDBService.createEvent(
-      userCreator: user,
-      title: title,
-      location: location,
-    );
-    return newEvent;
   }
 
   Future<void> _deleteEventIfEmpty() async {
@@ -122,20 +133,16 @@ class _CreateUpdateEventViewState extends State<CreateUpdateEventView> {
                 right: 10.sp,
               ),
               child: FutureBuilder(
-                  future: createNewEvent(),
+                  future: createOfGetExistingEvent(),
                   builder: (context, snapshot) {
-                    //print(
-                    //    'data: ${snapshot.data}, state: ${snapshot.connectionState} ');
                     switch (snapshot.connectionState) {
                       case ConnectionState.done:
-                        _event = snapshot.data;
                         _setupTextControllersListener();
                         return Column(
                           children: [
                             GlassContainer(
                               child: SizedBox(
                                 width: double.infinity,
-                                // decoration: LivitBarStyle.normalDecoration,
                                 child: Stack(
                                   alignment: Alignment.center,
                                   children: [

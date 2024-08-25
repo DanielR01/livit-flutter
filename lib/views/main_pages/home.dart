@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:livit/constants/routes.dart';
 import 'package:livit/constants/styles/container_style.dart';
 import 'package:livit/services/crud/livit_db_service.dart';
 import 'package:livit/services/crud/tables/events/event.dart';
@@ -48,6 +49,12 @@ class _HomeViewState extends State<HomeView> {
                           events: events,
                           onDeleteEvent: (event) {
                             _livitDBService.deleteEvent(id: event.id);
+                          },
+                          onEditEvent: (event) {
+                            Navigator.of(context).pushNamed(
+                              Routes.createUpdateEventRoute,
+                              arguments: event,
+                            );
                           },
                         ),
                       ),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:livit/constants/routes.dart';
 import 'package:livit/services/crud/livit_db_service.dart';
+import 'package:livit/services/crud/tables/events/event.dart';
 import 'package:livit/services/crud/tables/users/user.dart';
 import 'package:livit/views/auth/get_or_create_user.dart';
 import 'package:livit/views/auth/sign_in/auth.dart';
@@ -27,7 +28,14 @@ class RouteGenerator {
         }
         return MaterialPageRoute(builder: (_) => const ErrorView());
       case Routes.createUpdateEventRoute:
-        return MaterialPageRoute(builder: (_) => const CreateUpdateEventView());
+        if (args is LivitEvent?) {
+          return MaterialPageRoute(
+            builder: (_) => CreateUpdateEventView(
+              event: args,
+            ),
+          );
+        }
+
       case Routes.getOrCreateUserRoute:
         if (args is UserType?) {
           return MaterialPageRoute(
@@ -36,10 +44,10 @@ class RouteGenerator {
             ),
           );
         }
-        return MaterialPageRoute(builder: (_) => const ErrorView());
 
       default:
-        return MaterialPageRoute(builder: (_) => const ErrorView());
+        break;
     }
+    return MaterialPageRoute(builder: (_) => const ErrorView());
   }
 }

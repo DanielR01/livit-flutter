@@ -6,15 +6,17 @@ import 'package:livit/services/crud/tables/users/user.dart';
 import 'package:livit/utilities/dialogs/delete_event_dialog.dart';
 import 'package:livit/utilities/events/event_preview.dart';
 
-typedef DeleteEventCallback = void Function(LivitEvent event);
+typedef EventCallback = void Function(LivitEvent event);
 
 class EventPreviewList extends StatefulWidget {
   final List<LivitEvent> events;
-  final DeleteEventCallback onDeleteEvent;
+  final EventCallback onDeleteEvent;
+  final EventCallback onEditEvent;
   const EventPreviewList({
     super.key,
     required this.events,
     required this.onDeleteEvent,
+    required this.onEditEvent,
   });
 
   @override
@@ -54,6 +56,9 @@ class _EventPreviewListState extends State<EventPreviewList> {
                       if (shouldDelete) {
                         widget.onDeleteEvent(event);
                       }
+                    },
+                    onEditPressed: () {
+                      widget.onEditEvent(event);
                     },
                   );
                 } else {
