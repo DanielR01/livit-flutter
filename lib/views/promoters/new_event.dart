@@ -8,7 +8,7 @@ import 'package:livit/services/crud/tables/events/event.dart';
 import 'package:livit/utilities/background/main_background.dart';
 import 'package:livit/utilities/bars_containers_fields/glass_container.dart';
 import 'package:livit/utilities/buttons/arrow_back_button.dart';
-import 'package:livit/utilities/buttons/action_button.dart';
+import 'package:livit/utilities/buttons/main_action_button.dart';
 import 'package:livit/utilities/loading_screen.dart';
 
 class NewEventView extends StatefulWidget {

@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:livit/constants/colors.dart';
 import 'package:livit/constants/routes.dart';
 import 'package:livit/constants/styles/spaces.dart';
 import 'package:livit/services/auth/auth_service.dart';
 import 'package:livit/services/crud/tables/users/user.dart';
 import 'package:livit/utilities/background/main_background.dart';
-import 'package:livit/utilities/buttons/action_button.dart';
-import 'package:livit/utilities/error_dialogs/show_error_dialog_2t_2b.dart';
+import 'package:livit/utilities/buttons/main_action_button.dart';
+import 'package:livit/utilities/buttons/secondary_action_button.dart';
+import 'package:livit/utilities/dialogs/log_out_dialog.dart';
+import 'package:livit/utilities/dialogs/show_dialog_2t_2b.dart';
 
 class ProfileView extends StatefulWidget {
   final LivitUser? user;
@@ -29,8 +32,10 @@ class _ProfileViewState extends State<ProfileView> {
             mainAxisAlignment: MainAxisAlignment.center,
             mainAxisSize: MainAxisSize.min,
             children: [
-              LogOutButton(
-                context: context,
+              MainActionButton(
+                text: 'Cerrar sesión',
+                isActive: true,
+                onPressed: () {},
               ),
               LivitSpaces.medium16spacer,
               MainActionButton(
@@ -46,45 +51,6 @@ class _ProfileViewState extends State<ProfileView> {
           ),
         )
       ],
-    );
-  }
-}
-
-class LogOutButton extends StatelessWidget {
-  final BuildContext context;
-  const LogOutButton({
-    super.key,
-    required this.context,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return MainActionButton(
-      text: 'Cerrar sesión',
-      isActive: true,
-      onPressed: () {
-        showErrorDialog2b(
-          [null, context],
-          '¿Deseas cerrar sesión?',
-          'Tendras que volver a ingresar con tu cuenta para seguir usando Livit.',
-          [
-            'Cancelar',
-            () {
-              Navigator.of(context).pop(false);
-            },
-          ],
-          [
-            'Cerrar sesión',
-            () async {
-              await AuthService.firebase().logOut();
-              if (context.mounted) {
-                Navigator.of(context).pushNamedAndRemoveUntil(
-                    Routes.authRoute, (route) => false);
-              }
-            },
-          ],
-        );
-      },
     );
   }
 }

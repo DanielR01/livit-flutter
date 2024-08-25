@@ -5,7 +5,7 @@ import 'package:livit/constants/styles/spaces.dart';
 import 'package:livit/constants/styles/text_style.dart';
 import 'package:livit/services/auth/auth_service.dart';
 import 'package:livit/utilities/background/main_background.dart';
-import 'package:livit/utilities/buttons/action_button.dart';
+import 'package:livit/utilities/buttons/main_action_button.dart';
 
 class ErrorReauthScreen extends StatefulWidget {
   const ErrorReauthScreen({super.key});

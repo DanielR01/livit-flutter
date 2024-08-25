@@ -46,6 +46,9 @@ class _HomeViewState extends State<HomeView> {
                         padding: LivitContainerStyle.paddingFromScreen,
                         child: EventPreviewList(
                           events: events,
+                          onDeleteEvent: (event) {
+                            _livitDBService.deleteEvent(id: event.id);
+                          },
                         ),
                       ),
                     ),

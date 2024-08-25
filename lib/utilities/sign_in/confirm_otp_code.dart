@@ -18,7 +18,8 @@ import 'package:livit/services/auth/auth_service.dart';
 import 'package:livit/services/crud/livit_db_service.dart';
 import 'package:livit/utilities/bars_containers_fields/glass_container.dart';
 import 'package:livit/utilities/buttons/arrow_back_button.dart';
-import 'package:livit/utilities/buttons/action_button.dart';
+import 'package:livit/utilities/buttons/main_action_button.dart';
+import 'package:livit/utilities/buttons/secondary_action_button.dart';
 import 'package:pinput/pinput.dart';
 
 class ConfirmOTPCode extends StatefulWidget {

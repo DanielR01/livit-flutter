@@ -14,8 +14,8 @@ import 'package:livit/services/auth/credential_types.dart';
 import 'package:livit/services/crud/livit_db_service.dart';
 import 'package:livit/utilities/bars_containers_fields/glass_container.dart';
 import 'package:livit/utilities/bars_containers_fields/text_field.dart';
-import 'package:livit/utilities/buttons/action_button.dart';
 import 'package:livit/utilities/buttons/arrow_back_button.dart';
+import 'package:livit/utilities/buttons/main_action_button.dart';
 
 class PromoterAuth extends StatefulWidget {
   final VoidCallback onBack;
@@ -223,8 +223,6 @@ class _SignInState extends State<SignIn> {
 
   String? emailToVerify;
 
-  bool _resetPassword = false;
-
   @override
   void initState() {
     _emailController = TextEditingController();
@@ -310,11 +308,6 @@ class _SignInState extends State<SignIn> {
               }
             } on InvalidCredentialsAuthException {
               passwordCaptionText = 'Email o contraseña incorrectos';
-              setState(
-                () {
-                  _resetPassword = true;
-                },
-              );
             } on TooManyRequestsAuthException {
               passwordCaptionText = 'Demasiados intentos, espera unos minutos';
             } on GenericAuthException {
@@ -469,7 +462,7 @@ class _RegisterState extends State<Register> {
               },
             );
             try {
-              final AuthUser user = await AuthService.firebase().createUser(
+              await AuthService.firebase().createUser(
                 credentialType: CredentialType.emailAndPassword,
                 credentials: [
                   _emailController.text,
