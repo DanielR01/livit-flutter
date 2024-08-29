@@ -10,8 +10,10 @@ import 'package:livit/services/auth/auth_service.dart';
 import 'package:livit/services/crud/livit_db_service.dart';
 
 class GoogleLoginBar extends StatefulWidget {
+  final UserType userType;
   const GoogleLoginBar({
     super.key,
+    required this.userType,
   });
 
   @override
@@ -37,7 +39,7 @@ class _GoogleLoginBarState extends State<GoogleLoginBar> {
             if (context.mounted) {
               Navigator.of(context).pushNamedAndRemoveUntil(
                   Routes.getOrCreateUserRoute,
-                  arguments: UserType.consumer,
+                  arguments: widget.userType,
                   (route) => false);
             }
           }

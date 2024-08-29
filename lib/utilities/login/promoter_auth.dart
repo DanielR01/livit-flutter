@@ -14,6 +14,7 @@ import 'package:livit/services/auth/credential_types.dart';
 import 'package:livit/services/crud/livit_db_service.dart';
 import 'package:livit/utilities/bars_containers_fields/glass_container.dart';
 import 'package:livit/utilities/bars_containers_fields/text_field.dart';
+import 'package:livit/utilities/bars_containers_fields/title_bar.dart';
 import 'package:livit/utilities/buttons/arrow_back_button.dart';
 import 'package:livit/utilities/buttons/main_action_button.dart';
 
@@ -66,24 +67,9 @@ class _PromoterAuthState extends State<PromoterAuth> {
                 padding: LivitContainerStyle.padding([0, null, null, null]),
                 child: Column(
                   children: [
-                    SizedBox(
-                      width: double.infinity,
-                      height: LivitBarStyle.height,
-                      child: Stack(
-                        alignment: Alignment.center,
-                        children: [
-                          Positioned(
-                            left: 0,
-                            child: ArrowBackButton(
-                              onPressed: widget.onBack,
-                            ),
-                          ),
-                          const LivitText(
-                            'Promocionador',
-                            textType: TextType.normalTitle,
-                          ),
-                        ],
-                      ),
+                    TitleBar(
+                      title: 'Promocionador',
+                      onPressed: widget.onBack,
                     ),
                     const LivitText(
                       'En LIVIT podras promocionar tus eventos y negocio, permitiendo que muchos mas clientes te encuentren y tengan una gran experiencia de compra.',

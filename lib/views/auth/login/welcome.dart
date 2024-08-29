@@ -2,15 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:livit/constants/routes.dart';
 import 'package:livit/constants/styles/spaces.dart';
 import 'package:livit/constants/styles/text_style.dart';
+import 'package:livit/services/crud/livit_db_service.dart';
+import 'package:livit/utilities/background/main_background.dart';
 import 'package:livit/utilities/buttons/main_action_button.dart';
 
 class WelcomeView extends StatefulWidget {
-  final ValueChanged<int> goToSignIn;
   const WelcomeView({
     super.key,
-    required this.goToSignIn,
   });
 
   @override
@@ -27,38 +28,42 @@ class _WelcomeViewState extends State<WelcomeView> {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      height: MediaQuery.sizeOf(context).height,
-      width: MediaQuery.sizeOf(context).width,
-      child: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+    return Scaffold(
+      body: SizedBox(
+        width: double.infinity,
+        child: Stack(
+          alignment: Alignment.center,
           children: [
-            const LivitText(
-              'Livit',
-              textType: TextType.bigTitle,
-            )
-                .animate()
-                .fade(delay: 1600.ms, duration: 300.ms, curve: Curves.easeOut)
-                .slideY(begin: 0.2.sp, end: 0, curve: Curves.easeOut)
-                .callback(
-                  delay: 3600.ms,
-                  callback: (_) {
-                    setState(
-                      () {
-                        displayText = true;
-                      },
-                    );
-                  },
-                ),
-            displayText
-                ? WelcomeMessage(
-                    signInCallback: widget.goToSignIn,
-                  )
+            const MainBackground(),
+            Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const LivitText(
+                  'Livit',
+                  textType: TextType.bigTitle,
+                )
                     .animate()
-                    .fade(duration: 300.ms, curve: Curves.easeOut)
+                    .fade(
+                        delay: 1600.ms, duration: 300.ms, curve: Curves.easeOut)
                     .slideY(begin: 0.2.sp, end: 0, curve: Curves.easeOut)
-                : const SizedBox()
+                    .callback(
+                      delay: 3600.ms,
+                      callback: (_) {
+                        setState(
+                          () {
+                            displayText = true;
+                          },
+                        );
+                      },
+                    ),
+                displayText
+                    ? const WelcomeMessage()
+                        .animate()
+                        .fade(duration: 300.ms, curve: Curves.easeOut)
+                        .slideY(begin: 0.2.sp, end: 0, curve: Curves.easeOut)
+                    : const SizedBox()
+              ],
+            ),
           ],
         ),
       ),
@@ -67,10 +72,8 @@ class _WelcomeViewState extends State<WelcomeView> {
 }
 
 class WelcomeMessage extends StatelessWidget {
-  final ValueChanged<int> signInCallback;
   const WelcomeMessage({
     super.key,
-    required this.signInCallback,
   });
 
   @override
@@ -93,7 +96,10 @@ class WelcomeMessage extends StatelessWidget {
           MainActionButton(
             text: 'Comenzar',
             isActive: true,
-            onPressed: () => signInCallback(1),
+            onPressed: () => Navigator.of(context).pushNamedAndRemoveUntil(
+                Routes.signInRoute,
+                arguments: UserType.customer,
+                (route) => false),
           ),
         ],
       ),

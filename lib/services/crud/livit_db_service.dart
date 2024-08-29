@@ -9,7 +9,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' show join;
 
 enum UserType {
-  consumer,
+  customer,
   promoter,
 }
 

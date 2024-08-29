@@ -22,7 +22,7 @@ abstract class AuthProvider {
   Future<void> sendEmailVerification();
 
   Future<void> sendOtpCode(
-      String phoneCode, String phoneNumber, ValueChanged<List> onUpdate);
+      String phoneCode, String phoneNumber, ValueChanged<Map<String, dynamic>> onUpdate);
 
   Future<void> sendPasswordReset(String email);
 }

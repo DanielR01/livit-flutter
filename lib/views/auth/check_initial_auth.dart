@@ -29,7 +29,7 @@ class _CheckInitialAuthState extends State<CheckInitialAuth> {
           Routes.getOrCreateUserRoute, (route) => false);
     } else {
       Navigator.of(context)
-          .pushNamedAndRemoveUntil(Routes.authRoute, (route) => false);
+          .pushNamedAndRemoveUntil(Routes.welcomeRoute, (route) => false);
     }
   }
 

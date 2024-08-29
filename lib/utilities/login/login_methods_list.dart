@@ -1,26 +1,27 @@
 import 'package:country_picker_pro/country_picker_pro.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:livit/constants/routes.dart';
 import 'package:livit/constants/styles/container_style.dart';
 import 'package:livit/constants/styles/spaces.dart';
 import 'package:livit/constants/styles/text_style.dart';
 import 'package:livit/services/auth/auth_service.dart';
+import 'package:livit/services/crud/livit_db_service.dart';
 import 'package:livit/utilities/bars_containers_fields/glass_container.dart';
 import 'package:livit/utilities/bars_containers_fields/text_field.dart';
+import 'package:livit/utilities/bars_containers_fields/title_bar.dart';
+import 'package:livit/utilities/buttons/login_buttons/email_login_bar.dart';
 import 'package:livit/utilities/buttons/login_buttons/promoter_login_bar.dart';
 import 'package:livit/utilities/buttons/login_buttons/apple_login_bar.dart';
 import 'package:livit/utilities/buttons/login_buttons/google_login_bar.dart';
 import 'package:livit/utilities/buttons/main_action_button.dart';
 
 class LoginMethodsList extends StatefulWidget {
-  final GlobalKey<ScaffoldState> scaffoldKey;
-  final ValueChanged<List<String>> phoneLoginCallback;
-  final VoidCallback promoterAuthCallback;
+  final UserType userType;
 
   const LoginMethodsList({
     super.key,
-    required this.scaffoldKey,
-    required this.phoneLoginCallback,
-    required this.promoterAuthCallback,
+    required this.userType,
   });
 
   @override
@@ -82,27 +83,31 @@ class _LoginMethodsListState extends State<LoginMethodsList> {
     );
   }
 
-  void onSendCode(List values) {
+  void onSendCode(Map<String, dynamic> values) {
     setState(
       () {
         _isCodeSending = false;
-        if (values[0]) {
-          widget.phoneLoginCallback(
-            [
-              selectedCountryCode,
-              phoneController.text,
-              values[1],
-            ],
-          );
-        } else {
-          if (values[1] == 'invalid-phone-number') {
-            invalidPhoneError = true;
-          } else if (values[1] == 'network-request-failed') {
-            networkRequestFailedError = true;
-          }
-        }
       },
     );
+    if (values['success']) {
+      final Map<String, dynamic> args = {
+        'userType': widget.userType,
+        'phoneCode': selectedCountryCode,
+        'verificationId': values['verificationId'],
+        'phoneNumber': phoneController.text,
+      };
+      Navigator.of(context).pushNamed(
+        Routes.confirmOTPCodeRoute,
+        arguments: args,
+      );
+    } else {
+      String errorCode = values['errorCode'];
+      if (errorCode == 'invalid-phone-number') {
+        invalidPhoneError = true;
+      } else if (errorCode == 'network-request-failed') {
+        networkRequestFailedError = true;
+      }
+    }
   }
 
   @override
@@ -119,19 +124,35 @@ class _LoginMethodsListState extends State<LoginMethodsList> {
             mainAxisSize: MainAxisSize.min,
             children: [
               GlassContainer(
-                
                 child: Padding(
-                  padding: LivitContainerStyle.padding(null),
+                  padding: LivitContainerStyle.padding([0, null, null, null]),
                   child: Column(
                     children: [
-                      const LivitText(
-                        'Iniciar sesión',
-                        textType: TextType.normalTitle,
+                      TitleBar(
+                        title: widget.userType == UserType.customer
+                            ? 'Ingresa a Livit'
+                            : 'Ingresa como Promocionador',
+                        isBackEnabled: widget.userType == UserType.promoter,
+                      ),
+                      widget.userType == UserType.promoter
+                          ? Column(
+                              children: [
+                                const LivitText(
+                                  'En LIVIT podras promocionar tus eventos y negocio, permitiendo que muchos mas clientes te encuentren y tengan una gran experiencia de compra.',
+                                ),
+                                LivitSpaces.medium16spacer,
+                              ],
+                            )
+                          : const SizedBox(),
+                      const AppleLoginBar(),
+                      LivitSpaces.medium16spacer,
+                      GoogleLoginBar(
+                        userType: widget.userType,
                       ),
                       LivitSpaces.medium16spacer,
-                      const GoogleLoginBar(),
-                      LivitSpaces.medium16spacer,
-                      const AppleLoginBar(),
+                      EmailLoginBar(
+                        userType: widget.userType,
+                      ),
                       LivitSpaces.medium16spacer,
                       const LivitText(
                         'O usa tu número de teléfono',
@@ -162,11 +183,13 @@ class _LoginMethodsListState extends State<LoginMethodsList> {
                             _isCodeSending ? 'Enviando codigo...' : 'Continuar',
                         isActive: isPhoneValid,
                         onPressed: () async {
-                          setState(() {
-                            networkRequestFailedError = false;
-                            invalidPhoneError = false;
-                            _isCodeSending = true;
-                          });
+                          setState(
+                            () {
+                              networkRequestFailedError = false;
+                              invalidPhoneError = false;
+                              _isCodeSending = true;
+                            },
+                          );
                           await AuthService.firebase().sendOtpCode(
                             selectedCountryCode,
                             phoneController.text,
@@ -179,25 +202,22 @@ class _LoginMethodsListState extends State<LoginMethodsList> {
                 ),
               ),
               LivitSpaces.mediumPlus24spacer,
-              GlassContainer(
-                  child: Padding(
-                padding: LivitContainerStyle.padding(null),
-                child: Column(
-                  children: [
-                    const LivitText(
-                      'Estas interesado en promocionar tus eventos?',
-                    ),
-                    LivitSpaces.medium16spacer,
-                    PromoterLoginBar(
-                      parentContext: context,
-                      scaffoldKey: widget.scaffoldKey,
-                      onPressed: () {
-                        widget.promoterAuthCallback();
-                      },
-                    ),
-                  ],
-                ),
-              )),
+              widget.userType == UserType.customer
+                  ? GlassContainer(
+                      child: Padding(
+                        padding: LivitContainerStyle.padding(null),
+                        child: Column(
+                          children: [
+                            const LivitText(
+                              'Estas interesado en promocionar tus eventos?',
+                            ),
+                            LivitSpaces.medium16spacer,
+                            const PromoterLoginBar(),
+                          ],
+                        ),
+                      ),
+                    )
+                  : const SizedBox(),
             ],
           ),
         ),

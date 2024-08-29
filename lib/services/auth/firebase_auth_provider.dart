@@ -92,21 +92,29 @@ class FirebaseAuthProvider implements AuthProvider {
   Future<void> sendOtpCode(
     String phoneCode,
     String phoneNumber,
-    ValueChanged<List> onUpdate,
+    ValueChanged<Map<String, dynamic>> onUpdate,
   ) async {
     await FirebaseAuth.instance.verifyPhoneNumber(
       phoneNumber: '+$phoneCode $phoneNumber',
       verificationCompleted: (PhoneAuthCredential credential) async {
         await FirebaseAuth.instance.signInWithCredential(credential);
+        print('Autoretrieval detected but functionallity not implemented');
       },
       verificationFailed: (error) {
-        onUpdate([false, error.code]);
+        onUpdate(
+          {
+            'success': false,
+            'errorCode': error.code,
+          },
+        );
       },
       codeSent: (verificationId, forceResendingToken) {
-        onUpdate([
-          true,
-          verificationId,
-        ]);
+        onUpdate(
+          {
+            'success': true,
+            'verificationId': verificationId,
+          },
+        );
       },
       codeAutoRetrievalTimeout: (verificationId) {},
     );

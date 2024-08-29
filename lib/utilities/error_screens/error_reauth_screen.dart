@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:livit/constants/colors.dart';
 import 'package:livit/constants/routes.dart';
 import 'package:livit/constants/styles/spaces.dart';
 import 'package:livit/constants/styles/text_style.dart';
@@ -43,7 +42,7 @@ class _ErrorReauthScreenState extends State<ErrorReauthScreen> {
                     onPressed: () async {
                       await AuthService.firebase().logOut();
                       Navigator.of(context).pushNamedAndRemoveUntil(
-                          Routes.authRoute, (route) => false);
+                          Routes.welcomeRoute, (route) => false);
                     },
                   ),
                 ],

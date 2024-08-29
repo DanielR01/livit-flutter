@@ -41,7 +41,7 @@ class AuthService implements AuthProvider {
 
   @override
   Future<void> sendOtpCode(
-          String phoneCode, String phoneNumber, ValueChanged<List> onUpdate) =>
+          String phoneCode, String phoneNumber, ValueChanged<Map<String, dynamic>> onUpdate) =>
       provider.sendOtpCode(phoneCode, phoneNumber, onUpdate);
 
   @override

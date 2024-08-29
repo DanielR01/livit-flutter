@@ -3,9 +3,12 @@ import 'package:livit/constants/routes.dart';
 import 'package:livit/services/crud/livit_db_service.dart';
 import 'package:livit/services/crud/tables/events/event.dart';
 import 'package:livit/services/crud/tables/users/user.dart';
+import 'package:livit/utilities/login/confirm_otp_code.dart';
+import 'package:livit/utilities/login/email_login.dart';
 import 'package:livit/views/auth/get_or_create_user.dart';
-import 'package:livit/views/auth/sign_in/auth.dart';
 import 'package:livit/views/auth/check_initial_auth.dart';
+import 'package:livit/views/auth/login/login.dart';
+import 'package:livit/views/auth/login/welcome.dart';
 import 'package:livit/views/error_route.dart';
 import 'package:livit/views/main_pages/mainmenu.dart';
 import 'package:livit/views/promoters/create_update_event.dart';
@@ -16,8 +19,39 @@ class RouteGenerator {
     switch (settings.name) {
       case '/':
         return MaterialPageRoute(builder: (_) => const CheckInitialAuth());
-      case Routes.authRoute:
-        return MaterialPageRoute(builder: (_) => const AuthView());
+      case Routes.welcomeRoute:
+        return MaterialPageRoute(builder: (_) => const WelcomeView());
+      case Routes.signInRoute:
+        if (args is UserType) {
+          return MaterialPageRoute(
+            builder: (_) => LoginView(userType: args),
+          );
+        }
+      case Routes.emailAndPasswordRoute:
+        if (args is UserType) {
+          return MaterialPageRoute(
+            builder: (_) => EmailLogin(
+              userType: args,
+            ),
+          );
+        }
+      case Routes.confirmOTPCodeRoute:
+        if (args is Map<String, dynamic>) {
+          try {
+            final UserType userType = args['userType'];
+            final String phoneCode = args['phoneCode'];
+            final String initialVerificationId = args['verificationId'];
+            final String phoneNumber = args['phoneNumber'];
+            return MaterialPageRoute(
+              builder: (_) => ConfirmOTPCodeView(
+                userType: userType,
+                phoneCode: phoneCode,
+                initialVerificationId: initialVerificationId,
+                phoneNumber: phoneNumber,
+              ),
+            );
+          } finally {}
+        }
       case Routes.mainviewRoute:
         if (args is LivitUser?) {
           return MaterialPageRoute(
@@ -26,7 +60,6 @@ class RouteGenerator {
             ),
           );
         }
-        return MaterialPageRoute(builder: (_) => const ErrorView());
       case Routes.createUpdateEventRoute:
         if (args is LivitEvent?) {
           return MaterialPageRoute(
@@ -44,9 +77,6 @@ class RouteGenerator {
             ),
           );
         }
-
-      default:
-        break;
     }
     return MaterialPageRoute(builder: (_) => const ErrorView());
   }

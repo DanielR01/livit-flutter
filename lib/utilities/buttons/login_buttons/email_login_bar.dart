@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:livit/constants/colors.dart';
@@ -7,20 +8,21 @@ import 'package:livit/constants/styles/shadows.dart';
 import 'package:livit/constants/styles/text_style.dart';
 import 'package:livit/services/crud/livit_db_service.dart';
 
-class PromoterLoginBar extends StatelessWidget {
-  const PromoterLoginBar({
+class EmailLoginBar extends StatelessWidget {
+  final UserType userType;
+
+  const EmailLoginBar({
     super.key,
+    required this.userType,
   });
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () {
-        Navigator.of(context).pushNamed(
-          Routes.signInRoute,
-          arguments: UserType.promoter,
-        );
-      },
+      onTap: () => Navigator.of(context).pushNamed(
+        Routes.emailAndPasswordRoute,
+        arguments: userType,
+      ),
       child: Container(
         height: 54.sp,
         width: double.infinity,
@@ -35,13 +37,13 @@ class PromoterLoginBar extends StatelessWidget {
             Positioned(
               left: 16.sp,
               child: Icon(
-                Icons.add_business_rounded,
+                Icons.email_rounded,
                 color: LivitColors.whiteActive,
                 size: 18.sp,
               ),
             ),
             const LivitText(
-              'Continuar como promocionador',
+              'Continuar con email y contraseña',
             ),
           ],
         ),
