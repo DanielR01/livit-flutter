@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 
 @immutable
 class AuthUser {
-  final String? id;
+  final String id;
   final String? email;
   final String? phoneNumber;
 
@@ -16,6 +16,4 @@ class AuthUser {
   factory AuthUser.fromFirebase(User user) =>
       AuthUser(user.uid, user.email, user.phoneNumber);
 
-  factory AuthUser.notVerifiedEmailFromFirebase(User user) =>
-      AuthUser(null, user.email, null);
 }

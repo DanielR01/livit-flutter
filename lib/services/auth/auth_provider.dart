@@ -12,9 +12,8 @@ abstract class AuthProvider {
     required List<String> credentials,
   });
 
-  Future<AuthUser> createUser({
-    required CredentialType credentialType,
-    required List<String> credentials,
+  Future<void> registerEmail({
+    required Map<String, String> credentials,
   });
 
   Future<void> logOut();

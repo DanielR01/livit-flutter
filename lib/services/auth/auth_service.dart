@@ -16,12 +16,11 @@ class AuthService implements AuthProvider {
   Future<void> initialize() => provider.initialize();
 
   @override
-  Future<AuthUser> createUser({
-    required CredentialType credentialType,
-    required List<String> credentials,
+  Future<void> registerEmail({
+    required Map<String, String> credentials,
   }) =>
-      provider.createUser(
-          credentialType: credentialType, credentials: credentials);
+      provider.registerEmail(
+          credentials: credentials);
 
   @override
   AuthUser? get currentUser => provider.currentUser;

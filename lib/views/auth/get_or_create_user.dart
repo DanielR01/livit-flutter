@@ -26,7 +26,6 @@ class _GetOrCreateUserViewState extends State<GetOrCreateUserView> {
   @override
   void initState() {
     _livitDBService = LivitDBService();
-    _livitDBService.open();
     super.initState();
   }
 

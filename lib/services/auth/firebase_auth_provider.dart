@@ -24,27 +24,24 @@ class FirebaseAuthProvider implements AuthProvider {
   }
 
   @override
-  Future<AuthUser> createUser({
-    required CredentialType credentialType,
-    required List<String> credentials,
+  Future<void> registerEmail({
+    required Map<String, String> credentials,
   }) async {
     try {
-      switch (credentialType) {
-        case CredentialType.emailAndPassword:
-          await FirebaseAuth.instance.createUserWithEmailAndPassword(
-            email: credentials[0],
-            password: credentials[1],
-          );
-          sendEmailVerification();
-        default:
-          throw GenericAuthException();
+      final String? email = credentials['email'];
+      final String? password = credentials['password'];
+      if (email == null || password == null) {
+        throw GenericAuthException();
       }
-      final user = currentUser;
-      if (user != null) {
-        return user;
-      } else {
-        throw UserNotLoggedInAuthException();
+      await FirebaseAuth.instance.createUserWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) {
+        throw GenericAuthException();
       }
+      sendEmailVerification();
     } on FirebaseAuthException catch (error) {
       switch (error.code) {
         case "weak-password":
@@ -56,6 +53,8 @@ class FirebaseAuthProvider implements AuthProvider {
         default:
           throw GenericAuthException();
       }
+    } on GenericAuthException {
+      rethrow;
     } catch (_) {
       throw GenericAuthException();
     }
@@ -68,7 +67,7 @@ class FirebaseAuthProvider implements AuthProvider {
       return null;
     } else {
       if (user.email != null && !user.emailVerified) {
-        return AuthUser.notVerifiedEmailFromFirebase(user);
+        return null;
       }
     }
     return AuthUser.fromFirebase(user);
@@ -81,7 +80,15 @@ class FirebaseAuthProvider implements AuthProvider {
       if (user.emailVerified) {
         throw EmailAlreadyVerified();
       } else {
-        await user.sendEmailVerification();
+        try {
+          await user.sendEmailVerification();
+        } on FirebaseAuthException catch (e) {
+          if (e.code == 'too-many-requests') {
+            throw TooManyRequestsAuthException();
+          } else {
+            throw GenericAuthException();
+          }
+        }
       }
     } else {
       throw UserNotLoggedInAuthException();
@@ -163,11 +170,13 @@ class FirebaseAuthProvider implements AuthProvider {
           throw TooManyRequestsAuthException();
         case "invalid-verification-code":
           throw InvalidVerificationCodeAuthException();
+        case 'network-request-failed':
+          throw NetworkRequesFailed();
         default:
           throw GenericAuthException();
       }
     } on UserNotLoggedInAuthException {
-      throw UserNotLoggedInAuthException();
+      rethrow;
     } catch (_) {
       throw GenericAuthException();
     }
@@ -185,33 +194,44 @@ class FirebaseAuthProvider implements AuthProvider {
 
   @override
   Future<void> sendPasswordReset(String email) async {
-    await FirebaseAuth.instance.sendPasswordResetEmail(email: email);
+    try {
+      await FirebaseAuth.instance.sendPasswordResetEmail(email: email);
+    } on FirebaseAuthException catch (e) {
+      switch (e.code) {
+        case 'network-request-failed':
+          throw NetworkRequesFailed();
+        default:
+          throw GenericAuthException();
+      }
+    } catch (e) {
+      throw GenericAuthException();
+    }
   }
-}
 
-Future<void> signInWithGoogle() async {
-  final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
+  Future<void> signInWithGoogle() async {
+    final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
 
-  final GoogleSignInAuthentication? googleAuth =
-      await googleUser?.authentication;
-  if (googleUser == null) {
-    return;
+    final GoogleSignInAuthentication? googleAuth =
+        await googleUser?.authentication;
+    if (googleUser == null) {
+      return;
+    }
+
+    final credential = GoogleAuthProvider.credential(
+      accessToken: googleAuth?.accessToken,
+      idToken: googleAuth?.idToken,
+    );
+
+    await FirebaseAuth.instance.signInWithCredential(credential);
   }
 
-  final credential = GoogleAuthProvider.credential(
-    accessToken: googleAuth?.accessToken,
-    idToken: googleAuth?.idToken,
-  );
+  Future<void> signInWithPhoneNumber(
+      String verificationId, String otpCode) async {
+    PhoneAuthCredential credential = PhoneAuthProvider.credential(
+      verificationId: verificationId,
+      smsCode: otpCode,
+    );
 
-  await FirebaseAuth.instance.signInWithCredential(credential);
-}
-
-Future<void> signInWithPhoneNumber(
-    String verificationId, String otpCode) async {
-  PhoneAuthCredential credential = PhoneAuthProvider.credential(
-    verificationId: verificationId,
-    smsCode: otpCode,
-  );
-
-  await FirebaseAuth.instance.signInWithCredential(credential);
+    await FirebaseAuth.instance.signInWithCredential(credential);
+  }
 }

@@ -1,4 +1,3 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:livit/constants/colors.dart';
@@ -9,7 +8,6 @@ import 'package:livit/constants/styles/spaces.dart';
 import 'package:livit/constants/styles/text_style.dart';
 import 'package:livit/services/auth/auth_exceptions.dart';
 import 'package:livit/services/auth/auth_service.dart';
-import 'package:livit/services/auth/auth_user.dart';
 import 'package:livit/services/auth/credential_types.dart';
 import 'package:livit/services/crud/livit_db_service.dart';
 import 'package:livit/utilities/background/main_background.dart';
@@ -281,22 +279,22 @@ class _SignInState extends State<SignIn> {
               },
             );
             try {
-              final AuthUser user = await AuthService.firebase().logIn(
+              await AuthService.firebase().logIn(
                 credentialType: CredentialType.emailAndPassword,
                 credentials: [
                   _emailController.text,
                   _passwordController.text,
                 ],
               );
-              if (user.id == null) {
-                emailToVerify = user.email;
-                AuthService.firebase().sendEmailVerification();
-              } else {
-                Navigator.of(context).pushNamedAndRemoveUntil(
-                    Routes.getOrCreateUserRoute,
-                    arguments: widget.userType,
-                    (route) => false);
-              }
+              Navigator.of(context).pushNamedAndRemoveUntil(
+                  Routes.getOrCreateUserRoute,
+                  arguments: widget.userType,
+                  (route) => false);
+            } on NetworkRequesFailed {
+              passwordCaptionText = 'Error de red';
+            } on UserNotLoggedInAuthException {
+              emailToVerify = _emailController.text;
+              AuthService.firebase().sendEmailVerification();
             } on InvalidCredentialsAuthException {
               passwordCaptionText = 'Email o contraseña incorrectos';
             } on TooManyRequestsAuthException {
@@ -439,6 +437,13 @@ class _RegisterState extends State<Register> {
           bottomCaptionText: confirmPasswordCaptionText,
         ),
         LivitSpaces.medium16spacer,
+        LivitText(
+          'Tu contraseña debe tener al menos 8 caracteres',
+          color: _isPasswordValid
+              ? LivitColors.whiteInactive
+              : LivitColors.whiteActive,
+        ),
+        LivitSpaces.medium16spacer,
         MainActionButton(
           text: _isSigningIn ? 'Creando cuenta' : 'Crear cuenta',
           isActive: _isEmailValid & _isPasswordValid & _arePasswordsEqual,
@@ -453,12 +458,11 @@ class _RegisterState extends State<Register> {
               },
             );
             try {
-              await AuthService.firebase().createUser(
-                credentialType: CredentialType.emailAndPassword,
-                credentials: [
-                  _emailController.text,
-                  _passwordController.text,
-                ],
+              await AuthService.firebase().registerEmail(
+                credentials: {
+                  'email': _emailController.text.trim(),
+                  'password': _passwordController.text.trim(),
+                },
               );
               setState(
                 () {
@@ -488,7 +492,7 @@ class _RegisterState extends State<Register> {
               setState(
                 () {
                   confirmPasswordCaptionText =
-                      'Error, intentalo de nuevo mas tarde';
+                      'Algo salio mal, intentalo de nuevo mas tarde';
                 },
               );
             }
@@ -545,6 +549,7 @@ class _VerifyEmail extends State<VerifyEmail> {
                   child: widget.isLoginVariant
                       ? const LivitText(
                           'Termina de confirmar tu cuenta con el email que te hemos enviado.',
+                          textAlign: TextAlign.start,
                         )
                       : RichText(
                           text: TextSpan(
@@ -575,7 +580,8 @@ class _VerifyEmail extends State<VerifyEmail> {
                     );
                     try {
                       await AuthService.firebase().sendEmailVerification();
-                    } catch (e) {}
+                    } on EmailAlreadyVerified {
+                    } on UserNotLoggedInAuthException {}
                     setState(
                       () {
                         _isSendingCode = false;
@@ -682,16 +688,12 @@ class _ForgotPassword extends State<ForgotPassword> {
                           .sendPasswordReset(_emailController.text.trim());
                       _isEmailSent = true;
                       emailCaptionText = '¡Listo!, revisa tu correo.';
-                    } on FirebaseAuthException catch (e) {
-                      switch (e.code) {
-                        case 'network-request-failed':
-                          emailCaptionText = 'Error de conexión';
-                          break;
-                        default:
-                      }
-                    } catch (e) {
+                    } on NetworkRequesFailed {
+                      emailCaptionText = 'Error de conexión';
                       _isEmailSent = false;
-                      emailCaptionText = 'Error, intenta mas tarde';
+                    } on GenericAuthException {
+                      emailCaptionText = 'Algo salio mal, intenta mas tarde';
+                      _isEmailSent = false;
                     }
                     setState(
                       () {
