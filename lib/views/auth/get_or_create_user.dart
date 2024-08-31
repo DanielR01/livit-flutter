@@ -21,7 +21,7 @@ class GetOrCreateUserView extends StatefulWidget {
 
 class _GetOrCreateUserViewState extends State<GetOrCreateUserView> {
   late final LivitDBService _livitDBService;
-  String get userId => AuthService.firebase().currentUser!.id!;
+  String get userId => AuthService.firebase().currentUser!.id;
 
   @override
   void initState() {

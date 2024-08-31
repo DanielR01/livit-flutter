@@ -61,7 +61,7 @@ class _CreateUpdateEventViewState extends State<CreateUpdateEventView> {
         return;
       }
       final currentUser = AuthService.firebase().currentUser;
-      final user = await _livitDBService.getUserWithId(id: currentUser!.id!);
+      final user = await _livitDBService.getUserWithId(id: currentUser!.id);
       final String title = _titleController.text;
       final String location = _locationController.text;
       final newEvent = await _livitDBService.createEvent(
