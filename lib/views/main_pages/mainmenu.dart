@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:livit/services/crud/tables/users/user.dart';
 import 'package:livit/utilities/bars_containers_fields/navigation_bar.dart';
 import 'package:livit/views/main_pages/explore.dart';
 import 'package:livit/views/main_pages/home.dart';
@@ -7,10 +6,8 @@ import 'package:livit/views/main_pages/profile.dart';
 import 'package:livit/views/main_pages/tickets.dart';
 
 class MainMenu extends StatefulWidget {
-  final LivitUser? user;
   const MainMenu({
     super.key,
-    required this.user,
   });
 
   @override
@@ -32,19 +29,11 @@ class _MainMenuState extends State<MainMenu> {
 
   @override
   void initState() {
-    viewsList = [
-      HomeView(
-        user: widget.user,
-      ),
-      ExploreView(
-        user: widget.user,
-      ),
-      TicketsView(
-        user: widget.user,
-      ),
-      ProfileView(
-        user: widget.user,
-      ),
+    viewsList = const [
+      HomeView(),
+      ExploreView(),
+      TicketsView(),
+      ProfileView(),
     ];
     super.initState();
   }

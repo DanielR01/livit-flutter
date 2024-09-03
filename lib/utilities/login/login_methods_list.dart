@@ -5,7 +5,7 @@ import 'package:livit/constants/styles/container_style.dart';
 import 'package:livit/constants/styles/spaces.dart';
 import 'package:livit/constants/styles/text_style.dart';
 import 'package:livit/services/auth/auth_service.dart';
-import 'package:livit/services/crud/livit_db_service.dart';
+import 'package:livit/services/cloud/firebase_cloud_storage.dart';
 import 'package:livit/utilities/bars_containers_fields/glass_container.dart';
 import 'package:livit/utilities/bars_containers_fields/text_field.dart';
 import 'package:livit/utilities/bars_containers_fields/title_bar.dart';

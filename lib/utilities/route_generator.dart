@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:livit/constants/routes.dart';
-import 'package:livit/services/crud/livit_db_service.dart';
-import 'package:livit/services/crud/tables/events/event.dart';
-import 'package:livit/services/crud/tables/users/user.dart';
+import 'package:livit/services/cloud/cloud_event.dart';
+import 'package:livit/services/cloud/firebase_cloud_storage.dart';
 import 'package:livit/utilities/login/confirm_otp_code.dart';
 import 'package:livit/utilities/login/email_login.dart';
-import 'package:livit/views/auth/get_or_create_user.dart';
 import 'package:livit/views/auth/check_initial_auth.dart';
 import 'package:livit/views/auth/login/login.dart';
 import 'package:livit/views/auth/login/welcome.dart';
@@ -53,15 +51,12 @@ class RouteGenerator {
           } finally {}
         }
       case Routes.mainviewRoute:
-        if (args is LivitUser?) {
-          return MaterialPageRoute(
-            builder: (_) => MainMenu(
-              user: args,
-            ),
-          );
-        }
+        return MaterialPageRoute(
+          builder: (_) => const MainMenu(),
+        );
+
       case Routes.createUpdateEventRoute:
-        if (args is LivitEvent?) {
+        if (args is CloudEvent?) {
           return MaterialPageRoute(
             builder: (_) => CreateUpdateEventView(
               event: args,
@@ -69,14 +64,14 @@ class RouteGenerator {
           );
         }
 
-      case Routes.getOrCreateUserRoute:
-        if (args is UserType?) {
-          return MaterialPageRoute(
-            builder: (_) => GetOrCreateUserView(
-              userType: args,
-            ),
-          );
-        }
+      // case Routes.getOrCreateUserRoute:
+      //   if (args is UserType?) {
+      //     return MaterialPageRoute(
+      //       builder: (_) => GetOrCreateUserView(
+      //         userType: args,
+      //       ),
+      //     );
+      //   }
     }
     return MaterialPageRoute(builder: (_) => const ErrorView());
   }

@@ -2,16 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:livit/constants/routes.dart';
 import 'package:livit/constants/styles/spaces.dart';
 import 'package:livit/services/auth/auth_service.dart';
-import 'package:livit/services/crud/tables/users/user.dart';
 import 'package:livit/utilities/background/main_background.dart';
 import 'package:livit/utilities/buttons/main_action_button.dart';
 import 'package:livit/utilities/dialogs/log_out_dialog.dart';
 
 class ProfileView extends StatefulWidget {
-  final LivitUser? user;
+  
   const ProfileView({
     super.key,
-    required this.user,
+    
   });
 
   @override

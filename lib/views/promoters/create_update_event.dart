@@ -3,8 +3,8 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:livit/constants/styles/spaces.dart';
 import 'package:livit/constants/styles/text_style.dart';
 import 'package:livit/services/auth/auth_service.dart';
-import 'package:livit/services/crud/livit_db_service.dart';
-import 'package:livit/services/crud/tables/events/event.dart';
+import 'package:livit/services/cloud/cloud_event.dart';
+import 'package:livit/services/cloud/firebase_cloud_storage.dart';
 import 'package:livit/utilities/background/main_background.dart';
 import 'package:livit/utilities/bars_containers_fields/glass_container.dart';
 import 'package:livit/utilities/buttons/arrow_back_button.dart';
@@ -12,7 +12,7 @@ import 'package:livit/utilities/buttons/main_action_button.dart';
 import 'package:livit/utilities/loading_screen.dart';
 
 class CreateUpdateEventView extends StatefulWidget {
-  final LivitEvent? event;
+  final CloudEvent? event;
   const CreateUpdateEventView({
     super.key,
     this.event,
@@ -28,8 +28,20 @@ class _CreateUpdateEventViewState extends State<CreateUpdateEventView> {
   late final TextEditingController _descriptionController;
   late final TextEditingController _locationController;
 
-  LivitEvent? _event;
-  late final LivitDBService _livitDBService;
+  CloudEvent? _event;
+  late final FirebaseCloudStorage _livitDBService;
+
+  @override
+  void initState() {
+    _titleController = TextEditingController();
+    _dateController = TextEditingController();
+    _descriptionController = TextEditingController();
+    _locationController = TextEditingController();
+
+    _livitDBService = FirebaseCloudStorage();
+
+    super.initState();
+  }
 
   void _textControllersListener() async {
     // TODO update this listener so that event update doesnt update everything
@@ -51,7 +63,7 @@ class _CreateUpdateEventViewState extends State<CreateUpdateEventView> {
 
   Future<void> createOfGetExistingEvent() async {
     if (widget.event != null) {
-      final LivitEvent event = widget.event!;
+      final CloudEvent event = widget.event!;
       _titleController.text = event.title;
       _locationController.text = event.location;
       _event = event;
@@ -60,12 +72,11 @@ class _CreateUpdateEventViewState extends State<CreateUpdateEventView> {
       if (existingEvent != null) {
         return;
       }
-      final currentUser = AuthService.firebase().currentUser;
-      final user = await _livitDBService.getUserWithId(id: currentUser!.id);
+      final userId = AuthService.firebase().currentUser!.id;
       final String title = _titleController.text;
       final String location = _locationController.text;
       final newEvent = await _livitDBService.createEvent(
-        userCreator: user,
+        creatorId: userId,
         title: title,
         location: location,
       );
@@ -75,9 +86,8 @@ class _CreateUpdateEventViewState extends State<CreateUpdateEventView> {
 
   Future<void> _deleteEventIfEmpty() async {
     final event = _event;
-    if ((_titleController.text.isEmpty && _locationController.text.isEmpty) &&
-        event != null) {
-      await _livitDBService.deleteEvent(id: event.id);
+    if ((_titleController.text.isEmpty && _locationController.text.isEmpty) && event != null) {
+      await _livitDBService.deleteEvent(documentId: event.documentId);
     }
   }
 
@@ -87,7 +97,7 @@ class _CreateUpdateEventViewState extends State<CreateUpdateEventView> {
     final location = _locationController.text;
     if ((title.isNotEmpty || location.isNotEmpty) && event != null) {
       await _livitDBService.updateEvent(
-        event: event,
+        documentId: event.documentId,
         location: location,
         title: title,
       );
@@ -95,29 +105,14 @@ class _CreateUpdateEventViewState extends State<CreateUpdateEventView> {
   }
 
   @override
-  void initState() {
-    _titleController = TextEditingController();
-    _dateController = TextEditingController();
-    _descriptionController = TextEditingController();
-    _locationController = TextEditingController();
-
-    _livitDBService = LivitDBService();
-
-    super.initState();
-  }
-
-  @override
-  void dispose() async {
+  void dispose() {
     _titleController.dispose();
     _dateController.dispose();
     _descriptionController.dispose();
     _locationController.dispose();
-
+    _deleteEventIfEmpty();
+    _saveEventIfNotEmpty();
     super.dispose();
-
-    await _deleteEventIfEmpty();
-    await _saveEventIfNotEmpty();
-    _livitDBService.close();
   }
 
   @override
@@ -161,8 +156,7 @@ class _CreateUpdateEventViewState extends State<CreateUpdateEventView> {
                                             minLines: 1,
                                             decoration: InputDecoration(
                                               hintText: 'Titulo del evento',
-                                              hintStyle: LivitTextStyle
-                                                  .regularWhiteActiveText,
+                                              hintStyle: LivitTextStyle.regularWhiteActiveText,
                                             ),
                                           ),
                                         ),
@@ -178,8 +172,7 @@ class _CreateUpdateEventViewState extends State<CreateUpdateEventView> {
                                             minLines: 1,
                                             decoration: InputDecoration(
                                               hintText: 'Fecha del evento',
-                                              hintStyle: LivitTextStyle
-                                                  .regularWhiteActiveText,
+                                              hintStyle: LivitTextStyle.regularWhiteActiveText,
                                             ),
                                           ),
                                         ),
@@ -218,8 +211,7 @@ class _CreateUpdateEventViewState extends State<CreateUpdateEventView> {
                                       minLines: 1,
                                       decoration: InputDecoration(
                                         hintText: 'Descripción',
-                                        hintStyle: LivitTextStyle
-                                            .regularWhiteActiveText,
+                                        hintStyle: LivitTextStyle.regularWhiteActiveText,
                                       ),
                                     ),
                                   ),
@@ -243,8 +235,7 @@ class _CreateUpdateEventViewState extends State<CreateUpdateEventView> {
                                       minLines: 1,
                                       decoration: InputDecoration(
                                         hintText: 'Localización',
-                                        hintStyle: LivitTextStyle
-                                            .regularWhiteActiveText,
+                                        hintStyle: LivitTextStyle.regularWhiteActiveText,
                                       ),
                                     ),
                                   ),

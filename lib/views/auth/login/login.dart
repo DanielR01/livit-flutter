@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:livit/services/crud/livit_db_service.dart';
+import 'package:livit/services/cloud/firebase_cloud_storage.dart';
 import 'package:livit/utilities/background/main_background.dart';
 import 'package:livit/utilities/login/login_methods_list.dart';
 

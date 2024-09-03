@@ -1,15 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:livit/constants/styles/spaces.dart';
-import 'package:livit/services/crud/livit_db_service.dart';
-import 'package:livit/services/crud/tables/events/event.dart';
-import 'package:livit/services/crud/tables/users/user.dart';
+import 'package:livit/services/cloud/cloud_event.dart';
 import 'package:livit/utilities/dialogs/delete_event_dialog.dart';
 import 'package:livit/utilities/events/event_preview.dart';
 
-typedef EventCallback = void Function(LivitEvent event);
+typedef EventCallback = void Function(CloudEvent event);
 
 class EventPreviewList extends StatefulWidget {
-  final List<LivitEvent> events;
+  final Iterable<CloudEvent> events;
   final EventCallback onDeleteEvent;
   final EventCallback onEditEvent;
   const EventPreviewList({
@@ -24,11 +22,8 @@ class EventPreviewList extends StatefulWidget {
 }
 
 class _EventPreviewListState extends State<EventPreviewList> {
-  late final LivitDBService _livitDBService;
-
   @override
   void initState() {
-    _livitDBService = LivitDBService();
     super.initState();
   }
 
@@ -38,37 +33,17 @@ class _EventPreviewListState extends State<EventPreviewList> {
       itemCount: widget.events.length,
       separatorBuilder: (context, index) => LivitSpaces.medium16spacer,
       itemBuilder: (context, index) {
-        final LivitEvent event = widget.events[index];
-        return FutureBuilder<LivitUser?>(
-          future: _livitDBService.getUserWithId(id: event.creatorId),
-          builder: (context, AsyncSnapshot<LivitUser?> snapshot) {
-            EventPreview eventPreview = EventPreview.loading();
-            if (snapshot.connectionState == ConnectionState.done) {
-              if (snapshot.hasData) {
-                final LivitUser? user = snapshot.data;
-                if (user != null) {
-                  eventPreview = EventPreview(
-                    event: event,
-                    user: user,
-                    onDeletePressed: () async {
-                      final bool shouldDelete =
-                          await showDeleteEventDialog(context: context);
-                      if (shouldDelete) {
-                        widget.onDeleteEvent(event);
-                      }
-                    },
-                    onEditPressed: () {
-                      widget.onEditEvent(event);
-                    },
-                  );
-                } else {
-                  eventPreview = EventPreview.error();
-                }
-              } else if (snapshot.hasError) {
-                eventPreview = EventPreview.error();
-              }
+        final CloudEvent event = widget.events.elementAt(index);
+        return EventPreview(
+          event: event,
+          onDeletePressed: () async {
+            final bool shouldDelete = await showDeleteEventDialog(context: context);
+            if (shouldDelete) {
+              widget.onDeleteEvent(event);
             }
-            return eventPreview;
+          },
+          onEditPressed: () {
+            widget.onEditEvent(event);
           },
         );
       },

@@ -11,7 +11,7 @@ import 'package:livit/constants/styles/text_style.dart';
 import 'package:livit/services/auth/credential_types.dart';
 import 'package:livit/services/auth/auth_exceptions.dart';
 import 'package:livit/services/auth/auth_service.dart';
-import 'package:livit/services/crud/livit_db_service.dart';
+import 'package:livit/services/cloud/firebase_cloud_storage.dart';
 import 'package:livit/utilities/background/main_background.dart';
 import 'package:livit/utilities/bars_containers_fields/glass_container.dart';
 import 'package:livit/utilities/bars_containers_fields/title_bar.dart';
@@ -218,7 +218,7 @@ class _ConfirmOTPCodeViewState extends State<ConfirmOTPCodeView> {
                                       if (context.mounted) {
                                         Navigator.of(context)
                                             .pushNamedAndRemoveUntil(
-                                                Routes.getOrCreateUserRoute,
+                                                Routes.mainviewRoute,
                                                 arguments: widget.userType,
                                                 (route) => false);
                                       }

@@ -2,18 +2,16 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:livit/constants/routes.dart';
 import 'package:livit/constants/styles/container_style.dart';
-import 'package:livit/services/crud/livit_db_service.dart';
-import 'package:livit/services/crud/tables/events/event.dart';
-import 'package:livit/services/crud/tables/users/user.dart';
+import 'package:livit/services/auth/auth_service.dart';
+import 'package:livit/services/cloud/cloud_event.dart';
+import 'package:livit/services/cloud/firebase_cloud_storage.dart';
 import 'package:livit/utilities/background/main_background.dart';
 import 'package:livit/utilities/events/events_list.dart';
 import 'package:livit/utilities/loading_screen.dart';
 
 class HomeView extends StatefulWidget {
-  final LivitUser? user;
   const HomeView({
     super.key,
-    required this.user,
   });
 
   @override
@@ -21,24 +19,24 @@ class HomeView extends StatefulWidget {
 }
 
 class _HomeViewState extends State<HomeView> {
-  late final LivitDBService _livitDBService;
+  late final FirebaseCloudStorage _livitDBService;
+  String get userId => AuthService.firebase().currentUser!.id;
 
   @override
   void initState() {
-    _livitDBService = LivitDBService();
-    _livitDBService.open();
+    _livitDBService = FirebaseCloudStorage();
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
     return StreamBuilder(
-        stream: _livitDBService.allEvents,
+        stream: _livitDBService.allEvents(creatorId: userId),
         builder: (context, snapshot) {
           switch (snapshot.connectionState) {
             case ConnectionState.active:
               if (snapshot.hasData) {
-                List<LivitEvent> events = snapshot.data as List<LivitEvent>;
+                final Iterable<CloudEvent> events = snapshot.data as Iterable<CloudEvent>;
                 return Stack(
                   children: [
                     const MainBackground(),
@@ -48,7 +46,7 @@ class _HomeViewState extends State<HomeView> {
                         child: EventPreviewList(
                           events: events,
                           onDeleteEvent: (event) {
-                            _livitDBService.deleteEvent(id: event.id);
+                            _livitDBService.deleteEvent(documentId: event.documentId);
                           },
                           onEditEvent: (event) {
                             Navigator.of(context).pushNamed(

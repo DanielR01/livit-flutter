@@ -2,21 +2,18 @@ import 'package:flutter/widgets.dart';
 import 'package:livit/constants/styles/container_style.dart';
 import 'package:livit/constants/styles/spaces.dart';
 import 'package:livit/constants/styles/text_style.dart';
-import 'package:livit/services/crud/tables/events/event.dart';
-import 'package:livit/services/crud/tables/users/user.dart';
+import 'package:livit/services/cloud/cloud_event.dart';
 import 'package:livit/utilities/bars_containers_fields/glass_container.dart';
 import 'package:livit/utilities/buttons/button.dart';
 
 class EventPreview extends StatefulWidget {
-  final LivitEvent? event;
-  final LivitUser? user;
+  final CloudEvent? event;
   final VoidCallback onDeletePressed;
   final VoidCallback onEditPressed;
   final bool error;
   const EventPreview({
     super.key,
     required this.event,
-    required this.user,
     required this.onDeletePressed,
     required this.onEditPressed,
     this.error = false,
@@ -24,14 +21,12 @@ class EventPreview extends StatefulWidget {
 
   factory EventPreview.loading() => EventPreview(
         event: null,
-        user: null,
         onDeletePressed: () {},
         onEditPressed: () {},
       );
 
   factory EventPreview.error() => EventPreview(
         event: null,
-        user: null,
         onDeletePressed: () {},
         onEditPressed: () {},
         error: true,
@@ -50,10 +45,8 @@ class _EventPreviewState extends State<EventPreview> {
   @override
   Widget build(BuildContext context) {
     String title = widget.error ? 'Error' : widget.event?.title ?? 'Cargando';
-    String location =
-        widget.error ? 'Error' : widget.event?.location ?? 'Cargando';
-    String creatorUsername =
-        widget.error ? 'Error' : widget.user?.username ?? 'Cargando';
+    String location = widget.error ? 'Error' : widget.event?.location ?? 'Cargando';
+    String creatorId = widget.error ? 'Error' : widget.event?.creatorId ?? 'Cargando';
     return GlassContainer(
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -68,16 +61,13 @@ class _EventPreviewState extends State<EventPreview> {
                   textType: TextType.smallTitle,
                 ),
                 LivitText(location),
-                LivitText(creatorUsername),
+                LivitText(creatorId),
                 LivitSpaces.small8spacer,
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   mainAxisSize: MainAxisSize.max,
                   children: [
-                    Button.blueText(
-                        text: 'Editar',
-                        onPressed: widget.onEditPressed,
-                        isActive: widget.event != null),
+                    Button.blueText(text: 'Editar', onPressed: widget.onEditPressed, isActive: widget.event != null),
                     Button.redText(
                       text: 'Eliminar',
                       isActive: true,

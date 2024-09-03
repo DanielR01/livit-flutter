@@ -3,7 +3,16 @@ import 'package:livit/services/cloud/cloud_event.dart';
 import 'package:livit/services/cloud/cloud_storage_constants.dart';
 import 'package:livit/services/cloud/cloud_storage_exceptions.dart';
 
+enum UserType {
+  customer,
+  promoter,
+}
+
 class FirebaseCloudStorage {
+  static final FirebaseCloudStorage _shared = FirebaseCloudStorage._sharedInstance();
+  FirebaseCloudStorage._sharedInstance();
+  factory FirebaseCloudStorage() => _shared;
+
   final events = FirebaseFirestore.instance.collection('events');
 
   Future<void> deleteEvent({required String documentId}) async {
@@ -47,19 +56,26 @@ class FirebaseCloudStorage {
     }
   }
 
-  void createNewEvent({
+  Future<CloudEvent> createEvent({
     required String creatorId,
     required String title,
     required String location,
   }) async {
-    events.add({
-      creatorIdFieldName: creatorId,
-      titleFieldName: title,
-      locationFieldName: location,
-    });
+    try {
+      final document = await events.add({
+        creatorIdFieldName: creatorId,
+        titleFieldName: title,
+        locationFieldName: location,
+      });
+      final fetchedEvent = await document.get();
+      return CloudEvent(
+        documentId: fetchedEvent.id,
+        creatorId: creatorId,
+        title: title,
+        location: location,
+      );
+    } catch (_) {
+      throw CouldNotCreateEventException();
+    }
   }
-
-  static final FirebaseCloudStorage _shared = FirebaseCloudStorage._sharedInstance();
-  FirebaseCloudStorage._sharedInstance();
-  factory FirebaseCloudStorage() => _shared;
 }

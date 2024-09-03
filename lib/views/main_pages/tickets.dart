@@ -1,11 +1,10 @@
 import 'package:flutter/cupertino.dart';
-import 'package:livit/services/crud/tables/users/user.dart';
 
 class TicketsView extends StatefulWidget {
-  final LivitUser? user;
+  
   const TicketsView({
     super.key,
-    required this.user,
+    
   });
 
   @override

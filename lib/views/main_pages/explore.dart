@@ -1,10 +1,9 @@
 import 'package:flutter/cupertino.dart';
-import 'package:livit/services/crud/tables/users/user.dart';
 import 'package:livit/utilities/background/main_background.dart';
 
 class ExploreView extends StatefulWidget {
-  final LivitUser? user;
-  const ExploreView({super.key, required this.user,});
+  
+  const ExploreView({super.key, });
 
   @override
   State<ExploreView> createState() => _ExploreViewState();

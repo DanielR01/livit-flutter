@@ -9,7 +9,7 @@ import 'package:livit/constants/styles/text_style.dart';
 import 'package:livit/services/auth/auth_exceptions.dart';
 import 'package:livit/services/auth/auth_service.dart';
 import 'package:livit/services/auth/credential_types.dart';
-import 'package:livit/services/crud/livit_db_service.dart';
+import 'package:livit/services/cloud/firebase_cloud_storage.dart';
 import 'package:livit/utilities/background/main_background.dart';
 import 'package:livit/utilities/bars_containers_fields/glass_container.dart';
 import 'package:livit/utilities/bars_containers_fields/text_field.dart';
@@ -287,7 +287,7 @@ class _SignInState extends State<SignIn> {
                 ],
               );
               Navigator.of(context).pushNamedAndRemoveUntil(
-                  Routes.getOrCreateUserRoute,
+                  Routes.mainviewRoute,
                   arguments: widget.userType,
                   (route) => false);
             } on NetworkRequesFailed {
@@ -504,7 +504,7 @@ class _RegisterState extends State<Register> {
           },
         ),
         emailToVerify == null
-            ? SizedBox()
+            ? const SizedBox()
             : VerifyEmail(
                 email: _emailController.text,
               ),
