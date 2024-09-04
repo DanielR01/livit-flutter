@@ -3,7 +3,7 @@ import 'package:livit/constants/routes.dart';
 import 'package:livit/constants/styles/spaces.dart';
 import 'package:livit/services/auth/auth_service.dart';
 import 'package:livit/utilities/background/main_background.dart';
-import 'package:livit/utilities/buttons/main_action_button.dart';
+import 'package:livit/utilities/buttons/button.dart';
 import 'package:livit/utilities/dialogs/log_out_dialog.dart';
 
 class ProfileView extends StatefulWidget {
@@ -28,7 +28,7 @@ class _ProfileViewState extends State<ProfileView> {
             mainAxisAlignment: MainAxisAlignment.center,
             mainAxisSize: MainAxisSize.min,
             children: [
-              MainActionButton(
+              Button.main(
                 text: 'Cerrar sesión',
                 isActive: true,
                 onPressed: () async {
@@ -45,7 +45,7 @@ class _ProfileViewState extends State<ProfileView> {
                 },
               ),
               LivitSpaces.medium16spacer,
-              MainActionButton(
+              Button.main(
                 text: 'Crear un nuevo evento',
                 isActive: true,
                 onPressed: () {

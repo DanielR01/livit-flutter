@@ -15,8 +15,7 @@ import 'package:livit/services/cloud/firebase_cloud_storage.dart';
 import 'package:livit/utilities/background/main_background.dart';
 import 'package:livit/utilities/bars_containers_fields/glass_container.dart';
 import 'package:livit/utilities/bars_containers_fields/title_bar.dart';
-import 'package:livit/utilities/buttons/main_action_button.dart';
-import 'package:livit/utilities/buttons/secondary_action_button.dart';
+import 'package:livit/utilities/buttons/button.dart';
 import 'package:pinput/pinput.dart';
 
 class ConfirmOTPCodeView extends StatefulWidget {
@@ -118,8 +117,7 @@ class _ConfirmOTPCodeViewState extends State<ConfirmOTPCodeView> {
                   child: SizedBox(
                     width: double.infinity,
                     child: Padding(
-                      padding:
-                          LivitContainerStyle.padding([0, null, null, null]),
+                      padding: LivitContainerStyle.padding([0, null, null, null]),
                       child: Column(
                         children: [
                           const TitleBar(
@@ -151,8 +149,7 @@ class _ConfirmOTPCodeViewState extends State<ConfirmOTPCodeView> {
                               setState(
                                 () {
                                   otpCode = value;
-                                  if (!RegExp(r'^\d{6}$')
-                                      .hasMatch(otpCode ?? '')) {
+                                  if (!RegExp(r'^\d{6}$').hasMatch(otpCode ?? '')) {
                                     isOtpCodeValid = false;
                                   } else {
                                     isOtpCodeValid = true;
@@ -177,11 +174,9 @@ class _ConfirmOTPCodeViewState extends State<ConfirmOTPCodeView> {
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             mainAxisSize: MainAxisSize.max,
                             children: [
-                              SecondaryActionButton(
+                              Button.secondary(
                                 blueStyle: false,
-                                text: isResendButtonActive
-                                    ? 'Reenviar codigo'
-                                    : 'Reenviar codigo... $countdown',
+                                text: isResendButtonActive ? 'Reenviar codigo' : 'Reenviar codigo... $countdown',
                                 isActive: isResendButtonActive,
                                 onPressed: () async {
                                   invalidCode = false;
@@ -193,10 +188,8 @@ class _ConfirmOTPCodeViewState extends State<ConfirmOTPCodeView> {
                                   startTimer();
                                 },
                               ),
-                              MainActionButton(
-                                text: _isVerifyingCode
-                                    ? 'Verificando...'
-                                    : 'Verificar',
+                              Button.main(
+                                text: _isVerifyingCode ? 'Verificando...' : 'Verificar',
                                 isActive: isOtpCodeValid,
                                 onPressed: () async {
                                   setState(
@@ -206,21 +199,16 @@ class _ConfirmOTPCodeViewState extends State<ConfirmOTPCodeView> {
                                   );
                                   try {
                                     await AuthService.firebase().logIn(
-                                      credentialType:
-                                          CredentialType.phoneAndOtp,
+                                      credentialType: CredentialType.phoneAndOtp,
                                       credentials: [
                                         verificationId,
                                         otpController.text,
                                       ],
                                     );
-                                    if (AuthService.firebase().currentUser !=
-                                        null) {
+                                    if (AuthService.firebase().currentUser != null) {
                                       if (context.mounted) {
                                         Navigator.of(context)
-                                            .pushNamedAndRemoveUntil(
-                                                Routes.mainviewRoute,
-                                                arguments: widget.userType,
-                                                (route) => false);
+                                            .pushNamedAndRemoveUntil(Routes.mainviewRoute, arguments: widget.userType, (route) => false);
                                       }
                                     }
                                   } on InvalidVerificationCodeAuthException {

@@ -6,7 +6,7 @@ import 'package:livit/constants/styles/spaces.dart';
 import 'package:livit/constants/styles/text_style.dart';
 import 'package:livit/services/cloud/firebase_cloud_storage.dart';
 import 'package:livit/utilities/background/main_background.dart';
-import 'package:livit/utilities/buttons/main_action_button.dart';
+import 'package:livit/utilities/buttons/button.dart';
 
 class WelcomeView extends StatefulWidget {
   const WelcomeView({
@@ -92,7 +92,7 @@ class WelcomeMessage extends StatelessWidget {
             'mas eventos, mas lugares, mas personas.',
           ),
           LivitSpaces.mediumPlus24spacer,
-          MainActionButton(
+          Button.main(
             text: 'Comenzar',
             isActive: true,
             onPressed: () => Navigator.of(context).pushNamedAndRemoveUntil(

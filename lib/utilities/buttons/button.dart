@@ -103,8 +103,7 @@ class Button extends StatefulWidget {
     required VoidCallback onPressed,
     bool blueStyle = false,
   }) {
-    Color activeBackgroundColor =
-        blueStyle ? LivitColors.mainBlueActive : LivitColors.whiteActive;
+    Color activeBackgroundColor = blueStyle ? LivitColors.mainBlueActive : LivitColors.whiteActive;
     return Button(
       text: text,
       onPressed: onPressed,
@@ -136,8 +135,8 @@ class Button extends StatefulWidget {
       bold: false,
       activeBackgroundColor: LivitColors.mainBlack,
       activeTextColor: LivitColors.whiteActive,
-      inactiveBackgroundColor: LivitColors.whiteInactive,
-      inactiveTextColor: LivitColors.mainBlack,
+      inactiveBackgroundColor: LivitColors.mainBlack,
+      inactiveTextColor: LivitColors.whiteInactive,
     );
   }
 
@@ -240,9 +239,7 @@ class _ButtonState extends State<Button> {
           height: LivitButtonStyle.height,
           decoration: BoxDecoration(
             borderRadius: LivitButtonStyle.radius,
-            color: widget.transparent
-                ? Colors.transparent
-                : widget.activeBackgroundColor ?? LivitColors.mainBlack,
+            color: widget.transparent ? Colors.transparent : widget.activeBackgroundColor ?? LivitColors.mainBlack,
             boxShadow: _boxShadow,
           ),
           child: Padding(
@@ -253,10 +250,7 @@ class _ButtonState extends State<Button> {
                 LivitText(
                   widget.text,
                   textType: TextType.regular,
-                  color: widget.activeTextColor ??
-                      (widget.blueStyle
-                          ? LivitColors.mainBlueActive
-                          : LivitColors.whiteActive),
+                  color: widget.activeTextColor ?? (widget.blueStyle ? LivitColors.mainBlueActive : LivitColors.whiteActive),
                   fontWeight: widget.bold ? FontWeight.bold : null,
                 )
               ],
@@ -280,8 +274,7 @@ class _ButtonState extends State<Button> {
         height: LivitButtonStyle.height,
         decoration: BoxDecoration(
           borderRadius: LivitButtonStyle.radius,
-          color:
-              widget.transparent ? Colors.transparent : LivitColors.mainBlack,
+          color: widget.transparent ? Colors.transparent : widget.inactiveBackgroundColor,
           boxShadow: _boxShadow,
         ),
         child: Padding(
@@ -291,10 +284,7 @@ class _ButtonState extends State<Button> {
             children: [
               LivitText(
                 widget.text,
-                color: widget.inactiveTextColor ??
-                    (widget.blueStyle
-                        ? LivitColors.mainBlueInactive
-                        : LivitColors.whiteInactive),
+                color: widget.inactiveTextColor ?? (widget.blueStyle ? LivitColors.mainBlueInactive : LivitColors.whiteInactive),
                 fontWeight: widget.bold ? FontWeight.bold : null,
               ),
             ],

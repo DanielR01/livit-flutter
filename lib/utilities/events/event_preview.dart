@@ -5,6 +5,7 @@ import 'package:livit/constants/styles/text_style.dart';
 import 'package:livit/services/cloud/cloud_event.dart';
 import 'package:livit/utilities/bars_containers_fields/glass_container.dart';
 import 'package:livit/utilities/buttons/button.dart';
+import 'package:livit/utilities/buttons/share_button.dart';
 
 class EventPreview extends StatefulWidget {
   final CloudEvent? event;
@@ -67,7 +68,12 @@ class _EventPreviewState extends State<EventPreview> {
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   mainAxisSize: MainAxisSize.max,
                   children: [
-                    Button.blueText(text: 'Editar', onPressed: widget.onEditPressed, isActive: widget.event != null),
+                    ShareButton(),
+                    Button.blueText(
+                      text: 'Editar',
+                      onPressed: widget.onEditPressed,
+                      isActive: widget.event != null,
+                    ),
                     Button.redText(
                       text: 'Eliminar',
                       isActive: true,

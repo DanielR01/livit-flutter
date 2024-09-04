@@ -8,7 +8,7 @@ import 'package:livit/services/cloud/firebase_cloud_storage.dart';
 import 'package:livit/utilities/background/main_background.dart';
 import 'package:livit/utilities/bars_containers_fields/glass_container.dart';
 import 'package:livit/utilities/buttons/arrow_back_button.dart';
-import 'package:livit/utilities/buttons/main_action_button.dart';
+import 'package:livit/utilities/buttons/button.dart';
 import 'package:livit/utilities/loading_screen.dart';
 
 class CreateUpdateEventView extends StatefulWidget {
@@ -243,7 +243,7 @@ class _CreateUpdateEventViewState extends State<CreateUpdateEventView> {
                               ),
                             ),
                             LivitSpaces.mediumPlus24spacer,
-                            MainActionButton(
+                            Button.main(
                               //width: double.infinity,
                               text: 'Crear evento',
                               isActive: true,

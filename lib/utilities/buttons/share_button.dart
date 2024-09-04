@@ -1,19 +1,20 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:flutter_svg/svg.dart';
+import 'package:livit/constants/colors.dart';
 import 'package:livit/constants/styles/container_style.dart';
 
-class ArrowBackButton extends StatelessWidget {
-  final VoidCallback onPressed;
-  const ArrowBackButton({
+class ShareButton extends StatelessWidget {
+  const ShareButton({
     super.key,
-    required this.onPressed,
   });
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: onPressed,
+      onTap: () {
+        
+      },
       child: Container(
         color: Colors.transparent,
         child: Padding(
@@ -23,10 +24,10 @@ class ArrowBackButton extends StatelessWidget {
             top: 10.sp,
           ),
           child: SizedBox(
-            height: 12.sp,
-            child: SvgPicture.asset(
-              'assets/icons/arrow-back.svg',
-              height: 12.sp,
+            child: Icon(
+              CupertinoIcons.share,
+              color: LivitColors.mainBlueActive,
+              size: 18.sp,
             ),
           ),
         ),

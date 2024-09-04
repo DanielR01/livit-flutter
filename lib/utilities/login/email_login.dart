@@ -14,7 +14,7 @@ import 'package:livit/utilities/background/main_background.dart';
 import 'package:livit/utilities/bars_containers_fields/glass_container.dart';
 import 'package:livit/utilities/bars_containers_fields/text_field.dart';
 import 'package:livit/utilities/bars_containers_fields/title_bar.dart';
-import 'package:livit/utilities/buttons/main_action_button.dart';
+import 'package:livit/utilities/buttons/button.dart';
 
 class EmailLogin extends StatefulWidget {
   final UserType userType;
@@ -266,7 +266,7 @@ class _SignInState extends State<SignIn> {
           bottomCaptionText: passwordCaptionText,
         ),
         LivitSpaces.medium16spacer,
-        MainActionButton(
+        Button.main(
           text: _isSigningIn ? 'Iniciando sesión' : 'Iniciar sesión',
           isActive: _isEmailValid & _isPasswordValid,
           onPressed: () async {
@@ -444,7 +444,7 @@ class _RegisterState extends State<Register> {
               : LivitColors.whiteActive,
         ),
         LivitSpaces.medium16spacer,
-        MainActionButton(
+        Button.main(
           text: _isSigningIn ? 'Creando cuenta' : 'Crear cuenta',
           isActive: _isEmailValid & _isPasswordValid & _arePasswordsEqual,
           onPressed: () async {
@@ -569,7 +569,7 @@ class _VerifyEmail extends State<VerifyEmail> {
                           ),
                         ),
                 ),
-                MainActionButton(
+                Button.main(
                   text: _isSendingCode ? 'Reenviando' : 'Reenviar',
                   isActive: true,
                   onPressed: () async {
@@ -670,7 +670,7 @@ class _ForgotPassword extends State<ForgotPassword> {
                   ),
                 ),
                 LivitSpaces.medium16spacer,
-                MainActionButton(
+                Button.main(
                   text: _isSendingEmail
                       ? 'Enviando'
                       : _isEmailSent
