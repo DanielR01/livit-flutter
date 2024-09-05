@@ -31,7 +31,7 @@ class _EventPreviewListState extends State<EventPreviewList> {
   Widget build(BuildContext context) {
     return ListView.separated(
       itemCount: widget.events.length,
-      separatorBuilder: (context, index) => LivitSpaces.medium16spacer,
+      separatorBuilder: (context, index) => LivitSpaces.m,
       itemBuilder: (context, index) {
         final CloudEvent event = widget.events.elementAt(index);
         return EventPreview(

@@ -9,7 +9,7 @@ Future<void> showDialog2b({
   required String title,
   String? body,
   required Widget button1,
-  required Widget button2, 
+  required Widget button2,
   int opacity = 0,
 }) async {
   BuildContext? context = contextList[0]?.currentContext ?? contextList[1];
@@ -33,13 +33,13 @@ Future<void> showDialog2b({
                     textType: TextType.smallTitle,
                   ),
                   body == null
-                      ? LivitSpaces.small8spacer
+                      ? LivitSpaces.s
                       : Column(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            LivitSpaces.small8spacer,
+                            LivitSpaces.s,
                             LivitText(body),
-                            LivitSpaces.medium16spacer,
+                            LivitSpaces.m,
                           ],
                         ),
                   Row(

@@ -128,9 +128,7 @@ class _LoginMethodsListState extends State<LoginMethodsList> {
                   child: Column(
                     children: [
                       TitleBar(
-                        title: widget.userType == UserType.customer
-                            ? 'Ingresa a Livit'
-                            : 'Ingresa como Promocionador',
+                        title: widget.userType == UserType.customer ? 'Ingresa a Livit' : 'Ingresa como Promocionador',
                         isBackEnabled: widget.userType == UserType.promoter,
                       ),
                       widget.userType == UserType.promoter
@@ -139,24 +137,24 @@ class _LoginMethodsListState extends State<LoginMethodsList> {
                                 const LivitText(
                                   'En LIVIT podras promocionar tus eventos y negocio, permitiendo que muchos mas clientes te encuentren y tengan una gran experiencia de compra.',
                                 ),
-                                LivitSpaces.medium16spacer,
+                                LivitSpaces.m,
                               ],
                             )
                           : const SizedBox(),
                       const AppleLoginBar(),
-                      LivitSpaces.medium16spacer,
+                      LivitSpaces.m,
                       GoogleLoginBar(
                         userType: widget.userType,
                       ),
-                      LivitSpaces.medium16spacer,
+                      LivitSpaces.m,
                       EmailLoginBar(
                         userType: widget.userType,
                       ),
-                      LivitSpaces.medium16spacer,
+                      LivitSpaces.m,
                       const LivitText(
                         'O usa tu número de teléfono',
                       ),
-                      LivitSpaces.medium16spacer,
+                      LivitSpaces.m,
                       LivitTextField(
                         controller: phoneController,
                         hint: 'Número de teléfono',
@@ -176,10 +174,9 @@ class _LoginMethodsListState extends State<LoginMethodsList> {
                                 ? 'Error de red'
                                 : null,
                       ),
-                      LivitSpaces.medium16spacer,
+                      LivitSpaces.m,
                       Button.main(
-                        text:
-                            _isCodeSending ? 'Enviando codigo...' : 'Continuar',
+                        text: _isCodeSending ? 'Enviando codigo...' : 'Continuar',
                         isActive: isPhoneValid,
                         onPressed: () async {
                           setState(
@@ -200,7 +197,7 @@ class _LoginMethodsListState extends State<LoginMethodsList> {
                   ),
                 ),
               ),
-              LivitSpaces.mediumPlus24spacer,
+              LivitSpaces.l,
               widget.userType == UserType.customer
                   ? GlassContainer(
                       child: Padding(
@@ -210,7 +207,7 @@ class _LoginMethodsListState extends State<LoginMethodsList> {
                             const LivitText(
                               'Estas interesado en promocionar tus eventos?',
                             ),
-                            LivitSpaces.medium16spacer,
+                            LivitSpaces.m,
                             const PromoterLoginBar(),
                           ],
                         ),

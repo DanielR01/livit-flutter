@@ -127,7 +127,7 @@ class _ConfirmOTPCodeViewState extends State<ConfirmOTPCodeView> {
                           LivitText(
                             'Hemos enviado un codigo al +${widget.phoneCode} ${widget.phoneNumber}, ingresalo aqui para verificar tu cuenta:',
                           ),
-                          LivitSpaces.medium16spacer,
+                          LivitSpaces.m,
                           Pinput(
                             autofocus: true,
                             controller: otpController,
@@ -161,15 +161,15 @@ class _ConfirmOTPCodeViewState extends State<ConfirmOTPCodeView> {
                           invalidCode
                               ? Column(
                                   children: [
-                                    LivitSpaces.small8spacer,
+                                    LivitSpaces.s,
                                     const LivitText(
                                       'Codigo invalido',
                                       textType: TextType.small,
                                     ),
-                                    LivitSpaces.small8spacer,
+                                    LivitSpaces.s,
                                   ],
                                 )
-                              : LivitSpaces.medium16spacer,
+                              : LivitSpaces.m,
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             mainAxisSize: MainAxisSize.max,

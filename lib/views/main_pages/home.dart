@@ -30,42 +30,43 @@ class _HomeViewState extends State<HomeView> {
 
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder(
-        stream: _livitDBService.allEvents(creatorId: userId),
-        builder: (context, snapshot) {
-          switch (snapshot.connectionState) {
-            case ConnectionState.active:
-              if (snapshot.hasData) {
-                final Iterable<CloudEvent> events = snapshot.data as Iterable<CloudEvent>;
-                return Stack(
-                  children: [
-                    const MainBackground(),
-                    SafeArea(
-                      child: Padding(
-                        padding: LivitContainerStyle.paddingFromScreen,
-                        child: EventPreviewList(
-                          events: events,
-                          onDeleteEvent: (event) {
-                            _livitDBService.deleteEvent(documentId: event.documentId);
-                          },
-                          onEditEvent: (event) {
-                            Navigator.of(context).pushNamed(
-                              Routes.createUpdateEventRoute,
-                              arguments: event,
-                            );
-                          },
-                        ),
+    return Stack(
+      children: [
+        const MainBackground(),
+        StreamBuilder(
+          stream: _livitDBService.allEvents(creatorId: userId),
+          builder: (context, snapshot) {
+            switch (snapshot.connectionState) {
+              case ConnectionState.active:
+                if (snapshot.hasData) {
+                  final Iterable<CloudEvent> events = snapshot.data as Iterable<CloudEvent>;
+                  return SafeArea(
+                    child: Padding(
+                      padding: LivitContainerStyle.paddingFromScreen,
+                      child: EventPreviewList(
+                        events: events,
+                        onDeleteEvent: (event) {
+                          _livitDBService.deleteEvent(documentId: event.documentId);
+                        },
+                        onEditEvent: (event) {
+                          Navigator.of(context).pushNamed(
+                            Routes.createUpdateEventRoute,
+                            arguments: event,
+                          );
+                        },
                       ),
                     ),
-                  ],
-                );
-              }
-            case ConnectionState.none:
-            case ConnectionState.done:
-            case ConnectionState.waiting:
-              break;
-          }
-          return const LoadingScreen();
-        });
+                  );
+                }
+                return const LoadingScreen();
+              case ConnectionState.none:
+              case ConnectionState.done:
+              case ConnectionState.waiting:
+                return const LoadingScreen();
+            }
+          },
+        ),
+      ],
+    );
   }
 }

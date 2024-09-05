@@ -63,12 +63,15 @@ class _EventPreviewState extends State<EventPreview> {
                 ),
                 LivitText(location),
                 LivitText(creatorId),
-                LivitSpaces.small8spacer,
+                LivitSpaces.s,
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   mainAxisSize: MainAxisSize.max,
                   children: [
-                    ShareButton(),
+                    ShareEventButton(
+                      event: widget.event!,
+                      isEnabled: widget.event != null,
+                    ),
                     Button.blueText(
                       text: 'Editar',
                       onPressed: widget.onEditPressed,

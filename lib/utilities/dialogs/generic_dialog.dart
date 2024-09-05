@@ -37,13 +37,13 @@ Future<T?> showGenericDialog<T>({
                     textType: TextType.smallTitle,
                   ),
                   content == null
-                      ? LivitSpaces.small8spacer
+                      ? LivitSpaces.s
                       : Column(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            LivitSpaces.medium16spacer,
+                            LivitSpaces.m,
                             LivitText(content),
-                            LivitSpaces.mediumPlus24spacer,
+                            LivitSpaces.l,
                           ],
                         ),
                   Row(
@@ -52,8 +52,7 @@ Future<T?> showGenericDialog<T>({
                     children: options.keys.map(
                       (optionTitle) {
                         final T value = options[optionTitle]!['return'];
-                        final ButtonType buttonType =
-                            options[optionTitle]!['buttonType'];
+                        final ButtonType buttonType = options[optionTitle]!['buttonType'];
                         return Button.fromType(
                           type: buttonType,
                           text: optionTitle,

@@ -19,7 +19,7 @@ class TitleBar extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: EdgeInsets.symmetric(
-        vertical: 14.sp,
+        vertical: 16.sp,
       ),
       width: double.infinity,
       child: Stack(

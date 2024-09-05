@@ -194,7 +194,7 @@ class _CreateUpdateEventViewState extends State<CreateUpdateEventView> {
                                 ),
                               ),
                             ),
-                            LivitSpaces.medium16spacer,
+                            LivitSpaces.m,
                             GlassContainer(
                               child: Column(
                                 mainAxisSize: MainAxisSize.min,
@@ -218,7 +218,7 @@ class _CreateUpdateEventViewState extends State<CreateUpdateEventView> {
                                 ],
                               ),
                             ),
-                            LivitSpaces.medium16spacer,
+                            LivitSpaces.m,
                             GlassContainer(
                               child: Column(
                                 mainAxisSize: MainAxisSize.min,
@@ -242,7 +242,7 @@ class _CreateUpdateEventViewState extends State<CreateUpdateEventView> {
                                 ],
                               ),
                             ),
-                            LivitSpaces.mediumPlus24spacer,
+                            LivitSpaces.l,
                             Button.main(
                               //width: double.infinity,
                               text: 'Crear evento',

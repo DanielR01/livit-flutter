@@ -32,17 +32,15 @@ class _ErrorReauthScreenState extends State<ErrorReauthScreen> {
                     'Algo salio mal :(',
                     textType: TextType.bigTitle,
                   ),
-                  LivitSpaces.small8spacer,
-                  const LivitText(
-                      'Intenta iniciar sesión de nuevo en unos momentos'),
-                  LivitSpaces.mediumPlus24spacer,
+                  LivitSpaces.s,
+                  const LivitText('Intenta iniciar sesión de nuevo en unos momentos'),
+                  LivitSpaces.l,
                   Button.main(
                     text: 'Volver a iniciar sesión',
                     isActive: true,
                     onPressed: () async {
                       await AuthService.firebase().logOut();
-                      Navigator.of(context).pushNamedAndRemoveUntil(
-                          Routes.welcomeRoute, (route) => false);
+                      Navigator.of(context).pushNamedAndRemoveUntil(Routes.welcomeRoute, (route) => false);
                     },
                   ),
                 ],

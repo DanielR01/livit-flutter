@@ -62,8 +62,7 @@ class _EmailSignIn extends State<EmailLogin> {
                   child: SizedBox(
                     width: double.infinity,
                     child: Padding(
-                      padding:
-                          LivitContainerStyle.padding([0, null, null, null]),
+                      padding: LivitContainerStyle.padding([0, null, null, null]),
                       child: Column(
                         children: [
                           const TitleBar(
@@ -82,23 +81,14 @@ class _EmailSignIn extends State<EmailLogin> {
                                     decoration: BoxDecoration(
                                       border: Border(
                                           bottom: BorderSide(
-                                        color: _currentView ==
-                                                EmailLoginViews.login
-                                            ? LivitColors.whiteActive
-                                            : Colors.transparent,
+                                        color: _currentView == EmailLoginViews.login ? LivitColors.whiteActive : Colors.transparent,
                                       )),
                                     ),
                                     child: Center(
                                       child: LivitText(
                                         'Iniciar sesión',
-                                        color: _currentView ==
-                                                EmailLoginViews.login
-                                            ? LivitColors.whiteActive
-                                            : LivitColors.whiteInactive,
-                                        fontWeight: _currentView ==
-                                                EmailLoginViews.login
-                                            ? FontWeight.bold
-                                            : null,
+                                        color: _currentView == EmailLoginViews.login ? LivitColors.whiteActive : LivitColors.whiteInactive,
+                                        fontWeight: _currentView == EmailLoginViews.login ? FontWeight.bold : null,
                                       ),
                                     ),
                                   ),
@@ -113,28 +103,23 @@ class _EmailSignIn extends State<EmailLogin> {
                                     decoration: BoxDecoration(
                                       border: Border(
                                           bottom: BorderSide(
-                                        color: _currentView ==
-                                                EmailLoginViews.register
-                                            ? LivitColors.whiteActive
-                                            : Colors.transparent,
+                                        color: _currentView == EmailLoginViews.register ? LivitColors.whiteActive : Colors.transparent,
                                       )),
                                     ),
                                     child: Center(
                                       child: LivitText(
                                         'Crear cuenta',
-                                        color: _currentView ==
-                                                EmailLoginViews.register
-                                            ? LivitColors.whiteActive
-                                            : LivitColors.whiteInactive,
+                                        color:
+                                            _currentView == EmailLoginViews.register ? LivitColors.whiteActive : LivitColors.whiteInactive,
                                       ),
                                     ),
                                   ),
                                 ),
                               ),
-                              LivitSpaces.medium16spacer,
+                              LivitSpaces.m,
                             ],
                           ),
-                          LivitSpaces.mediumPlus24spacer,
+                          LivitSpaces.l,
                           Redirector(
                             userType: widget.userType,
                             view: _currentView,
@@ -147,7 +132,7 @@ class _EmailSignIn extends State<EmailLogin> {
               ),
               Column(
                 children: [
-                  LivitSpaces.medium16spacer,
+                  LivitSpaces.m,
                   Padding(
                     padding: LivitContainerStyle.paddingFromScreen,
                     child: const ForgotPassword(),
@@ -256,7 +241,7 @@ class _SignInState extends State<SignIn> {
           onChanged: _onEmailChange,
           bottomCaptionText: emailCaptionText,
         ),
-        LivitSpaces.medium16spacer,
+        LivitSpaces.m,
         LivitTextField(
           controller: _passwordController,
           hint: 'Contraseña',
@@ -265,7 +250,7 @@ class _SignInState extends State<SignIn> {
           regExp: RegExp(r'^.{6,}$'),
           bottomCaptionText: passwordCaptionText,
         ),
-        LivitSpaces.medium16spacer,
+        LivitSpaces.m,
         Button.main(
           text: _isSigningIn ? 'Iniciando sesión' : 'Iniciar sesión',
           isActive: _isEmailValid & _isPasswordValid,
@@ -286,10 +271,7 @@ class _SignInState extends State<SignIn> {
                   _passwordController.text,
                 ],
               );
-              Navigator.of(context).pushNamedAndRemoveUntil(
-                  Routes.mainviewRoute,
-                  arguments: widget.userType,
-                  (route) => false);
+              Navigator.of(context).pushNamedAndRemoveUntil(Routes.mainviewRoute, arguments: widget.userType, (route) => false);
             } on NetworkRequesFailed {
               passwordCaptionText = 'Error de red';
             } on UserNotLoggedInAuthException {
@@ -418,7 +400,7 @@ class _RegisterState extends State<Register> {
           onChanged: _onEmailChange,
           bottomCaptionText: emailCaptionText,
         ),
-        LivitSpaces.medium16spacer,
+        LivitSpaces.m,
         LivitTextField(
           controller: _passwordController,
           hint: 'Contraseña',
@@ -427,7 +409,7 @@ class _RegisterState extends State<Register> {
           regExp: RegExp(r'^.{6,}$'),
           bottomCaptionText: passwordCaptionText,
         ),
-        LivitSpaces.medium16spacer,
+        LivitSpaces.m,
         LivitTextField(
           controller: _confirmPasswordController,
           hint: 'Verifica tu contraseña',
@@ -436,14 +418,12 @@ class _RegisterState extends State<Register> {
           externalIsValid: _arePasswordsEqual,
           bottomCaptionText: confirmPasswordCaptionText,
         ),
-        LivitSpaces.medium16spacer,
+        LivitSpaces.m,
         LivitText(
           'Tu contraseña debe tener al menos 8 caracteres',
-          color: _isPasswordValid
-              ? LivitColors.whiteInactive
-              : LivitColors.whiteActive,
+          color: _isPasswordValid ? LivitColors.whiteInactive : LivitColors.whiteActive,
         ),
-        LivitSpaces.medium16spacer,
+        LivitSpaces.m,
         Button.main(
           text: _isSigningIn ? 'Creando cuenta' : 'Crear cuenta',
           isActive: _isEmailValid & _isPasswordValid & _arePasswordsEqual,
@@ -491,8 +471,7 @@ class _RegisterState extends State<Register> {
             } on GenericAuthException {
               setState(
                 () {
-                  confirmPasswordCaptionText =
-                      'Algo salio mal, intentalo de nuevo mas tarde';
+                  confirmPasswordCaptionText = 'Algo salio mal, intentalo de nuevo mas tarde';
                 },
               );
             }
@@ -534,7 +513,7 @@ class _VerifyEmail extends State<VerifyEmail> {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        LivitSpaces.medium16spacer,
+        LivitSpaces.m,
         Container(
           width: double.infinity,
           constraints: const BoxConstraints(
@@ -561,8 +540,7 @@ class _VerifyEmail extends State<VerifyEmail> {
                                 style: LivitTextStyle.regularWhiteActiveText,
                               ),
                               TextSpan(
-                                text:
-                                    ' para que termines de confirmar tu cuenta.',
+                                text: ' para que termines de confirmar tu cuenta.',
                                 style: LivitTextStyle.regularWhiteActiveText,
                               ),
                             ],
@@ -651,11 +629,11 @@ class _ForgotPassword extends State<ForgotPassword> {
               '¿Olvidaste tu contraseña?',
               textType: TextType.smallTitle,
             ),
-            LivitSpaces.small8spacer,
+            LivitSpaces.s,
             const LivitText(
               'Digita tu correo y te enviaremos un mensaje para que reestablezcas tu contraseña.',
             ),
-            LivitSpaces.medium16spacer,
+            LivitSpaces.m,
             Row(
               children: [
                 Expanded(
@@ -663,13 +641,12 @@ class _ForgotPassword extends State<ForgotPassword> {
                     controller: _emailController,
                     hint: 'Email',
                     inputType: TextInputType.emailAddress,
-                    regExp: RegExp(
-                        r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'),
+                    regExp: RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'),
                     onChanged: _onEmailChange,
                     bottomCaptionText: emailCaptionText,
                   ),
                 ),
-                LivitSpaces.medium16spacer,
+                LivitSpaces.m,
                 Button.main(
                   text: _isSendingEmail
                       ? 'Enviando'
@@ -684,8 +661,7 @@ class _ForgotPassword extends State<ForgotPassword> {
                       },
                     );
                     try {
-                      await AuthService.firebase()
-                          .sendPasswordReset(_emailController.text.trim());
+                      await AuthService.firebase().sendPasswordReset(_emailController.text.trim());
                       _isEmailSent = true;
                       emailCaptionText = '¡Listo!, revisa tu correo.';
                     } on NetworkRequesFailed {

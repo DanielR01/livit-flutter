@@ -107,8 +107,7 @@ class _LivitTextFieldState extends State<LivitTextField> {
         phoneNumberField: widget.phoneNumberField,
         onCountryCodeChanged: widget.onCountryCodeChanged,
         initialCountry: selectedCountry,
-        bottomCaptionStyle: widget.bottomCaptionStyle ??
-            LivitTextStyle.smallWhiteActiveBoldText,
+        bottomCaptionStyle: widget.bottomCaptionStyle ?? LivitTextStyle.smallWhiteActiveBoldText,
         bottomCaptionText: widget.bottomCaptionText ?? '',
         externalIsValid: widget.externalIsValid,
       );
@@ -178,14 +177,11 @@ class _NoBottomCaptionState extends State<NoBottomCaption> {
           );
         },
         child: Container(
-          decoration: isFocused
-              ? LivitBarStyle.strongShadowDecoration
-              : LivitBarStyle.shadowDecoration,
+          decoration: isFocused ? LivitBarStyle.strongShadowDecoration : LivitBarStyle.shadowDecoration,
           height: LivitBarStyle.height,
           child: TextFormField(
             controller: widget.controller,
-            keyboardType: widget.inputType ??
-                (widget.phoneNumberField ? TextInputType.number : null),
+            keyboardType: widget.inputType ?? (widget.phoneNumberField ? TextInputType.number : null),
             onChanged: (value) {
               setState(
                 () {
@@ -209,8 +205,7 @@ class _NoBottomCaptionState extends State<NoBottomCaption> {
               focusedBorder: const OutlineInputBorder(
                 borderSide: BorderSide.none,
               ),
-              suffixIcon: (widget.externalIsValid == null && isValid) ||
-                      (widget.externalIsValid ?? false)
+              suffixIcon: (widget.externalIsValid == null && isValid) || (widget.externalIsValid ?? false)
                   ? Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 16),
                       child: widget.icon ??
@@ -231,8 +226,7 @@ class _NoBottomCaptionState extends State<NoBottomCaption> {
                             countryTitleSize: 13,
                             countryFontStyle: FontStyle.normal,
                             appBarFontStyle: FontStyle.normal,
-                            searchBarOuterBackgroundColor:
-                                LivitColors.mainBlack,
+                            searchBarOuterBackgroundColor: LivitColors.mainBlack,
                             searchBarBackgroundColor: LivitColors.mainBlack,
                             appBarBackgroundColour: LivitColors.mainBlack,
                             backgroundColour: LivitColors.mainBlack,
@@ -246,8 +240,7 @@ class _NoBottomCaptionState extends State<NoBottomCaption> {
                                 () {
                                   selectedCountry = value;
                                   if (widget.onCountryCodeChanged != null) {
-                                    widget.onCountryCodeChanged!(
-                                        selectedCountry.phoneCode);
+                                    widget.onCountryCodeChanged!(selectedCountry.phoneCode);
                                   }
                                 },
                               );
@@ -354,14 +347,11 @@ class _WithBottomCaptionState extends State<WithBottomCaption> {
               );
             },
             child: Container(
-              decoration: isFocused
-                  ? LivitBarStyle.strongShadowDecoration
-                  : LivitBarStyle.shadowDecoration,
+              decoration: isFocused ? LivitBarStyle.strongShadowDecoration : LivitBarStyle.shadowDecoration,
               height: LivitBarStyle.height,
               child: TextFormField(
                 controller: widget.controller,
-                keyboardType: widget.inputType ??
-                    (widget.phoneNumberField ? TextInputType.number : null),
+                keyboardType: widget.inputType ?? (widget.phoneNumberField ? TextInputType.number : null),
                 onChanged: (value) {
                   setState(
                     () {
@@ -406,8 +396,7 @@ class _WithBottomCaptionState extends State<WithBottomCaption> {
                                 countryTitleSize: 13,
                                 countryFontStyle: FontStyle.normal,
                                 appBarFontStyle: FontStyle.normal,
-                                searchBarOuterBackgroundColor:
-                                    LivitColors.mainBlack,
+                                searchBarOuterBackgroundColor: LivitColors.mainBlack,
                                 searchBarBackgroundColor: LivitColors.mainBlack,
                                 appBarBackgroundColour: LivitColors.mainBlack,
                                 backgroundColour: LivitColors.mainBlack,
@@ -421,8 +410,7 @@ class _WithBottomCaptionState extends State<WithBottomCaption> {
                                     () {
                                       selectedCountry = value;
                                       if (widget.onCountryCodeChanged != null) {
-                                        widget.onCountryCodeChanged!(
-                                            selectedCountry.phoneCode);
+                                        widget.onCountryCodeChanged!(selectedCountry.phoneCode);
                                       }
                                     },
                                   );
@@ -456,7 +444,7 @@ class _WithBottomCaptionState extends State<WithBottomCaption> {
             ),
           ),
         ),
-        LivitSpaces.small8spacer,
+        LivitSpaces.s,
         Text(
           widget.bottomCaptionText,
           style: widget.bottomCaptionStyle,

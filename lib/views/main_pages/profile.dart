@@ -7,10 +7,8 @@ import 'package:livit/utilities/buttons/button.dart';
 import 'package:livit/utilities/dialogs/log_out_dialog.dart';
 
 class ProfileView extends StatefulWidget {
-  
   const ProfileView({
     super.key,
-    
   });
 
   @override
@@ -32,8 +30,7 @@ class _ProfileViewState extends State<ProfileView> {
                 text: 'Cerrar sesión',
                 isActive: true,
                 onPressed: () async {
-                  final bool shouldLogOut =
-                      await showLogOutDialog(context: context);
+                  final bool shouldLogOut = await showLogOutDialog(context: context);
 
                   if (shouldLogOut) {
                     await AuthService.firebase().logOut();
@@ -44,7 +41,7 @@ class _ProfileViewState extends State<ProfileView> {
                   }
                 },
               ),
-              LivitSpaces.medium16spacer,
+              LivitSpaces.m,
               Button.main(
                 text: 'Crear un nuevo evento',
                 isActive: true,

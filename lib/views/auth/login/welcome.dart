@@ -42,8 +42,7 @@ class _WelcomeViewState extends State<WelcomeView> {
                   textType: TextType.bigTitle,
                 )
                     .animate()
-                    .fade(
-                        delay: 1600.ms, duration: 300.ms, curve: Curves.easeOut)
+                    .fade(delay: 1600.ms, duration: 300.ms, curve: Curves.easeOut)
                     .slideY(begin: 0.2.sp, end: 0, curve: Curves.easeOut)
                     .callback(
                       delay: 3600.ms,
@@ -84,21 +83,19 @@ class WelcomeMessage extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          LivitSpaces.small8spacer,
+          LivitSpaces.s,
           const LivitText(
             'Encuentra mas de lo que te gusta,',
           ),
           const LivitText(
             'mas eventos, mas lugares, mas personas.',
           ),
-          LivitSpaces.mediumPlus24spacer,
+          LivitSpaces.l,
           Button.main(
             text: 'Comenzar',
             isActive: true,
-            onPressed: () => Navigator.of(context).pushNamedAndRemoveUntil(
-                Routes.signInRoute,
-                arguments: UserType.customer,
-                (route) => false),
+            onPressed: () =>
+                Navigator.of(context).pushNamedAndRemoveUntil(Routes.signInRoute, arguments: UserType.customer, (route) => false),
           ),
         ],
       ),
