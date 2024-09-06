@@ -1,5 +1,4 @@
 import 'package:firebase_core/firebase_core.dart';
-import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:livit/services/auth/credential_types.dart';
 import 'package:livit/firebase_options.dart';
@@ -20,14 +19,11 @@ class FirebaseAuthProvider implements AuthProvider {
 
   @override
   Future<void> registerEmail({
-    required Map<String, String> credentials,
+    required String email,
+    required String password,
   }) async {
     try {
-      final String? email = credentials['email'];
-      final String? password = credentials['password'];
-      if (email == null || password == null) {
-        throw GenericAuthException();
-      }
+          
       await FirebaseAuth.instance.createUserWithEmailAndPassword(
         email: email,
         password: password,
@@ -91,35 +87,34 @@ class FirebaseAuthProvider implements AuthProvider {
   }
 
   @override
-  Future<void> sendOtpCode(
-    String phoneCode,
-    String phoneNumber,
-    ValueChanged<Map<String, dynamic>> onUpdate,
-  ) async {
+  Future<void> sendOtpCode({
+    required String phoneCode,
+    required String phoneNumber,
+    required void Function(PhoneAuthCredential) onVerificationCompleted,
+    required void Function(FirebaseAuthException) onVerificationFailed,
+    required void Function(String, int?) onCodeSent,
+    required void Function(String) onCodeAutoRetrievalTimeout,
+  }) async {
     await FirebaseAuth.instance.verifyPhoneNumber(
       phoneNumber: '+$phoneCode $phoneNumber',
-      verificationCompleted: (PhoneAuthCredential credential) async {
-        await FirebaseAuth.instance.signInWithCredential(credential);
-        print('Autoretrieval detected but functionallity not implemented');
-      },
-      verificationFailed: (error) {
-        onUpdate(
-          {
-            'success': false,
-            'errorCode': error.code,
-          },
-        );
-      },
-      codeSent: (verificationId, forceResendingToken) {
-        onUpdate(
-          {
-            'success': true,
-            'verificationId': verificationId,
-          },
-        );
-      },
-      codeAutoRetrievalTimeout: (verificationId) {},
+      verificationCompleted: onVerificationCompleted,
+      verificationFailed: onVerificationFailed,
+      codeSent: onCodeSent,
+      codeAutoRetrievalTimeout: onCodeAutoRetrievalTimeout,
     );
+  }
+
+  @override
+  Future<AuthUser> logInWithCredential({
+    required dynamic credential,
+  }) async {
+    await FirebaseAuth.instance.signInWithCredential(credential as PhoneAuthCredential);
+    final user = currentUser;
+    if (user != null) {
+      return user;
+    } else {
+      throw UserNotLoggedInAuthException();
+    }
   }
 
   @override
@@ -159,11 +154,11 @@ class FirebaseAuthProvider implements AuthProvider {
           if (credentials != null) {
             String verificationId = credentials[0];
             String otpCode = credentials[1];
-            await signInWithPhoneNumber(verificationId, otpCode);
+            await logInWithPhoneAndOtp(verificationId: verificationId, otpCode: otpCode);
           }
           break;
         case CredentialType.google:
-          await signInWithGoogle();
+          await logInWithGoogle();
           break;
 
         default:
@@ -206,7 +201,7 @@ class FirebaseAuthProvider implements AuthProvider {
   }
 
   @override
-  Future<void> sendPasswordReset(String email) async {
+  Future<void> sendPasswordReset({required String email}) async {
     try {
       await FirebaseAuth.instance.sendPasswordResetEmail(email: email);
     } on FirebaseAuthException catch (e) {
@@ -221,7 +216,24 @@ class FirebaseAuthProvider implements AuthProvider {
     }
   }
 
-  Future<void> signInWithGoogle() async {
+  @override
+  Future<AuthUser> logInWithPhoneAndOtp({required String verificationId, required String otpCode}) async {
+    PhoneAuthCredential credential = PhoneAuthProvider.credential(
+      verificationId: verificationId,
+      smsCode: otpCode,
+    );
+
+    await FirebaseAuth.instance.signInWithCredential(credential);
+    final user = currentUser;
+    if (user != null) {
+      return user;
+    } else {
+      throw UserNotLoggedInAuthException();
+    }
+  }
+
+  @override
+  Future<void> logInWithGoogle() async {
     final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
 
     final GoogleSignInAuthentication? googleAuth = await googleUser?.authentication;
@@ -232,15 +244,6 @@ class FirebaseAuthProvider implements AuthProvider {
     final credential = GoogleAuthProvider.credential(
       accessToken: googleAuth?.accessToken,
       idToken: googleAuth?.idToken,
-    );
-
-    await FirebaseAuth.instance.signInWithCredential(credential);
-  }
-
-  Future<void> signInWithPhoneNumber(String verificationId, String otpCode) async {
-    PhoneAuthCredential credential = PhoneAuthProvider.credential(
-      verificationId: verificationId,
-      smsCode: otpCode,
     );
 
     await FirebaseAuth.instance.signInWithCredential(credential);

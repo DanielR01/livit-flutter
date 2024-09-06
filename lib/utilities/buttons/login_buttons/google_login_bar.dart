@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:livit/constants/colors.dart';
-import 'package:livit/constants/routes.dart';
 import 'package:livit/constants/styles/bar_style.dart';
 import 'package:livit/constants/styles/livit_text.dart';
-import 'package:livit/services/auth/credential_types.dart';
+import 'package:livit/services/auth/bloc/auth_bloc.dart';
+import 'package:livit/services/auth/bloc/auth_event.dart';
 import 'package:livit/services/auth/auth_exceptions.dart';
-import 'package:livit/services/auth/auth_service.dart';
 import 'package:livit/services/cloud/firebase_cloud_storage.dart';
 
 class GoogleLoginBar extends StatefulWidget {
@@ -33,16 +33,7 @@ class _GoogleLoginBarState extends State<GoogleLoginBar> {
           },
         );
         try {
-          await AuthService.firebase()
-              .logIn(credentialType: CredentialType.google, credentials: []);
-          if (AuthService.firebase().currentUser != null) {
-            if (context.mounted) {
-              Navigator.of(context).pushNamedAndRemoveUntil(
-                  Routes.mainviewRoute,
-                  arguments: widget.userType,
-                  (route) => false);
-            }
-          }
+          context.read<AuthBloc>().add(const AuthEventLogInWithGoogle());
         } on UserNotLoggedInAuthException {
           //Do nothing
         } on GenericAuthException {

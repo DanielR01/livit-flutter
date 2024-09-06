@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:livit/constants/styles/spaces.dart';
 import 'package:livit/constants/styles/livit_text.dart';
-import 'package:livit/services/auth/auth_service.dart';
 import 'package:livit/services/cloud/cloud_event.dart';
 import 'package:livit/services/cloud/firebase_cloud_storage.dart';
 import 'package:livit/utilities/background/main_background.dart';
@@ -72,11 +71,11 @@ class _CreateUpdateEventViewState extends State<CreateUpdateEventView> {
       if (existingEvent != null) {
         return;
       }
-      final userId = AuthService.firebase().currentUser!.id;
+      //final userId = AuthService.firebase().currentUser!.id;
       final String title = _titleController.text;
       final String location = _locationController.text;
       final newEvent = await _livitDBService.createEvent(
-        creatorId: userId,
+        creatorId: 'userId',
         title: title,
         location: location,
       );

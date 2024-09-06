@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:livit/constants/colors.dart';
-import 'package:livit/constants/routes.dart';
 import 'package:livit/constants/styles/bar_style.dart';
 import 'package:livit/constants/styles/container_style.dart';
 import 'package:livit/constants/styles/spaces.dart';
 import 'package:livit/constants/styles/livit_text.dart';
 import 'package:livit/services/auth/auth_exceptions.dart';
-import 'package:livit/services/auth/auth_service.dart';
-import 'package:livit/services/auth/credential_types.dart';
+import 'package:livit/services/auth/bloc/auth_bloc.dart';
+import 'package:livit/services/auth/bloc/auth_event.dart';
 import 'package:livit/services/cloud/firebase_cloud_storage.dart';
 import 'package:livit/utilities/background/main_background.dart';
 import 'package:livit/utilities/bars_containers_fields/glass_container.dart';
@@ -284,19 +284,17 @@ class _SignInState extends State<SignIn> {
               },
             );
             try {
-              await AuthService.firebase().logIn(
-                credentialType: CredentialType.emailAndPassword,
-                credentials: [
-                  _emailController.text,
-                  _passwordController.text,
-                ],
-              );
-              Navigator.of(context).pushNamedAndRemoveUntil(Routes.mainviewRoute, arguments: widget.userType, (route) => false);
+              context.read<AuthBloc>().add(
+                    AuthEventLogInWithEmailAndPassword(
+                      email: _emailController.text,
+                      password: _passwordController.text,
+                    ),
+                  );
             } on NetworkRequesFailed {
               passwordCaptionText = 'Error de red';
             } on UserNotLoggedInAuthException {
               emailToVerify = _emailController.text;
-              AuthService.firebase().sendEmailVerification();
+              //TODO AuthService.firebase().sendEmailVerification();
             } on InvalidCredentialsAuthException {
               passwordCaptionText = 'Email o contraseña incorrectos';
             } on TooManyRequestsAuthException {
@@ -474,12 +472,13 @@ class _RegisterState extends State<Register> {
               },
             );
             try {
-              await AuthService.firebase().registerEmail(
-                credentials: {
-                  'email': _emailController.text.trim(),
-                  'password': _passwordController.text.trim(),
-                },
-              );
+              context.read<AuthBloc>().add(
+                    AuthEventRegister(
+                      email: _emailController.text,
+                      password: _passwordController.text,
+                    ),
+                  );
+
               setState(
                 () {
                   emailToVerify = _emailController.text;
@@ -593,7 +592,9 @@ class _VerifyEmail extends State<VerifyEmail> {
                       },
                     );
                     try {
-                      await AuthService.firebase().sendEmailVerification();
+                      context.read<AuthBloc>().add(
+                            AuthEventSendEmailVerification(email: widget.email),
+                          );
                     } on EmailAlreadyVerified {
                     } on UserNotLoggedInAuthException {}
                     setState(
@@ -697,7 +698,9 @@ class _ForgotPassword extends State<ForgotPassword> {
                       },
                     );
                     try {
-                      await AuthService.firebase().sendPasswordReset(_emailController.text.trim());
+                      context.read<AuthBloc>().add(
+                            AuthEventSendPasswordReset(email: _emailController.text),
+                          );
                       _isEmailSent = true;
                       emailCaptionText = '¡Listo!, revisa tu correo.';
                     } on NetworkRequesFailed {

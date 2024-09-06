@@ -12,19 +12,31 @@ class AuthEventInitialize extends AuthEvent {
 class AuthEventLogInWithEmailAndPassword extends AuthEvent {
   final String email;
   final String password;
-  const AuthEventLogInWithEmailAndPassword({required this.email, required this.password});
+  const AuthEventLogInWithEmailAndPassword({
+    required this.email,
+    required this.password,
+  });
 }
 
 class AuthEventLogInWithGoogle extends AuthEvent {
   const AuthEventLogInWithGoogle();
 }
 
-class AuthEventLogInWithPhoneNumber extends AuthEvent {
+class AuthEventSendOtpCode extends AuthEvent {
+  final String phoneCode;
+  final String phoneNumber;
+  const AuthEventSendOtpCode({
+    required this.phoneCode,
+    required this.phoneNumber,
+  });
+}
+
+class AuthEventLogInWithPhoneAndOtp extends AuthEvent {
   final String verificationId;
-  final String smsCode;
-  const AuthEventLogInWithPhoneNumber({
+  final String otpCode;
+  const AuthEventLogInWithPhoneAndOtp({
     required this.verificationId,
-    required this.smsCode,
+    required this.otpCode,
   });
 }
 
@@ -41,4 +53,9 @@ class AuthEventRegister extends AuthEvent {
   final String email;
   final String password;
   const AuthEventRegister({required this.email, required this.password});
-} 
+}
+
+class AuthEventSendPasswordReset extends AuthEvent {
+  final String email;
+  const AuthEventSendPasswordReset({required this.email});
+}

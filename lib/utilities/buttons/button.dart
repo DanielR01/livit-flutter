@@ -13,7 +13,7 @@ enum ButtonType {
   mainRed,
 }
 
-class Button extends StatefulWidget {
+class Button extends StatelessWidget {
   final String text;
   final VoidCallback onPressed;
   final bool isActive;
@@ -219,79 +219,50 @@ class Button extends StatefulWidget {
   }
 
   @override
-  State<Button> createState() => _ButtonState();
-}
-
-class _ButtonState extends State<Button> {
-  List<BoxShadow> _boxShadow = [];
-  @override
   Widget build(BuildContext context) {
-    if (widget.isActive) {
-      if (widget.isShadowActive) {
-        if (widget.blueStyle) {
-          _boxShadow = [LivitShadows.activeBlueShadow];
-        } else {
-          _boxShadow = [LivitShadows.activeWhiteShadow];
-        }
-      }
-      return GestureDetector(
-        child: Container(
-          width: widget.width,
-          height: LivitButtonStyle.height,
-          decoration: BoxDecoration(
+    final backgroundColor = isActive
+        ? (transparent ? Colors.transparent : activeBackgroundColor ?? LivitColors.mainBlack)
+        : (transparent ? Colors.transparent : inactiveBackgroundColor);
+
+    final textColor = isActive
+        ? (activeTextColor ?? (blueStyle ? LivitColors.mainBlueActive : LivitColors.whiteActive))
+        : (inactiveTextColor ?? (blueStyle ? LivitColors.mainBlueInactive : LivitColors.whiteInactive));
+
+    final List<BoxShadow> boxShadow = isActive && isShadowActive
+        ? [blueStyle ? LivitShadows.activeBlueShadow : LivitShadows.activeWhiteShadow]
+        : (isShadowActive ? [blueStyle ? LivitShadows.inactiveBlueShadow : LivitShadows.inactiveWhiteShadow] : []);
+
+    return Container(
+      width: width,
+      height: LivitButtonStyle.height,
+      decoration: BoxDecoration(
+        borderRadius: LivitButtonStyle.radius,
+        color: backgroundColor,
+        boxShadow: boxShadow,
+      ),
+      child: IntrinsicWidth(
+        child: Material(
+          color: backgroundColor,
+          shape: RoundedRectangleBorder(
             borderRadius: LivitButtonStyle.radius,
-            color: widget.transparent ? Colors.transparent : widget.activeBackgroundColor ?? LivitColors.mainBlack,
-            boxShadow: _boxShadow,
           ),
-          child: Padding(
-            padding: LivitButtonStyle.horizontalPadding,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                LivitText(
-                  widget.text,
+          child: InkWell(
+            borderRadius: LivitButtonStyle.radius,
+            onTap: isActive ? onPressed : null,
+            child: Padding(
+              padding: LivitButtonStyle.horizontalPadding,
+              child: Center(
+                child: LivitText(
+                  text,
                   textType: TextType.regular,
-                  color: widget.activeTextColor ?? (widget.blueStyle ? LivitColors.mainBlueActive : LivitColors.whiteActive),
-                  fontWeight: widget.bold ? FontWeight.bold : null,
-                )
-              ],
+                  color: textColor,
+                  fontWeight: bold ? FontWeight.bold : null,
+                ),
+              ),
             ),
           ),
         ),
-        onTap: () async {
-          widget.onPressed();
-        },
-      );
-    } else {
-      if (widget.isShadowActive) {
-        if (widget.blueStyle) {
-          _boxShadow = [LivitShadows.inactiveBlueShadow];
-        } else {
-          _boxShadow = [LivitShadows.inactiveWhiteShadow];
-        }
-      }
-      return Container(
-        width: widget.width,
-        height: LivitButtonStyle.height,
-        decoration: BoxDecoration(
-          borderRadius: LivitButtonStyle.radius,
-          color: widget.transparent ? Colors.transparent : widget.inactiveBackgroundColor,
-          boxShadow: _boxShadow,
-        ),
-        child: Padding(
-          padding: LivitButtonStyle.horizontalPadding,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              LivitText(
-                widget.text,
-                color: widget.inactiveTextColor ?? (widget.blueStyle ? LivitColors.mainBlueInactive : LivitColors.whiteInactive),
-                fontWeight: widget.bold ? FontWeight.bold : null,
-              ),
-            ],
-          ),
-        ),
-      );
-    }
+      ),
+    );
   }
 }

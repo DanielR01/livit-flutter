@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:livit/constants/routes.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:livit/constants/styles/spaces.dart';
 import 'package:livit/constants/styles/livit_text.dart';
-import 'package:livit/services/auth/auth_service.dart';
+import 'package:livit/services/auth/bloc/auth_bloc.dart';
+import 'package:livit/services/auth/bloc/auth_event.dart';
 import 'package:livit/utilities/background/main_background.dart';
 import 'package:livit/utilities/buttons/button.dart';
 
@@ -39,8 +40,9 @@ class _ErrorReauthScreenState extends State<ErrorReauthScreen> {
                     text: 'Volver a iniciar sesión',
                     isActive: true,
                     onPressed: () async {
-                      await AuthService.firebase().logOut();
-                      Navigator.of(context).pushNamedAndRemoveUntil(Routes.welcomeRoute, (route) => false);
+                      //TODO await AuthService.firebase().logOut();
+                      //Navigator.of(context).pushNamedAndRemoveUntil(Routes.welcomeRoute, (route) => false);
+                      context.read<AuthBloc>().add(const AuthEventLogOut());
                     },
                   ),
                 ],

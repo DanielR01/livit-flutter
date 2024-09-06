@@ -1,15 +1,15 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:livit/constants/colors.dart';
-import 'package:livit/constants/routes.dart';
 import 'package:livit/constants/styles/bar_style.dart';
 import 'package:livit/constants/styles/container_style.dart';
 import 'package:livit/constants/styles/shadows.dart';
 import 'package:livit/constants/styles/spaces.dart';
 import 'package:livit/constants/styles/livit_text.dart';
-import 'package:livit/services/auth/credential_types.dart';
+import 'package:livit/services/auth/bloc/auth_bloc.dart';
+import 'package:livit/services/auth/bloc/auth_event.dart';
 import 'package:livit/services/auth/auth_exceptions.dart';
-import 'package:livit/services/auth/auth_service.dart';
 import 'package:livit/services/cloud/firebase_cloud_storage.dart';
 import 'package:livit/utilities/background/main_background.dart';
 import 'package:livit/utilities/bars_containers_fields/glass_container.dart';
@@ -183,11 +183,12 @@ class _ConfirmOTPCodeViewState extends State<ConfirmOTPCodeView> {
                                           isActive: isResendButtonActive,
                                           onPressed: () async {
                                             invalidCode = false;
-                                            await AuthService.firebase().sendOtpCode(
-                                              widget.phoneCode,
-                                              widget.phoneNumber,
-                                              onResendedCode,
-                                            );
+                                            context.read<AuthBloc>().add(
+                                                  AuthEventSendOtpCode(
+                                                    phoneCode: widget.phoneCode,
+                                                    phoneNumber: widget.phoneNumber,
+                                                  ),
+                                                );
                                             startTimer();
                                           },
                                         ),
@@ -199,22 +200,10 @@ class _ConfirmOTPCodeViewState extends State<ConfirmOTPCodeView> {
                                               _isVerifyingCode = true;
                                             });
                                             try {
-                                              await AuthService.firebase().logIn(
-                                                credentialType: CredentialType.phoneAndOtp,
-                                                credentials: [
-                                                  verificationId,
-                                                  otpController.text,
-                                                ],
-                                              );
-                                              if (AuthService.firebase().currentUser != null) {
-                                                if (context.mounted) {
-                                                  Navigator.of(context).pushNamedAndRemoveUntil(
-                                                    Routes.mainviewRoute,
-                                                    arguments: widget.userType,
-                                                    (route) => false,
-                                                  );
-                                                }
-                                              }
+                                              context.read<AuthBloc>().add(AuthEventLogInWithPhoneAndOtp(
+                                                    verificationId: verificationId,
+                                                    otpCode: otpController.text,
+                                                  ));
                                             } on InvalidVerificationCodeAuthException {
                                               otpController.text = '';
                                               invalidCode = true;

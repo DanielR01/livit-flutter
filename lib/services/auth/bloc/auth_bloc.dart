@@ -1,4 +1,5 @@
 import 'package:bloc/bloc.dart';
+import 'package:firebase_auth/firebase_auth.dart' show PhoneAuthCredential;
 import 'package:livit/services/auth/auth_provider.dart';
 import 'package:livit/services/auth/auth_user.dart';
 import 'package:livit/services/auth/bloc/auth_event.dart';
@@ -31,7 +32,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
           final user = await provider.logInWithEmailAndPassword(email: email, password: password);
           emit(AuthStateLoggedIn(user: user));
         } catch (e) {
-          emit(AuthStateLoginError(exception: e as Exception));
+          emit(AuthStateError(exception: e as Exception));
         }
       },
     );
@@ -47,5 +48,93 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         }
       },
     );
+
+    on<AuthEventSendOtpCode>(
+      (event, emit) async {
+        emit(const AuthStateLoading());
+        final phoneCode = event.phoneCode;
+        final phoneNumber = event.phoneNumber;
+        try {
+          await provider.sendOtpCode(
+            phoneCode: phoneCode,
+            phoneNumber: phoneNumber,
+            onVerificationCompleted: (dynamic credential) async {
+              try {
+                final credentialId = credential as PhoneAuthCredential;
+                final user = await provider.logInWithCredential(credential: credentialId);
+                emit(AuthStateLoggedIn(user: user));
+              } catch (e) {
+                emit(AuthStateError(exception: e as Exception));
+              }
+            },
+            onVerificationFailed: (error) {
+              emit(AuthStateError(exception: error as Exception));
+            },
+            onCodeSent: (verificationId, forceResendingToken) {
+              emit(
+                AuthStateCodeSent(
+                  verificationId: verificationId,
+                  forceResendingToken: forceResendingToken,
+                ),
+              );
+            },
+            onCodeAutoRetrievalTimeout: (verificationId) {},
+          );
+        } catch (e) {
+          emit(AuthStateError(exception: e as Exception));
+        }
+      },
+    );
+
+    on<AuthEventLogInWithPhoneAndOtp>(
+      (event, emit) async {
+        emit(const AuthStateLoading());
+        final verificationId = event.verificationId;
+        final otpCode = event.otpCode;
+        try {
+          final user = await provider.logInWithPhoneAndOtp(verificationId: verificationId, otpCode: otpCode);
+          emit(AuthStateLoggedIn(user: user));
+        } catch (e) {
+          emit(AuthStateError(exception: e as Exception));
+        }
+      },
+    );
+
+    on<AuthEventSendEmailVerification>(
+      (event, emit) async {
+        emit(const AuthStateLoading());
+        try {
+          await provider.sendEmailVerification();
+        } catch (e) {
+          emit(AuthStateError(exception: e as Exception));
+        }
+      },
+    );
+
+    on<AuthEventRegister>(
+      (event, emit) async {
+        emit(const AuthStateLoading());
+        final email = event.email;
+        final password = event.password;
+        try {
+          await provider.registerEmail(email: email, password: password);
+        } catch (e) {
+          emit(AuthStateError(exception: e as Exception));
+        }
+      },
+    );
+
+    on<AuthEventSendPasswordReset>(
+      (event, emit) async {
+        emit(const AuthStateLoading());
+        final email = event.email;
+        try {
+          await provider.sendPasswordReset(email: email);
+        } catch (e) {
+          emit(AuthStateError(exception: e as Exception));
+        }
+      },
+    );
   }
+  
 }

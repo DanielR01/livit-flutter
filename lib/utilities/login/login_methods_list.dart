@@ -1,10 +1,12 @@
 import 'package:country_picker_pro/country_picker_pro.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:livit/constants/routes.dart';
 import 'package:livit/constants/styles/container_style.dart';
 import 'package:livit/constants/styles/spaces.dart';
 import 'package:livit/constants/styles/livit_text.dart';
-import 'package:livit/services/auth/auth_service.dart';
+import 'package:livit/services/auth/bloc/auth_bloc.dart';
+import 'package:livit/services/auth/bloc/auth_event.dart';
 import 'package:livit/services/cloud/firebase_cloud_storage.dart';
 import 'package:livit/utilities/bars_containers_fields/glass_container.dart';
 import 'package:livit/utilities/bars_containers_fields/text_field.dart';
@@ -186,11 +188,12 @@ class _LoginMethodsListState extends State<LoginMethodsList> {
                               _isCodeSending = true;
                             },
                           );
-                          await AuthService.firebase().sendOtpCode(
-                            selectedCountryCode,
-                            phoneController.text,
-                            onSendCode,
-                          );
+                          context.read<AuthBloc>().add(
+                                AuthEventSendOtpCode(
+                                  phoneCode: selectedCountryCode,
+                                  phoneNumber: phoneController.text,
+                                ),
+                              );
                         },
                       ),
                     ],
