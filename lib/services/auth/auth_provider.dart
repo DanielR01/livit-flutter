@@ -12,6 +12,11 @@ abstract class AuthProvider {
     required List<String> credentials,
   });
 
+  Future<AuthUser> logInWithEmailAndPassword({
+    required String email,
+    required String password,
+  });
+
   Future<void> registerEmail({
     required Map<String, String> credentials,
   });

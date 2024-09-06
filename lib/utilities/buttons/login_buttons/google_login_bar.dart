@@ -3,7 +3,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:livit/constants/colors.dart';
 import 'package:livit/constants/routes.dart';
 import 'package:livit/constants/styles/bar_style.dart';
-import 'package:livit/constants/styles/text_style.dart';
+import 'package:livit/constants/styles/livit_text.dart';
 import 'package:livit/services/auth/credential_types.dart';
 import 'package:livit/services/auth/auth_exceptions.dart';
 import 'package:livit/services/auth/auth_service.dart';

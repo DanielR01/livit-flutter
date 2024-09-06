@@ -4,7 +4,7 @@ import 'package:livit/constants/colors.dart';
 import 'package:livit/constants/routes.dart';
 import 'package:livit/constants/styles/bar_style.dart';
 import 'package:livit/constants/styles/shadows.dart';
-import 'package:livit/constants/styles/text_style.dart';
+import 'package:livit/constants/styles/livit_text.dart';
 import 'package:livit/services/cloud/firebase_cloud_storage.dart';
 
 class PromoterLoginBar extends StatelessWidget {

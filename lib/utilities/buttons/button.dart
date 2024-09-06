@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:livit/constants/colors.dart';
 import 'package:livit/constants/styles/button_style.dart';
 import 'package:livit/constants/styles/shadows.dart';
-import 'package:livit/constants/styles/text_style.dart';
+import 'package:livit/constants/styles/livit_text.dart';
 
 enum ButtonType {
   main,
@@ -147,6 +147,7 @@ class Button extends StatefulWidget {
     bool bold = true,
   }) {
     return Button(
+      //activeBackgroundColor: LivitColors.red,
       text: text,
       onPressed: onPressed,
       isActive: isActive,
@@ -154,7 +155,7 @@ class Button extends StatefulWidget {
       isShadowActive: false,
       transparent: true,
       bold: bold,
-      activeTextColor: LivitColors.red,
+      activeTextColor: LivitColors.red, //LivitColors.mainBlack,
       inactiveTextColor: LivitColors.whiteInactive,
     );
   }

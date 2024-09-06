@@ -1,7 +1,7 @@
 import 'package:flutter/widgets.dart';
 import 'package:livit/constants/styles/container_style.dart';
 import 'package:livit/constants/styles/spaces.dart';
-import 'package:livit/constants/styles/text_style.dart';
+import 'package:livit/constants/styles/livit_text.dart';
 import 'package:livit/services/cloud/cloud_event.dart';
 import 'package:livit/utilities/bars_containers_fields/glass_container.dart';
 import 'package:livit/utilities/buttons/button.dart';

@@ -7,7 +7,7 @@ import 'package:livit/constants/styles/bar_style.dart';
 import 'package:livit/constants/styles/container_style.dart';
 import 'package:livit/constants/styles/shadows.dart';
 import 'package:livit/constants/styles/spaces.dart';
-import 'package:livit/constants/styles/text_style.dart';
+import 'package:livit/constants/styles/livit_text.dart';
 import 'package:livit/services/auth/credential_types.dart';
 import 'package:livit/services/auth/auth_exceptions.dart';
 import 'package:livit/services/auth/auth_service.dart';
@@ -103,137 +103,145 @@ class _ConfirmOTPCodeViewState extends State<ConfirmOTPCodeView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       body: Stack(
         children: [
           const MainBackground(),
-          Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Padding(
-                padding: EdgeInsets.symmetric(
-                  horizontal: 10.sp,
+          SafeArea(
+            child: SingleChildScrollView(
+              physics: const BouncingScrollPhysics(),
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  minHeight:
+                      MediaQuery.of(context).size.height - MediaQuery.of(context).padding.top - MediaQuery.of(context).padding.bottom,
                 ),
-                child: GlassContainer(
-                  child: SizedBox(
-                    width: double.infinity,
-                    child: Padding(
-                      padding: LivitContainerStyle.padding([0, null, null, null]),
-                      child: Column(
-                        children: [
-                          const TitleBar(
-                            title: 'Ingresa el código',
-                            isBackEnabled: true,
-                          ),
-                          LivitText(
-                            'Hemos enviado un codigo al +${widget.phoneCode} ${widget.phoneNumber}, ingresalo aqui para verificar tu cuenta:',
-                          ),
-                          LivitSpaces.m,
-                          Pinput(
-                            autofocus: true,
-                            controller: otpController,
-                            length: 6,
-                            defaultPinTheme: PinTheme(
-                              height: LivitBarStyle.height,
-                              width: LivitBarStyle.height,
-                              decoration: BoxDecoration(
-                                color: LivitColors.mainBlack,
-                                borderRadius: LivitContainerStyle.radius,
-                                //border: Border.all(color: LivitColors.whiteInactive),
-                                boxShadow: [
-                                  LivitShadows.activeWhiteShadow,
-                                ],
-                              ),
-                              textStyle: LivitTextStyle.regularWhiteActiveText,
-                            ),
-                            onChanged: (value) {
-                              setState(
-                                () {
-                                  otpCode = value;
-                                  if (!RegExp(r'^\d{6}$').hasMatch(otpCode ?? '')) {
-                                    isOtpCodeValid = false;
-                                  } else {
-                                    isOtpCodeValid = true;
-                                  }
-                                },
-                              );
-                            },
-                          ),
-                          invalidCode
-                              ? Column(
+                child: Padding(
+                  padding: EdgeInsets.only(
+                    bottom: MediaQuery.of(context).viewInsets.bottom,
+                  ),
+                  child: Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Padding(
+                          padding: LivitContainerStyle.paddingFromScreen,
+                          child: GlassContainer(
+                            child: SizedBox(
+                              width: double.infinity,
+                              child: Padding(
+                                padding: LivitContainerStyle.padding([0, null, null, null]),
+                                child: Column(
                                   children: [
-                                    LivitSpaces.s,
-                                    const LivitText(
-                                      'Codigo invalido',
-                                      textType: TextType.small,
+                                    const TitleBar(
+                                      title: 'Ingresa el código',
+                                      isBackEnabled: true,
                                     ),
-                                    LivitSpaces.s,
-                                  ],
-                                )
-                              : LivitSpaces.m,
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            mainAxisSize: MainAxisSize.max,
-                            children: [
-                              Button.secondary(
-                                blueStyle: false,
-                                text: isResendButtonActive ? 'Reenviar codigo' : 'Reenviar codigo... $countdown',
-                                isActive: isResendButtonActive,
-                                onPressed: () async {
-                                  invalidCode = false;
-                                  await AuthService.firebase().sendOtpCode(
-                                    widget.phoneCode,
-                                    widget.phoneNumber,
-                                    onResendedCode,
-                                  );
-                                  startTimer();
-                                },
-                              ),
-                              Button.main(
-                                text: _isVerifyingCode ? 'Verificando...' : 'Verificar',
-                                isActive: isOtpCodeValid,
-                                onPressed: () async {
-                                  setState(
-                                    () {
-                                      _isVerifyingCode = true;
-                                    },
-                                  );
-                                  try {
-                                    await AuthService.firebase().logIn(
-                                      credentialType: CredentialType.phoneAndOtp,
-                                      credentials: [
-                                        verificationId,
-                                        otpController.text,
+                                    LivitText(
+                                      'Hemos enviado un codigo al +${widget.phoneCode} ${widget.phoneNumber}, ingresalo aqui para verificar tu cuenta:',
+                                    ),
+                                    LivitSpaces.m,
+                                    Pinput(
+                                      onTapOutside: (event) {
+                                        FocusManager.instance.primaryFocus?.unfocus();
+                                      },
+                                      autofocus: true,
+                                      controller: otpController,
+                                      length: 6,
+                                      defaultPinTheme: PinTheme(
+                                        height: LivitBarStyle.height,
+                                        width: LivitBarStyle.height,
+                                        decoration: BoxDecoration(
+                                          color: LivitColors.mainBlack,
+                                          borderRadius: LivitContainerStyle.radius,
+                                          boxShadow: [
+                                            LivitShadows.activeWhiteShadow,
+                                          ],
+                                        ),
+                                        textStyle: LivitTextStyle.regularWhiteActiveText,
+                                      ),
+                                      onChanged: (value) {
+                                        setState(() {
+                                          otpCode = value;
+                                          isOtpCodeValid = RegExp(r'^\d{6}$').hasMatch(otpCode ?? '');
+                                        });
+                                      },
+                                    ),
+                                    if (invalidCode) ...[
+                                      LivitSpaces.s,
+                                      const LivitText(
+                                        'Codigo invalido',
+                                        textType: TextType.small,
+                                      ),
+                                    ],
+                                    LivitSpaces.m,
+                                    Row(
+                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      mainAxisSize: MainAxisSize.max,
+                                      children: [
+                                        Button.secondary(
+                                          blueStyle: false,
+                                          text: isResendButtonActive ? 'Reenviar codigo' : 'Reenviar codigo... $countdown',
+                                          isActive: isResendButtonActive,
+                                          onPressed: () async {
+                                            invalidCode = false;
+                                            await AuthService.firebase().sendOtpCode(
+                                              widget.phoneCode,
+                                              widget.phoneNumber,
+                                              onResendedCode,
+                                            );
+                                            startTimer();
+                                          },
+                                        ),
+                                        Button.main(
+                                          text: _isVerifyingCode ? 'Verificando...' : 'Verificar',
+                                          isActive: isOtpCodeValid,
+                                          onPressed: () async {
+                                            setState(() {
+                                              _isVerifyingCode = true;
+                                            });
+                                            try {
+                                              await AuthService.firebase().logIn(
+                                                credentialType: CredentialType.phoneAndOtp,
+                                                credentials: [
+                                                  verificationId,
+                                                  otpController.text,
+                                                ],
+                                              );
+                                              if (AuthService.firebase().currentUser != null) {
+                                                if (context.mounted) {
+                                                  Navigator.of(context).pushNamedAndRemoveUntil(
+                                                    Routes.mainviewRoute,
+                                                    arguments: widget.userType,
+                                                    (route) => false,
+                                                  );
+                                                }
+                                              }
+                                            } on InvalidVerificationCodeAuthException {
+                                              otpController.text = '';
+                                              invalidCode = true;
+                                              // TODO implement invalidverificationCodeAuthException
+                                            } on GenericAuthException {
+                                              //TODO implement genericAuthException
+                                            }
+                                            setState(() {
+                                              _isVerifyingCode = false;
+                                            });
+                                          },
+                                        ),
                                       ],
-                                    );
-                                    if (AuthService.firebase().currentUser != null) {
-                                      if (context.mounted) {
-                                        Navigator.of(context)
-                                            .pushNamedAndRemoveUntil(Routes.mainviewRoute, arguments: widget.userType, (route) => false);
-                                      }
-                                    }
-                                  } on InvalidVerificationCodeAuthException {
-                                    otpController.text = '';
-                                    invalidCode = true;
-                                    // TODO implement invalidverificationCodeAuthException
-                                  } on GenericAuthException {
-                                    //TODO implement genericAuthException
-                                  }
-                                  setState(
-                                    () {
-                                      _isVerifyingCode = false;
-                                    },
-                                  );
-                                },
+                                    ),
+                                  ],
+                                ),
                               ),
-                            ],
+                            ),
                           ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
                   ),
                 ),
               ),
-            ],
+            ),
           ),
         ],
       ),

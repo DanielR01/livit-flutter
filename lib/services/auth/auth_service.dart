@@ -33,6 +33,13 @@ class AuthService implements AuthProvider {
       provider.logIn(credentialType: credentialType, credentials: credentials);
 
   @override
+  Future<AuthUser> logInWithEmailAndPassword({
+    required String email,
+    required String password,
+  }) =>
+      provider.logInWithEmailAndPassword(email: email, password: password);
+
+  @override
   Future<void> logOut() => provider.logOut();
 
   @override

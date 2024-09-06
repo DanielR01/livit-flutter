@@ -21,6 +21,7 @@ class LivitText extends StatelessWidget {
   final TextType textType;
   final String text;
   final TextAlign textAlign;
+  final bool isLineThrough;
 
   const LivitText(
     this.text, {
@@ -31,6 +32,7 @@ class LivitText extends StatelessWidget {
     this.fontWeight,
     this.textType = TextType.regular,
     this.textAlign = TextAlign.center,
+    this.isLineThrough = false,
   });
 
   @override
@@ -71,6 +73,8 @@ class LivitText extends StatelessWidget {
       textAlign: textAlign,
       text,
       style: TextStyle(
+        decoration: isLineThrough ? TextDecoration.lineThrough : null,
+        decorationColor: color,
         color: color,
         fontSize: _fontSize,
         fontWeight: _fontWeight,

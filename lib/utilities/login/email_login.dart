@@ -5,7 +5,7 @@ import 'package:livit/constants/routes.dart';
 import 'package:livit/constants/styles/bar_style.dart';
 import 'package:livit/constants/styles/container_style.dart';
 import 'package:livit/constants/styles/spaces.dart';
-import 'package:livit/constants/styles/text_style.dart';
+import 'package:livit/constants/styles/livit_text.dart';
 import 'package:livit/services/auth/auth_exceptions.dart';
 import 'package:livit/services/auth/auth_service.dart';
 import 'package:livit/services/auth/credential_types.dart';
@@ -49,97 +49,117 @@ class _EmailSignIn extends State<EmailLogin> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       body: Stack(
         children: [
           const MainBackground(),
-          Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            mainAxisSize: MainAxisSize.max,
-            children: [
-              Padding(
-                padding: LivitContainerStyle.paddingFromScreen,
-                child: GlassContainer(
-                  child: SizedBox(
-                    width: double.infinity,
-                    child: Padding(
-                      padding: LivitContainerStyle.padding([0, null, null, null]),
-                      child: Column(
-                        children: [
-                          const TitleBar(
-                            title: 'Continua con email y contraseña',
-                            isBackEnabled: true,
-                          ),
-                          Row(
-                            mainAxisSize: MainAxisSize.max,
-                            children: [
-                              Expanded(
-                                child: GestureDetector(
-                                  onTap: _onLoginPressed,
-                                  child: Container(
-                                    padding: EdgeInsets.only(bottom: 8.sp),
-                                    width: double.infinity,
-                                    decoration: BoxDecoration(
-                                      border: Border(
-                                          bottom: BorderSide(
-                                        color: _currentView == EmailLoginViews.login ? LivitColors.whiteActive : Colors.transparent,
-                                      )),
+          SafeArea(
+            child: SingleChildScrollView(
+              physics: const BouncingScrollPhysics(),
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  minHeight:
+                      MediaQuery.of(context).size.height - MediaQuery.of(context).padding.top - MediaQuery.of(context).padding.bottom,
+                ),
+                child: Padding(
+                  padding: EdgeInsets.only(
+                    bottom: MediaQuery.of(context).viewInsets.bottom,
+                  ),
+                  child: Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Padding(
+                          padding: LivitContainerStyle.paddingFromScreen,
+                          child: GlassContainer(
+                            child: SizedBox(
+                              width: double.infinity,
+                              child: Padding(
+                                padding: LivitContainerStyle.padding([0, null, null, null]),
+                                child: Column(
+                                  children: [
+                                    const TitleBar(
+                                      title: 'Continua con email y contraseña',
+                                      isBackEnabled: true,
                                     ),
-                                    child: Center(
-                                      child: LivitText(
-                                        'Iniciar sesión',
-                                        color: _currentView == EmailLoginViews.login ? LivitColors.whiteActive : LivitColors.whiteInactive,
-                                        fontWeight: _currentView == EmailLoginViews.login ? FontWeight.bold : null,
-                                      ),
+                                    Row(
+                                      mainAxisSize: MainAxisSize.max,
+                                      children: [
+                                        Expanded(
+                                          child: GestureDetector(
+                                            onTap: _onLoginPressed,
+                                            child: Container(
+                                              padding: EdgeInsets.only(bottom: 8.sp),
+                                              width: double.infinity,
+                                              decoration: BoxDecoration(
+                                                border: Border(
+                                                    bottom: BorderSide(
+                                                  color:
+                                                      _currentView == EmailLoginViews.login ? LivitColors.whiteActive : Colors.transparent,
+                                                )),
+                                              ),
+                                              child: Center(
+                                                child: LivitText(
+                                                  'Iniciar sesión',
+                                                  color: _currentView == EmailLoginViews.login
+                                                      ? LivitColors.whiteActive
+                                                      : LivitColors.whiteInactive,
+                                                  fontWeight: _currentView == EmailLoginViews.login ? FontWeight.bold : null,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                        Expanded(
+                                          child: GestureDetector(
+                                            onTap: _onRegisterPressed,
+                                            child: Container(
+                                              padding: EdgeInsets.only(bottom: 8.sp),
+                                              width: double.infinity,
+                                              decoration: BoxDecoration(
+                                                border: Border(
+                                                    bottom: BorderSide(
+                                                  color: _currentView == EmailLoginViews.register
+                                                      ? LivitColors.whiteActive
+                                                      : Colors.transparent,
+                                                )),
+                                              ),
+                                              child: Center(
+                                                child: LivitText(
+                                                  'Crear cuenta',
+                                                  color: _currentView == EmailLoginViews.register
+                                                      ? LivitColors.whiteActive
+                                                      : LivitColors.whiteInactive,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                        LivitSpaces.m,
+                                      ],
                                     ),
-                                  ),
+                                    LivitSpaces.l,
+                                    Redirector(
+                                      userType: widget.userType,
+                                      view: _currentView,
+                                    ),
+                                  ],
                                 ),
                               ),
-                              Expanded(
-                                child: GestureDetector(
-                                  onTap: _onRegisterPressed,
-                                  child: Container(
-                                    padding: EdgeInsets.only(bottom: 8.sp),
-                                    width: double.infinity,
-                                    decoration: BoxDecoration(
-                                      border: Border(
-                                          bottom: BorderSide(
-                                        color: _currentView == EmailLoginViews.register ? LivitColors.whiteActive : Colors.transparent,
-                                      )),
-                                    ),
-                                    child: Center(
-                                      child: LivitText(
-                                        'Crear cuenta',
-                                        color:
-                                            _currentView == EmailLoginViews.register ? LivitColors.whiteActive : LivitColors.whiteInactive,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              LivitSpaces.m,
-                            ],
+                            ),
                           ),
-                          LivitSpaces.l,
-                          Redirector(
-                            userType: widget.userType,
-                            view: _currentView,
-                          ),
-                        ],
-                      ),
+                        ),
+                        LivitSpaces.m,
+                        Padding(
+                          padding: LivitContainerStyle.paddingFromScreen,
+                          child: const ForgotPassword(),
+                        ),
+                      ],
                     ),
                   ),
                 ),
               ),
-              Column(
-                children: [
-                  LivitSpaces.m,
-                  Padding(
-                    padding: LivitContainerStyle.paddingFromScreen,
-                    child: const ForgotPassword(),
-                  ),
-                ],
-              )
-            ],
+            ),
           ),
         ],
       ),
@@ -355,7 +375,7 @@ class _RegisterState extends State<Register> {
     setState(
       () {
         _isPasswordValid = isValid;
-        if (_passwordController.text == _confirmPasswordController.text) {
+        if ((_passwordController.text == _confirmPasswordController.text) && (_passwordController.text.isNotEmpty)) {
           _arePasswordsEqual = true;
         } else {
           _arePasswordsEqual = false;
@@ -367,7 +387,7 @@ class _RegisterState extends State<Register> {
   void _onConfirmPasswordChange(bool isValid) {
     setState(
       () {
-        if (_passwordController.text == _confirmPasswordController.text) {
+        if ((_passwordController.text == _confirmPasswordController.text) && (_passwordController.text.isNotEmpty)) {
           _arePasswordsEqual = true;
         } else {
           _arePasswordsEqual = false;
@@ -400,6 +420,13 @@ class _RegisterState extends State<Register> {
           onChanged: _onEmailChange,
           bottomCaptionText: emailCaptionText,
         ),
+        LivitSpaces.s,
+        if (_emailController.text.isNotEmpty)
+          LivitText(
+            'Ingresa un email válido',
+            color: _isEmailValid ? LivitColors.whiteInactive : LivitColors.whiteActive,
+            isLineThrough: _isEmailValid,
+          ),
         LivitSpaces.m,
         LivitTextField(
           controller: _passwordController,
@@ -409,6 +436,13 @@ class _RegisterState extends State<Register> {
           regExp: RegExp(r'^.{6,}$'),
           bottomCaptionText: passwordCaptionText,
         ),
+        LivitSpaces.s,
+        if (_passwordController.text.isNotEmpty)
+          LivitText(
+            'Tu contraseña debe tener al menos 8 caracteres',
+            color: _isPasswordValid ? LivitColors.whiteInactive : LivitColors.whiteActive,
+            isLineThrough: _isPasswordValid,
+          ),
         LivitSpaces.m,
         LivitTextField(
           controller: _confirmPasswordController,
@@ -418,11 +452,13 @@ class _RegisterState extends State<Register> {
           externalIsValid: _arePasswordsEqual,
           bottomCaptionText: confirmPasswordCaptionText,
         ),
-        LivitSpaces.m,
-        LivitText(
-          'Tu contraseña debe tener al menos 8 caracteres',
-          color: _isPasswordValid ? LivitColors.whiteInactive : LivitColors.whiteActive,
-        ),
+        LivitSpaces.s,
+        if (_confirmPasswordController.text.isNotEmpty)
+          LivitText(
+            'Las contraseñas deben coincidir',
+            color: _arePasswordsEqual ? LivitColors.whiteInactive : LivitColors.whiteActive,
+            isLineThrough: _arePasswordsEqual,
+          ),
         LivitSpaces.m,
         Button.main(
           text: _isSigningIn ? 'Creando cuenta' : 'Crear cuenta',

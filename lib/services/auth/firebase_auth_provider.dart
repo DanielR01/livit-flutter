@@ -8,12 +8,7 @@ import 'package:livit/services/auth/auth_exceptions.dart';
 import 'package:livit/services/auth/auth_provider.dart';
 
 import 'package:firebase_auth/firebase_auth.dart'
-    show
-        FirebaseAuth,
-        FirebaseAuthException,
-        GoogleAuthProvider,
-        PhoneAuthCredential,
-        PhoneAuthProvider;
+    show FirebaseAuth, FirebaseAuthException, GoogleAuthProvider, PhoneAuthCredential, PhoneAuthProvider;
 
 class FirebaseAuthProvider implements AuthProvider {
   @override
@@ -128,6 +123,24 @@ class FirebaseAuthProvider implements AuthProvider {
   }
 
   @override
+  Future<AuthUser> logInWithEmailAndPassword({
+    required String email,
+    required String password,
+  }) async {
+    try {
+      await logIn(credentialType: CredentialType.emailAndPassword, credentials: [email, password]);
+      final user = currentUser;
+      if (user != null) {
+        return user;
+      } else {
+        throw UserNotLoggedInAuthException();
+      }
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  @override
   Future<AuthUser> logIn({
     required CredentialType credentialType,
     List<String>? credentials,
@@ -211,8 +224,7 @@ class FirebaseAuthProvider implements AuthProvider {
   Future<void> signInWithGoogle() async {
     final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
 
-    final GoogleSignInAuthentication? googleAuth =
-        await googleUser?.authentication;
+    final GoogleSignInAuthentication? googleAuth = await googleUser?.authentication;
     if (googleUser == null) {
       return;
     }
@@ -225,8 +237,7 @@ class FirebaseAuthProvider implements AuthProvider {
     await FirebaseAuth.instance.signInWithCredential(credential);
   }
 
-  Future<void> signInWithPhoneNumber(
-      String verificationId, String otpCode) async {
+  Future<void> signInWithPhoneNumber(String verificationId, String otpCode) async {
     PhoneAuthCredential credential = PhoneAuthProvider.credential(
       verificationId: verificationId,
       smsCode: otpCode,

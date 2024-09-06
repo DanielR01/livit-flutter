@@ -3,7 +3,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:livit/constants/routes.dart';
 import 'package:livit/constants/styles/spaces.dart';
-import 'package:livit/constants/styles/text_style.dart';
+import 'package:livit/constants/styles/livit_text.dart';
 import 'package:livit/services/cloud/firebase_cloud_storage.dart';
 import 'package:livit/utilities/background/main_background.dart';
 import 'package:livit/utilities/buttons/button.dart';

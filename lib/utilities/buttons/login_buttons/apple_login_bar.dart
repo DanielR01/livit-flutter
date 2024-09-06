@@ -3,7 +3,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:livit/constants/styles/bar_style.dart';
 import 'package:livit/constants/styles/shadows.dart';
-import 'package:livit/constants/styles/text_style.dart';
+import 'package:livit/constants/styles/livit_text.dart';
 
 class AppleLoginBar extends StatelessWidget {
   const AppleLoginBar({super.key});
