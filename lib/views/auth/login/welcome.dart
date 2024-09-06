@@ -8,16 +8,16 @@ import 'package:livit/services/cloud/firebase_cloud_storage.dart';
 import 'package:livit/utilities/background/main_background.dart';
 import 'package:livit/utilities/buttons/button.dart';
 
-class WelcomeView extends StatefulWidget {
-  const WelcomeView({
+class AuthWelcomeView extends StatefulWidget {
+  const AuthWelcomeView({
     super.key,
   });
 
   @override
-  State<WelcomeView> createState() => _WelcomeViewState();
+  State<AuthWelcomeView> createState() => _AuthWelcomeViewState();
 }
 
-class _WelcomeViewState extends State<WelcomeView> {
+class _AuthWelcomeViewState extends State<AuthWelcomeView> {
   bool displayText = false;
 
   @override

@@ -4,7 +4,7 @@ import 'package:livit/services/cloud/cloud_event.dart';
 import 'package:livit/services/cloud/firebase_cloud_storage.dart';
 import 'package:livit/utilities/login/confirm_otp_code.dart';
 import 'package:livit/utilities/login/email_login.dart';
-import 'package:livit/views/auth/check_initial_auth.dart';
+import 'package:livit/views/auth/initial_router.dart';
 import 'package:livit/views/auth/login/login.dart';
 import 'package:livit/views/auth/login/welcome.dart';
 import 'package:livit/views/error_route.dart';
@@ -16,9 +16,9 @@ class RouteGenerator {
     final args = settings.arguments;
     switch (settings.name) {
       case '/':
-        return MaterialPageRoute(builder: (_) => const CheckInitialAuth());
+        return MaterialPageRoute(builder: (_) => const InitialRouterView());
       case Routes.welcomeRoute:
-        return MaterialPageRoute(builder: (_) => const WelcomeView());
+        return MaterialPageRoute(builder: (_) => const AuthWelcomeView());
       case Routes.signInRoute:
         if (args is UserType) {
           return MaterialPageRoute(

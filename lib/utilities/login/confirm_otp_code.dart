@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:livit/constants/colors.dart';
 import 'package:livit/constants/routes.dart';
 import 'package:livit/constants/styles/bar_style.dart';
