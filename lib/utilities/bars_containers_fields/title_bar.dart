@@ -5,13 +5,13 @@ import 'package:livit/constants/styles/livit_text.dart';
 import 'package:livit/utilities/buttons/arrow_back_button.dart';
 
 class TitleBar extends StatelessWidget {
-  final VoidCallback? onPressed;
+  final VoidCallback? onBackPressed;
   final String title;
   final bool isBackEnabled;
   const TitleBar({
     super.key,
     required this.title,
-    this.onPressed,
+    this.onBackPressed,
     this.isBackEnabled = false,
   });
 
@@ -26,7 +26,7 @@ class TitleBar extends StatelessWidget {
         alignment: Alignment.topCenter,
         children: [
           Padding(
-            padding: LivitButtonStyle.horizontalPadding,
+            padding: LivitButtonStyle.horizontalPadding * 2,
             child: LivitText(
               title,
               textType: TextType.normalTitle,
@@ -36,7 +36,7 @@ class TitleBar extends StatelessWidget {
               ? Positioned(
                   left: 0,
                   child: ArrowBackButton(
-                    onPressed: onPressed ?? () => Navigator.of(context).pop(),
+                    onPressed: onBackPressed ?? () => Navigator.of(context).pop(),
                   ),
                 )
               : const SizedBox(),

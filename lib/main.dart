@@ -6,14 +6,17 @@ import 'package:livit/constants/colors.dart';
 import 'package:livit/services/auth/bloc/auth_bloc.dart';
 import 'package:livit/services/auth/firebase_auth_provider.dart';
 import 'package:livit/utilities/route_generator.dart';
+import 'package:livit/utilities/transitions/rootwidget.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]).then((value) => runApp(const StartPage()));
+  SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]).then((value) => runApp(StartPage()));
 }
 
 class StartPage extends StatelessWidget {
-  const StartPage({super.key});
+  StartPage({super.key});
+
+  final _navKey = GlobalKey<NavigatorState>(debugLabel: 'navKey');
 
   @override
   Widget build(BuildContext context) {
@@ -21,6 +24,7 @@ class StartPage extends StatelessWidget {
     return BlocProvider(
       create: (context) => AuthBloc(provider: FirebaseAuthProvider()),
       child: MaterialApp(
+        navigatorKey: _navKey,
         debugShowCheckedModeBanner: false,
         title: 'Livit',
         theme: ThemeData(
@@ -51,8 +55,7 @@ class StartPage extends StatelessWidget {
           ),
           fontFamily: 'HelveticaNowDisplay',
         ),
-        initialRoute: '/',
-        onGenerateRoute: RouteGenerator.generateRoute,
+        home: RootWidgetBackground(),
       ),
     );
   }

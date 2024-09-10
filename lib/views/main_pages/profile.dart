@@ -19,9 +19,7 @@ class ProfileView extends StatefulWidget {
 
 class _ProfileViewState extends State<ProfileView> {
   void _handleLogOut() {
-    if (mounted) {
-      context.read<AuthBloc>().add(const AuthEventLogOut());
-    }
+    context.read<AuthBloc>().add(const AuthEventLogOut());
   }
 
   @override

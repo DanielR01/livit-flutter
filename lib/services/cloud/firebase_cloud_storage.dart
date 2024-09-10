@@ -3,11 +3,6 @@ import 'package:livit/services/cloud/cloud_event.dart';
 import 'package:livit/services/cloud/cloud_storage_constants.dart';
 import 'package:livit/services/cloud/cloud_storage_exceptions.dart';
 
-enum UserType {
-  customer,
-  promoter,
-}
-
 class FirebaseCloudStorage {
   static final FirebaseCloudStorage _shared = FirebaseCloudStorage._sharedInstance();
   FirebaseCloudStorage._sharedInstance();

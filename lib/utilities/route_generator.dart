@@ -1,78 +1,103 @@
+import 'dart:io' show Platform;
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:livit/constants/routes.dart';
-import 'package:livit/services/cloud/cloud_event.dart';
-import 'package:livit/services/cloud/firebase_cloud_storage.dart';
-import 'package:livit/utilities/login/confirm_otp_code.dart';
-import 'package:livit/utilities/login/email_login.dart';
-import 'package:livit/views/auth/initial_router.dart';
-import 'package:livit/views/auth/login/login.dart';
+import 'package:livit/constants/user_types.dart';
+import 'package:livit/views/auth/login/auth_view.dart';
 import 'package:livit/views/auth/login/welcome.dart';
 import 'package:livit/views/error_route.dart';
-import 'package:livit/views/main_pages/mainmenu.dart';
-import 'package:livit/views/promoters/create_update_event.dart';
+
+class CustomCupertinoPageRoute<T> extends CupertinoPageRoute<T> {
+  CustomCupertinoPageRoute({
+    required super.builder,
+    super.settings,
+    super.maintainState,
+    super.fullscreenDialog,
+  });
+
+  @override
+  Widget buildTransitions(BuildContext context, Animation<double> animation, Animation<double> secondaryAnimation, Widget child) {
+    return _buildCustomTransition(context, animation, secondaryAnimation, child, super.buildTransitions);
+  }
+}
+
+Widget _buildCustomTransition(
+  BuildContext context,
+  Animation<double> animation,
+  Animation<double> secondaryAnimation,
+  Widget child,
+  Widget Function(BuildContext, Animation<double>, Animation<double>, Widget) superBuildTransitions,
+) {
+  const begin = Offset(1.0, 0.0);
+  const end = Offset.zero;
+  const curve = Curves.easeInOut;
+  var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+
+  var offsetAnimation = animation.drive(tween);
+  var fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+    CurvedAnimation(
+      parent: animation,
+      curve: const Interval(0.0, 0.5, curve: Curves.easeOut),
+    ),
+  );
+
+  var oldViewTween = Tween(begin: const Offset(0.0, 0.0), end: const Offset(0.0, 1.0)).chain(CurveTween(curve: curve));
+  var oldViewAnimation = secondaryAnimation.drive(oldViewTween);
+
+  Widget transitionBuilder(BuildContext context, Animation<double> animation, Animation<double> secondaryAnimation, Widget child) {
+    return Stack(
+      children: [
+        SlideTransition(
+          position: oldViewAnimation,
+          child: const SizedBox.expand(),
+        ),
+        SlideTransition(
+          position: offsetAnimation,
+          child: FadeTransition(
+            opacity: fadeAnimation,
+            child: child,
+          ),
+        ),
+      ],
+    );
+  }
+
+  return superBuildTransitions(context, animation, secondaryAnimation, transitionBuilder(context, animation, secondaryAnimation, child));
+}
 
 class RouteGenerator {
   static Route<dynamic> generateRoute(RouteSettings settings) {
     final args = settings.arguments;
+
+    Widget page;
     switch (settings.name) {
       case '/':
-        return MaterialPageRoute(builder: (_) => const InitialRouterView());
-      case Routes.welcomeRoute:
-        return MaterialPageRoute(builder: (_) => const AuthWelcomeView());
-      case Routes.signInRoute:
-        if (args is UserType) {
-          return MaterialPageRoute(
-            builder: (_) => LoginView(userType: args),
-          );
+        page = const AuthWelcomeView();
+        break;
+      case Routes.authRoute:
+        if (args is Map<String, dynamic> && args.containsKey('userType')) {
+          final userType = args['userType'] as UserType;
+          page = AuthView(userType: userType);
+        } else {
+          page = AuthView(userType: UserType.customer);
         }
-      case Routes.emailAndPasswordRoute:
-        if (args is UserType) {
-          return MaterialPageRoute(
-            builder: (_) => EmailLogin(
-              userType: args,
-            ),
-          );
-        }
-      case Routes.confirmOTPCodeRoute:
-        if (args is Map<String, dynamic>) {
-          try {
-            final UserType userType = args['userType'];
-            final String phoneCode = args['phoneCode'];
-            final String initialVerificationId = args['verificationId'];
-            final String phoneNumber = args['phoneNumber'];
-            return MaterialPageRoute(
-              builder: (_) => ConfirmOTPCodeView(
-                userType: userType,
-                phoneCode: phoneCode,
-                initialVerificationId: initialVerificationId,
-                phoneNumber: phoneNumber,
-              ),
-            );
-          } finally {}
-        }
-      case Routes.mainviewRoute:
-        return MaterialPageRoute(
-          builder: (_) => const MainMenu(),
+        break;
+      default:
+        page = ErrorView(
+          message: 'Route ${settings.name} not found',
         );
-
-      case Routes.createUpdateEventRoute:
-        if (args is CloudEvent?) {
-          return MaterialPageRoute(
-            builder: (_) => CreateUpdateEventView(
-              event: args,
-            ),
-          );
-        }
-
-      // case Routes.getOrCreateUserRoute:
-      //   if (args is UserType?) {
-      //     return MaterialPageRoute(
-      //       builder: (_) => GetOrCreateUserView(
-      //         userType: args,
-      //       ),
-      //     );
-      //   }
     }
-    return MaterialPageRoute(builder: (_) => const ErrorView());
+
+    if (Platform.isIOS) {
+      return CustomCupertinoPageRoute(
+        builder: (_) => page,
+        settings: settings,
+      );
+    } else {
+      return MaterialPageRoute(
+        builder: (_) => page,
+        settings: settings,
+      );
+    }
   }
 }

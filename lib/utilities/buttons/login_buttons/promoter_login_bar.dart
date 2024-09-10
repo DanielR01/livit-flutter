@@ -5,7 +5,7 @@ import 'package:livit/constants/routes.dart';
 import 'package:livit/constants/styles/bar_style.dart';
 import 'package:livit/constants/styles/shadows.dart';
 import 'package:livit/constants/styles/livit_text.dart';
-import 'package:livit/services/cloud/firebase_cloud_storage.dart';
+import 'package:livit/constants/user_types.dart';
 
 class PromoterLoginBar extends StatelessWidget {
   const PromoterLoginBar({
@@ -17,8 +17,11 @@ class PromoterLoginBar extends StatelessWidget {
     return GestureDetector(
       onTap: () {
         Navigator.of(context).pushNamed(
-          Routes.signInRoute,
-          arguments: UserType.promoter,
+          Routes.authRoute,
+          arguments: {
+            'userType': UserType.promoter,
+            'isBack': false,
+          },
         );
       },
       child: Container(
@@ -41,7 +44,7 @@ class PromoterLoginBar extends StatelessWidget {
               ),
             ),
             const LivitText(
-              'Continuar como promocionador',
+              'Ingresar como promocionador',
             ),
           ],
         ),

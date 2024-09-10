@@ -4,9 +4,12 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:livit/constants/routes.dart';
 import 'package:livit/constants/styles/spaces.dart';
 import 'package:livit/constants/styles/livit_text.dart';
-import 'package:livit/services/cloud/firebase_cloud_storage.dart';
+import 'package:livit/constants/user_types.dart';
 import 'package:livit/utilities/background/main_background.dart';
 import 'package:livit/utilities/buttons/button.dart';
+import 'package:livit/utilities/transitions/slide_in_route.dart';
+import 'package:livit/views/auth/login/auth_view.dart';
+import 'package:livit/utilities/route_generator.dart';
 
 class AuthWelcomeView extends StatefulWidget {
   const AuthWelcomeView({
@@ -28,40 +31,35 @@ class _AuthWelcomeViewState extends State<AuthWelcomeView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.transparent,
       body: SizedBox(
         width: double.infinity,
-        child: Stack(
-          alignment: Alignment.center,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const MainBackground(),
-            Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const LivitText(
-                  'Livit',
-                  textType: TextType.bigTitle,
-                )
-                    .animate()
-                    .fade(delay: 1600.ms, duration: 300.ms, curve: Curves.easeOut)
-                    .slideY(begin: 0.2.sp, end: 0, curve: Curves.easeOut)
-                    .callback(
-                      delay: 3600.ms,
-                      callback: (_) {
-                        setState(
-                          () {
-                            displayText = true;
-                          },
-                        );
+            const LivitText(
+              'Livit',
+              textType: TextType.bigTitle,
+            )
+                .animate()
+                .fade(delay: 1600.ms, duration: 300.ms, curve: Curves.easeOut)
+                .slideY(begin: 0.2.sp, end: 0, curve: Curves.easeOut)
+                .callback(
+                  delay: 3600.ms,
+                  callback: (_) {
+                    setState(
+                      () {
+                        displayText = true;
                       },
-                    ),
-                displayText
-                    ? const WelcomeMessage()
-                        .animate()
-                        .fade(duration: 300.ms, curve: Curves.easeOut)
-                        .slideY(begin: 0.2.sp, end: 0, curve: Curves.easeOut)
-                    : const SizedBox()
-              ],
-            ),
+                    );
+                  },
+                ),
+            displayText
+                ? WelcomeMessage()
+                    .animate()
+                    .fade(duration: 300.ms, curve: Curves.easeOut)
+                    .slideY(begin: 0.2.sp, end: 0, curve: Curves.easeOut)
+                : const SizedBox()
           ],
         ),
       ),
@@ -71,8 +69,8 @@ class _AuthWelcomeViewState extends State<AuthWelcomeView> {
 
 class WelcomeMessage extends StatelessWidget {
   const WelcomeMessage({
-    super.key,
-  });
+    Key? key,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -94,8 +92,11 @@ class WelcomeMessage extends StatelessWidget {
           Button.main(
             text: 'Comenzar',
             isActive: true,
-            onPressed: () =>
-                Navigator.of(context).pushNamedAndRemoveUntil(Routes.signInRoute, arguments: UserType.customer, (route) => false),
+            onPressed: () {
+              Navigator.of(context).pushNamed(
+                Routes.authRoute,
+              );
+            },
           ),
         ],
       ),

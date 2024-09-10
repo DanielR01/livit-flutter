@@ -32,7 +32,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
           final user = await provider.logInWithEmailAndPassword(email: email, password: password);
           emit(AuthStateLoggedIn(user: user));
         } catch (e) {
-          emit(AuthStateError(exception: e as Exception));
+          print('error: ${e.runtimeType}');
+          emit(AuthStateLoggedOut(exception: e as Exception));
         }
       },
     );
@@ -44,7 +45,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
           await provider.logOut();
           emit(const AuthStateLoggedOut());
         } catch (e) {
-          emit(AuthStateLogoutError(exception: e as Exception));
+          emit(AuthStateLoggedOut(exception: e as Exception));
         }
       },
     );
@@ -64,24 +65,26 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
                 final user = await provider.logInWithCredential(credential: credentialId);
                 emit(AuthStateLoggedIn(user: user));
               } catch (e) {
-                emit(AuthStateError(exception: e as Exception));
+                emit(AuthStateLoginError(exception: e as Exception));
               }
             },
             onVerificationFailed: (error) {
-              emit(AuthStateError(exception: error as Exception));
+              emit(AuthStateLoginError(exception: error as Exception));
             },
             onCodeSent: (verificationId, forceResendingToken) {
+              print('onCodeSent');
               emit(
                 AuthStateCodeSent(
                   verificationId: verificationId,
                   forceResendingToken: forceResendingToken,
                 ),
               );
+              print('after emit');
             },
             onCodeAutoRetrievalTimeout: (verificationId) {},
           );
         } catch (e) {
-          emit(AuthStateError(exception: e as Exception));
+          emit(AuthStateLoginError(exception: e as Exception));
         }
       },
     );
@@ -95,7 +98,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
           final user = await provider.logInWithPhoneAndOtp(verificationId: verificationId, otpCode: otpCode);
           emit(AuthStateLoggedIn(user: user));
         } catch (e) {
-          emit(AuthStateError(exception: e as Exception));
+          emit(AuthStateLoginError(exception: e as Exception));
         }
       },
     );
@@ -106,7 +109,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         try {
           await provider.sendEmailVerification();
         } catch (e) {
-          emit(AuthStateError(exception: e as Exception));
+          emit(AuthStateLoginError(exception: e as Exception));
         }
       },
     );
@@ -118,8 +121,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         final password = event.password;
         try {
           await provider.registerEmail(email: email, password: password);
+          emit(const AuthStateRegistered());
         } catch (e) {
-          emit(AuthStateError(exception: e as Exception));
+          emit(AuthStateRegisterError(exception: e as Exception));
         }
       },
     );
@@ -131,10 +135,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         try {
           await provider.sendPasswordReset(email: email);
         } catch (e) {
-          emit(AuthStateError(exception: e as Exception));
+          emit(AuthStateLoginError(exception: e as Exception));
         }
       },
     );
   }
-  
 }

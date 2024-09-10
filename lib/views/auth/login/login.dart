@@ -1,46 +1,86 @@
-import 'package:flutter/material.dart';
-import 'package:livit/services/cloud/firebase_cloud_storage.dart';
-import 'package:livit/utilities/background/main_background.dart';
-import 'package:livit/utilities/login/login_methods_list.dart';
+// import 'package:flutter/material.dart';
+// import 'package:livit/constants/user_types.dart';
+// import 'package:livit/utilities/login/email_login.dart';
+// import 'package:livit/utilities/login/login_methods_list.dart';
+// import 'package:livit/utilities/login/phone_login.dart';
 
-class LoginView extends StatefulWidget {
-  final UserType userType;
-  const LoginView({
-    super.key,
-    required this.userType,
-  });
+// enum View {
+//   loginMethods,
+//   emailLogin,
+//   phoneLogin,
+// }
 
-  @override
-  State<LoginView> createState() => _LoginViewState();
-}
+// class LoginView extends StatefulWidget {
+//   const LoginView({
+//     super.key,
+//   });
 
-class _LoginViewState extends State<LoginView> {
-  String phoneCode = '';
-  String phoneNumber = '';
-  String verificationId = '';
+//   @override
+//   State<LoginView> createState() => _LoginViewState();
+// }
 
-  void onPhoneLoginPressed(List<String> credentials) {
-    setState(
-      () {
-        phoneCode = credentials[0];
-        phoneNumber = credentials[1];
-        verificationId = credentials[2];
-      },
-    );
-  }
+// class _LoginViewState extends State<LoginView> {
+//   UserType _userType = UserType.customer;
+//   View _view = View.loginMethods;
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      resizeToAvoidBottomInset: false,
-      body: Stack(
-        children: [
-          const MainBackground(),
-          LoginMethodsList(
-            userType: widget.userType,
-          ),
-        ],
-      ),
-    );
-  }
-}
+//   String phoneCode = '';
+//   String phoneNumber = '';
+//   String verificationId = '';
+
+//   void _onChangeUserType() {
+//     setState(
+//       () {
+//         _userType = _userType == UserType.customer ? UserType.promoter : UserType.customer;
+//       },
+//     );
+//   }
+
+//   void _onEmailLoginPressed() {
+//     setState(
+//       () {
+//         _view = View.emailLogin;
+//       },
+//     );
+//   }
+
+//   void _onBackPressed() {
+//     setState(
+//       () {
+//         _view = View.loginMethods;
+//       },
+//     );
+//   }
+
+//   void _onPhoneLoginPressed() {
+//     setState(
+//       () {
+//         _view = View.phoneLogin;
+//       },
+//     );
+//   }
+
+//   @override
+//   Widget build(BuildContext context) {
+//     switch (_view) {
+//       case View.loginMethods:
+//         return LoginMethodsList(
+//           onBackPressed: _onChangeUserType,
+//           onEmailLoginPressed: _onEmailLoginPressed,
+//           onPhoneLoginPressed: _onPhoneLoginPressed,
+//           onChangeUserType: _onChangeUserType,
+//           userType: _userType,
+//         );
+
+//       case View.emailLogin:
+//         return EmailLogin(
+//           userType: _userType,
+//           onBackPressed: _onBackPressed,
+//         );
+//       case View.phoneLogin:
+//         return PhoneLogin(
+//           userType: _userType,
+//           onBackPressed: _onBackPressed,
+//         );
+//     }
+//   }
+// }
