@@ -6,24 +6,21 @@ import 'package:livit/constants/styles/bar_style.dart';
 import 'package:livit/constants/styles/livit_text.dart';
 import 'package:livit/constants/styles/shadows.dart';
 import 'package:livit/constants/user_types.dart';
-import 'package:livit/utilities/route_generator.dart';
 
 class PhoneLoginBar extends StatelessWidget {
+  final UserType userType;
   const PhoneLoginBar({
     super.key,
+    required this.userType,
   });
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
-        Navigator.of(context).push(
-          RouteGenerator.generateRoute(
-            const RouteSettings(
-              name: Routes.authRoute,
-              arguments: UserType.customer,
-            ),
-          ),
+        Navigator.of(context).pushNamed(
+          Routes.loginPhoneNumberRoute,
+          arguments: {'userType': userType},
         );
       },
       child: Container(

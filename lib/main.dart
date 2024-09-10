@@ -5,7 +5,6 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:livit/constants/colors.dart';
 import 'package:livit/services/auth/bloc/auth_bloc.dart';
 import 'package:livit/services/auth/firebase_auth_provider.dart';
-import 'package:livit/utilities/route_generator.dart';
 import 'package:livit/utilities/transitions/rootwidget.dart';
 
 void main() async {

@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:livit/constants/styles/livit_text.dart';
+import 'package:livit/constants/styles/spaces.dart';
+import 'package:livit/utilities/buttons/button.dart';
 
 class ErrorView extends StatelessWidget {
   final String message;
@@ -9,33 +12,37 @@ class ErrorView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
+    return Scaffold(
       body: SafeArea(
         child: Center(
           child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 25, horizontal: 35),
+            padding: EdgeInsets.symmetric(vertical: 25, horizontal: 35),
             child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Text(
-                  'Something went wrong',
-                  style: TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
-                  ),
+                const LivitText(
+                  '¡Ups!',
+                  textType: TextType.bigTitle,
                 ),
-                SizedBox(
-                  height: 10,
-                ),
-                Text(
-                  'Please try again in a few minutes',
-                  //'Enter the 6-digit SMS code that you will receive',
-                  style: TextStyle(
-                    fontSize: 14,
-                  ),
+                LivitSpaces.s,
+                const LivitText(
+                  'Algo salió mal, intenta de nuevo en unos minutos.',
                   textAlign: TextAlign.center,
                 ),
-                SizedBox(
-                  height: 40,
+                LivitSpaces.s,
+                const LivitText(
+                  'Parece que el problema es:',
+                ),
+                LivitText(
+                  message,
+                ),
+                LivitSpaces.l,
+                Button.main(
+                  isActive: true,
+                  text: 'Volver',
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
                 ),
               ],
             ),

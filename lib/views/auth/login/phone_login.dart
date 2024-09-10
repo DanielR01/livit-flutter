@@ -9,18 +9,18 @@ import 'package:livit/utilities/bars_containers_fields/text_field.dart';
 import 'package:livit/utilities/bars_containers_fields/title_bar.dart';
 import 'package:livit/utilities/buttons/button.dart';
 
-class PhoneLogin extends StatefulWidget {
+class PhoneLoginView extends StatefulWidget {
   final UserType userType;
-  const PhoneLogin({
+  const PhoneLoginView({
     super.key,
     required this.userType,
   });
 
   @override
-  State<PhoneLogin> createState() => _PhoneLoginState();
+  State<PhoneLoginView> createState() => _PhoneLoginViewState();
 }
 
-class _PhoneLoginState extends State<PhoneLogin> {
+class _PhoneLoginViewState extends State<PhoneLoginView> {
   String? phoneError;
   late TextEditingController _phoneController;
   bool isPhoneValid = false;
@@ -71,64 +71,67 @@ class _PhoneLoginState extends State<PhoneLogin> {
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: SingleChildScrollView(
-        physics: const BouncingScrollPhysics(),
-        child: ConstrainedBox(
-          constraints: BoxConstraints(
-            minHeight: MediaQuery.of(context).size.height - MediaQuery.of(context).padding.top - MediaQuery.of(context).padding.bottom,
-          ),
-          child: Padding(
-            padding: EdgeInsets.only(
-              bottom: MediaQuery.of(context).viewInsets.bottom,
+    return Scaffold(
+      backgroundColor: Colors.transparent,
+      body: SafeArea(
+        child: SingleChildScrollView(
+          physics: const BouncingScrollPhysics(),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              minHeight: MediaQuery.of(context).size.height - MediaQuery.of(context).padding.top - MediaQuery.of(context).padding.bottom,
             ),
-            child: Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Padding(
-                    padding: LivitContainerStyle.paddingFromScreen,
-                    child: GlassContainer(
-                      child: SizedBox(
-                        width: double.infinity,
-                        child: Padding(
-                          padding: LivitContainerStyle.padding([0, null, null, null]),
-                          child: Column(
-                            children: [
-                              TitleBar(
-                                title: 'Continuar con número de teléfono',
-                                isBackEnabled: true,
-                              ),
-                              const LivitText('Ingresa tu número de teléfono, te llegará un código de verificación.'),
-                              LivitSpaces.m,
-                              LivitTextField(
-                                controller: _phoneController,
-                                hint: 'Número de teléfono',
-                                phoneNumberField: true,
-                                onChanged: onPhoneChange,
-                                initialCountry: initialCountry,
-                                onCountryCodeChanged: (value) {
-                                  setState(
-                                    () {
-                                      selectedCountryCode = value;
-                                    },
-                                  );
-                                },
-                                bottomCaptionText: phoneError,
-                              ),
-                              LivitSpaces.m,
-                              Button.main(
-                                text: 'Enviar código',
-                                isActive: isPhoneValid,
-                                onPressed: () {},
-                              ),
-                            ],
+            child: Padding(
+              padding: EdgeInsets.only(
+                bottom: MediaQuery.of(context).viewInsets.bottom,
+              ),
+              child: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Padding(
+                      padding: LivitContainerStyle.paddingFromScreen,
+                      child: GlassContainer(
+                        child: SizedBox(
+                          width: double.infinity,
+                          child: Padding(
+                            padding: LivitContainerStyle.padding([0, null, null, null]),
+                            child: Column(
+                              children: [
+                                TitleBar(
+                                  title: 'Continuar con número de teléfono',
+                                  isBackEnabled: true,
+                                ),
+                                const LivitText('Ingresa tu número de teléfono, te llegará un código de verificación.'),
+                                LivitSpaces.m,
+                                LivitTextField(
+                                  controller: _phoneController,
+                                  hint: 'Número de teléfono',
+                                  phoneNumberField: true,
+                                  onChanged: onPhoneChange,
+                                  initialCountry: initialCountry,
+                                  onCountryCodeChanged: (value) {
+                                    setState(
+                                      () {
+                                        selectedCountryCode = value;
+                                      },
+                                    );
+                                  },
+                                  bottomCaptionText: phoneError,
+                                ),
+                                LivitSpaces.m,
+                                Button.main(
+                                  text: 'Enviar código',
+                                  isActive: isPhoneValid,
+                                  onPressed: () {},
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),

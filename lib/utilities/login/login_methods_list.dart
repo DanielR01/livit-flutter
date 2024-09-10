@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:livit/constants/colors.dart';
-import 'package:livit/constants/routes.dart';
 import 'package:livit/constants/styles/container_style.dart';
 import 'package:livit/constants/styles/spaces.dart';
 import 'package:livit/constants/styles/livit_text.dart';
@@ -12,7 +11,6 @@ import 'package:livit/utilities/buttons/login_buttons/phone_login_bar.dart';
 import 'package:livit/utilities/buttons/login_buttons/promoter_login_bar.dart';
 import 'package:livit/utilities/buttons/login_buttons/apple_login_bar.dart';
 import 'package:livit/utilities/buttons/login_buttons/google_login_bar.dart';
-import 'package:livit/utilities/route_generator.dart';
 
 class LoginMethodsList extends StatefulWidget {
   final UserType userType;
@@ -93,7 +91,9 @@ class _LoginMethodsListState extends State<LoginMethodsList> {
                         userType: widget.userType,
                       ),
                       LivitSpaces.m,
-                      PhoneLoginBar(),
+                      PhoneLoginBar(
+                        userType: widget.userType,
+                      ),
                       LivitSpaces.m,
                       const Divider(
                         height: 1,

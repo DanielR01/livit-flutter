@@ -16,20 +16,18 @@ import 'package:livit/utilities/bars_containers_fields/text_field.dart';
 import 'package:livit/utilities/bars_containers_fields/title_bar.dart';
 import 'package:livit/utilities/buttons/button.dart';
 
-class EmailLogin extends StatefulWidget {
-  final VoidCallback onBackPressed;
+class EmailLoginView extends StatefulWidget {
   final UserType userType;
-  const EmailLogin({
+  const EmailLoginView({
     super.key,
     required this.userType,
-    required this.onBackPressed,
   });
 
   @override
-  State<EmailLogin> createState() => _EmailLogin();
+  State<EmailLoginView> createState() => _EmailLogin();
 }
 
-class _EmailLogin extends State<EmailLogin> {
+class _EmailLogin extends State<EmailLoginView> {
   EmailLoginViews _currentView = EmailLoginViews.login;
 
   void _onRegisterPressed() {
@@ -51,16 +49,17 @@ class _EmailLogin extends State<EmailLogin> {
   @override
   Widget build(BuildContext context) {
     context.read<AuthBloc>().add(const AuthEventInitialize());
-    return SafeArea(
-      child: SingleChildScrollView(
-        physics: const BouncingScrollPhysics(),
-        child: ConstrainedBox(
-          constraints: BoxConstraints(
-            minHeight: MediaQuery.of(context).size.height - MediaQuery.of(context).padding.top - MediaQuery.of(context).padding.bottom,
-          ),
-          child: Padding(
-            padding: EdgeInsets.only(
-              bottom: MediaQuery.of(context).viewInsets.bottom,
+    return Scaffold(
+      backgroundColor: Colors.transparent,
+      body: SafeArea(
+        child: SingleChildScrollView(
+          physics: const BouncingScrollPhysics(),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              minHeight: MediaQuery.of(context).size.height -
+                  MediaQuery.of(context).padding.top -
+                  MediaQuery.of(context).padding.bottom -
+                  MediaQuery.of(context).viewInsets.bottom,
             ),
             child: Center(
               child: Column(
@@ -75,8 +74,7 @@ class _EmailLogin extends State<EmailLogin> {
                           padding: LivitContainerStyle.padding([0, null, null, null]),
                           child: Column(
                             children: [
-                               TitleBar(
-                                onBackPressed: widget.onBackPressed,
+                              const TitleBar(
                                 title: 'Continua con email y contraseña',
                                 isBackEnabled: true,
                               ),

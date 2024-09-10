@@ -5,22 +5,18 @@ import 'package:livit/constants/routes.dart';
 import 'package:livit/constants/styles/spaces.dart';
 import 'package:livit/constants/styles/livit_text.dart';
 import 'package:livit/constants/user_types.dart';
-import 'package:livit/utilities/background/main_background.dart';
 import 'package:livit/utilities/buttons/button.dart';
-import 'package:livit/utilities/transitions/slide_in_route.dart';
-import 'package:livit/views/auth/login/auth_view.dart';
-import 'package:livit/utilities/route_generator.dart';
 
-class AuthWelcomeView extends StatefulWidget {
-  const AuthWelcomeView({
+class WelcomeView extends StatefulWidget {
+  const WelcomeView({
     super.key,
   });
 
   @override
-  State<AuthWelcomeView> createState() => _AuthWelcomeViewState();
+  State<WelcomeView> createState() => _WelcomeViewState();
 }
 
-class _AuthWelcomeViewState extends State<AuthWelcomeView> {
+class _WelcomeViewState extends State<WelcomeView> {
   bool displayText = false;
 
   @override
@@ -38,7 +34,7 @@ class _AuthWelcomeViewState extends State<AuthWelcomeView> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             const LivitText(
-              'Livit',
+              'LIVIT',
               textType: TextType.bigTitle,
             )
                 .animate()
@@ -55,7 +51,7 @@ class _AuthWelcomeViewState extends State<AuthWelcomeView> {
                   },
                 ),
             displayText
-                ? WelcomeMessage()
+                ? const WelcomeMessage()
                     .animate()
                     .fade(duration: 300.ms, curve: Curves.easeOut)
                     .slideY(begin: 0.2.sp, end: 0, curve: Curves.easeOut)
@@ -69,8 +65,8 @@ class _AuthWelcomeViewState extends State<AuthWelcomeView> {
 
 class WelcomeMessage extends StatelessWidget {
   const WelcomeMessage({
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -95,6 +91,9 @@ class WelcomeMessage extends StatelessWidget {
             onPressed: () {
               Navigator.of(context).pushNamed(
                 Routes.authRoute,
+                arguments: {
+                  'userType': UserType.customer,
+                },
               );
             },
           ),

@@ -1,26 +1,28 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:livit/constants/colors.dart';
+import 'package:livit/constants/routes.dart';
 import 'package:livit/constants/styles/bar_style.dart';
 import 'package:livit/constants/styles/shadows.dart';
 import 'package:livit/constants/styles/livit_text.dart';
 import 'package:livit/constants/user_types.dart';
 
 class EmailLoginBar extends StatelessWidget {
-  
   final UserType userType;
 
   const EmailLoginBar({
     super.key,
     required this.userType,
-    
   });
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
-        
+        Navigator.of(context).pushNamed(
+          Routes.loginEmailRoute,
+          arguments: {'userType': userType},
+        );
       },
       child: Container(
         height: 54.sp,

@@ -3,8 +3,10 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:livit/constants/routes.dart';
 import 'package:livit/constants/user_types.dart';
+import 'package:livit/views/auth/initial_router.dart';
 import 'package:livit/views/auth/login/auth_view.dart';
-import 'package:livit/views/auth/login/welcome.dart';
+import 'package:livit/views/auth/login/email_login.dart';
+import 'package:livit/views/auth/login/phone_login.dart';
 import 'package:livit/views/error_route.dart';
 
 class CustomCupertinoPageRoute<T> extends CupertinoPageRoute<T> {
@@ -16,8 +18,9 @@ class CustomCupertinoPageRoute<T> extends CupertinoPageRoute<T> {
   });
 
   @override
-  Widget buildTransitions(BuildContext context, Animation<double> animation, Animation<double> secondaryAnimation, Widget child) {
-    return _buildCustomTransition(context, animation, secondaryAnimation, child, super.buildTransitions);
+  Widget buildPage(BuildContext context, Animation<double> animation, Animation<double> secondaryAnimation) {
+    final child = super.buildPage(context, animation, secondaryAnimation);
+    return _buildCustomTransition(context, animation, secondaryAnimation, child);
   }
 }
 
@@ -26,43 +29,51 @@ Widget _buildCustomTransition(
   Animation<double> animation,
   Animation<double> secondaryAnimation,
   Widget child,
-  Widget Function(BuildContext, Animation<double>, Animation<double>, Widget) superBuildTransitions,
+) {
+  return CupertinoPageTransition(
+    primaryRouteAnimation: animation,
+    secondaryRouteAnimation: secondaryAnimation,
+    linearTransition: false,
+    child: child,
+  );
+}
+
+class CustomMaterialPageRoute<T> extends MaterialPageRoute<T> {
+  CustomMaterialPageRoute({
+    required super.builder,
+    super.settings,
+    super.maintainState,
+    super.fullscreenDialog,
+  });
+
+  @override
+  Widget buildTransitions(BuildContext context, Animation<double> animation, Animation<double> secondaryAnimation, Widget child) {
+    return _buildCustomMaterialTransition(context, animation, secondaryAnimation, child);
+  }
+}
+
+Widget _buildCustomMaterialTransition(
+  BuildContext context,
+  Animation<double> animation,
+  Animation<double> secondaryAnimation,
+  Widget child,
 ) {
   const begin = Offset(1.0, 0.0);
   const end = Offset.zero;
   const curve = Curves.easeInOut;
-  var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
 
+  var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
   var offsetAnimation = animation.drive(tween);
-  var fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-    CurvedAnimation(
-      parent: animation,
-      curve: const Interval(0.0, 0.5, curve: Curves.easeOut),
+
+  return SlideTransition(
+    position: offsetAnimation,
+    child: CupertinoPageTransition(
+      primaryRouteAnimation: animation,
+      secondaryRouteAnimation: secondaryAnimation,
+      linearTransition: false,
+      child: child,
     ),
   );
-
-  var oldViewTween = Tween(begin: const Offset(0.0, 0.0), end: const Offset(0.0, 1.0)).chain(CurveTween(curve: curve));
-  var oldViewAnimation = secondaryAnimation.drive(oldViewTween);
-
-  Widget transitionBuilder(BuildContext context, Animation<double> animation, Animation<double> secondaryAnimation, Widget child) {
-    return Stack(
-      children: [
-        SlideTransition(
-          position: oldViewAnimation,
-          child: const SizedBox.expand(),
-        ),
-        SlideTransition(
-          position: offsetAnimation,
-          child: FadeTransition(
-            opacity: fadeAnimation,
-            child: child,
-          ),
-        ),
-      ],
-    );
-  }
-
-  return superBuildTransitions(context, animation, secondaryAnimation, transitionBuilder(context, animation, secondaryAnimation, child));
 }
 
 class RouteGenerator {
@@ -72,19 +83,35 @@ class RouteGenerator {
     Widget page;
     switch (settings.name) {
       case '/':
-        page = const AuthWelcomeView();
+        page = const InitialRouterView();
         break;
       case Routes.authRoute:
         if (args is Map<String, dynamic> && args.containsKey('userType')) {
           final userType = args['userType'] as UserType;
           page = AuthView(userType: userType);
         } else {
-          page = AuthView(userType: UserType.customer);
+          page = const ErrorView(message: 'No se proporcionó el tipo de usuario.');
+        }
+        break;
+      case Routes.loginPhoneNumberRoute:
+        if (args is Map<String, dynamic> && args.containsKey('userType')) {
+          final userType = args['userType'] as UserType;
+          page = PhoneLoginView(userType: userType);
+        } else {
+          page = const ErrorView(message: 'No se proporcionó el tipo de usuario.');
+        }
+        break;
+      case Routes.loginEmailRoute:
+        if (args is Map<String, dynamic> && args.containsKey('userType')) {
+          final userType = args['userType'] as UserType;
+          page = EmailLoginView(userType: userType);
+        } else {
+          page = const ErrorView(message: 'No se proporcionó el tipo de usuario.');
         }
         break;
       default:
         page = ErrorView(
-          message: 'Route ${settings.name} not found',
+          message: 'Ruta ${settings.name} no encontrada',
         );
     }
 
@@ -94,7 +121,7 @@ class RouteGenerator {
         settings: settings,
       );
     } else {
-      return MaterialPageRoute(
+      return CustomMaterialPageRoute(
         builder: (_) => page,
         settings: settings,
       );
