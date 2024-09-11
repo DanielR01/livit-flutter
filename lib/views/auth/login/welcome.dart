@@ -8,54 +8,62 @@ import 'package:livit/constants/user_types.dart';
 import 'package:livit/utilities/buttons/button.dart';
 
 class WelcomeView extends StatefulWidget {
-  const WelcomeView({
-    super.key,
-  });
+  const WelcomeView({super.key});
 
   @override
   State<WelcomeView> createState() => _WelcomeViewState();
 }
 
 class _WelcomeViewState extends State<WelcomeView> {
-  bool displayText = false;
+  bool displayContent = false;
+  bool displayLivit = false;
 
   @override
   void initState() {
     super.initState();
+    Future.delayed(1.seconds, () {
+      setState(() {
+        displayLivit = true;
+      });
+    });
+    Future.delayed(4.seconds, () {
+      setState(() {
+        displayContent = true;
+      });
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.transparent,
-      body: SizedBox(
-        width: double.infinity,
+      body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const LivitText(
-              'LIVIT',
-              textType: TextType.bigTitle,
-            )
-                .animate()
-                .fade(delay: 1600.ms, duration: 300.ms, curve: Curves.easeOut)
-                .slideY(begin: 0.2.sp, end: 0, curve: Curves.easeOut)
-                .callback(
-                  delay: 3600.ms,
-                  callback: (_) {
-                    setState(
-                      () {
-                        displayText = true;
-                      },
-                    );
-                  },
+            if (displayLivit)
+              Animate(
+                effects: [
+                  FadeEffect(duration: 500.ms, curve: Curves.easeOut),
+                ],
+                child: const LivitText(
+                  'LIVIT',
+                  textType: TextType.bigTitle,
                 ),
-            displayText
-                ? const WelcomeMessage()
-                    .animate()
-                    .fade(duration: 300.ms, curve: Curves.easeOut)
-                    .slideY(begin: 0.2.sp, end: 0, curve: Curves.easeOut)
-                : const SizedBox()
+              ),
+            if (displayContent)
+              Animate(
+                effects: [
+                  FadeEffect(duration: 500.ms, curve: Curves.easeOut),
+                  SlideEffect(
+                    begin: const Offset(0, 0.05),
+                    end: Offset.zero,
+                    duration: 500.ms,
+                    curve: Curves.easeOut,
+                  ),
+                ],
+                child: const WelcomeMessage(),
+              ),
           ],
         ),
       ),
@@ -64,36 +72,25 @@ class _WelcomeViewState extends State<WelcomeView> {
 }
 
 class WelcomeMessage extends StatelessWidget {
-  const WelcomeMessage({
-    super.key,
-  });
+  const WelcomeMessage({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: EdgeInsets.symmetric(
-        horizontal: 10.sp,
-      ),
+      padding: EdgeInsets.symmetric(horizontal: 10.sp),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          LivitSpaces.s,
-          const LivitText(
-            'Encuentra mas de lo que te gusta,',
-          ),
-          const LivitText(
-            'mas eventos, mas lugares, mas personas.',
-          ),
-          LivitSpaces.l,
+          const LivitText('Encuentra mas de lo que te gusta,'),
+          const LivitText('mas eventos, mas lugares, mas personas.'),
+          LivitSpaces.m,
           Button.main(
             text: 'Comenzar',
             isActive: true,
             onPressed: () {
               Navigator.of(context).pushNamed(
                 Routes.authRoute,
-                arguments: {
-                  'userType': UserType.customer,
-                },
+                arguments: {'userType': UserType.customer},
               );
             },
           ),

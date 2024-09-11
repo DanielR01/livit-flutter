@@ -24,7 +24,7 @@ class ErrorView extends StatelessWidget {
                   '¡Ups!',
                   textType: TextType.bigTitle,
                 ),
-                LivitSpaces.s,
+                //LivitSpaces.s,
                 const LivitText(
                   'Algo salió mal, intenta de nuevo en unos minutos.',
                   textAlign: TextAlign.center,
@@ -36,7 +36,7 @@ class ErrorView extends StatelessWidget {
                 LivitText(
                   message,
                 ),
-                LivitSpaces.l,
+                LivitSpaces.m,
                 Button.main(
                   isActive: true,
                   text: 'Volver',
