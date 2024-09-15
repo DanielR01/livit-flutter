@@ -1,5 +1,7 @@
+import 'dart:async';
 import 'package:bloc/bloc.dart';
-import 'package:firebase_auth/firebase_auth.dart' show PhoneAuthCredential;
+import 'package:firebase_auth/firebase_auth.dart' show FirebaseAuthException;
+import 'package:livit/services/auth/auth_exceptions.dart';
 import 'package:livit/services/auth/auth_provider.dart';
 import 'package:livit/services/auth/auth_user.dart';
 import 'package:livit/services/auth/bloc/auth_event.dart';
@@ -10,15 +12,11 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<AuthEventInitialize>(
       (event, emit) async {
         await provider.initialize();
-        final AuthUser? user = provider.currentUser;
-        if (user == null) {
+        try {
+          final AuthUser user = provider.currentUser;
+          emit(AuthStateLoggedIn(user: user));
+        } catch (e) {
           emit(const AuthStateLoggedOut());
-        } else {
-          if (user.isEmailVerified ?? false) {
-            emit(AuthStateLoggedIn(user: user));
-          } else {
-            emit(const AuthStateNeedsVerification());
-          }
         }
       },
     );
@@ -32,7 +30,6 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
           final user = await provider.logInWithEmailAndPassword(email: email, password: password);
           emit(AuthStateLoggedIn(user: user));
         } catch (e) {
-          print('error: ${e.runtimeType}');
           emit(AuthStateLoggedOut(exception: e as Exception));
         }
       },
@@ -56,35 +53,52 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         final phoneCode = event.phoneCode;
         final phoneNumber = event.phoneNumber;
         try {
+          final completer = Completer<AuthState>();
           await provider.sendOtpCode(
-            phoneCode: phoneCode,
-            phoneNumber: phoneNumber,
-            onVerificationCompleted: (dynamic credential) async {
-              try {
-                final credentialId = credential as PhoneAuthCredential;
-                final user = await provider.logInWithCredential(credential: credentialId);
-                emit(AuthStateLoggedIn(user: user));
-              } catch (e) {
-                emit(AuthStateLoginError(exception: e as Exception));
-              }
+            onVerificationCompleted: (credential) {
+              print('onVerificationCompleted but not implemented');
+              completer.complete(const AuthStateLoggedOut());
             },
             onVerificationFailed: (error) {
-              emit(AuthStateLoginError(exception: error as Exception));
+              final errorM = error as FirebaseAuthException;
+              switch (errorM.code) {
+                case 'invalid-phone-number':
+                  completer.complete(AuthStateLoggedOut(exception: InvalidPhoneNumberAuthException()));
+                  break;
+                default:
+                  completer.complete(AuthStateLoggedOut(exception: GenericAuthException()));
+                  break;
+              }
             },
-            onCodeSent: (verificationId, forceResendingToken) {
-              print('onCodeSent');
-              emit(
-                AuthStateCodeSent(
-                  verificationId: verificationId,
-                  forceResendingToken: forceResendingToken,
-                ),
-              );
-              print('after emit');
+            onCodeSent: (String verificationId, int? forceResendingToken) {
+              completer.complete(AuthStateCodeSent(verificationId: verificationId));
             },
-            onCodeAutoRetrievalTimeout: (verificationId) {},
+            phoneCode: phoneCode,
+            phoneNumber: phoneNumber,
+            onCodeAutoRetrievalTimeout: (verificationId) {
+              print('onCodeAutoRetrievalTimeout but not implemented');
+              if (!completer.isCompleted) {
+                completer.complete(const AuthStateLoggedOut());
+              }
+            },
           );
+          final result = await completer.future;
+          emit(result);
         } catch (e) {
-          emit(AuthStateLoginError(exception: e as Exception));
+          emit(AuthStateLoggedOut(exception: e as Exception));
+        }
+      },
+    );
+
+    on<AuthEventLogInWithGoogle>(
+      (event, emit) async {
+        emit(const AuthStateLoading());
+        try {
+          await provider.logInWithGoogle();
+          final user = provider.currentUser;
+          emit(AuthStateLoggedIn(user: user));
+        } catch (e) {
+          emit(AuthStateLoggedOut(exception: e as Exception));
         }
       },
     );
@@ -95,21 +109,25 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         final verificationId = event.verificationId;
         final otpCode = event.otpCode;
         try {
-          final user = await provider.logInWithPhoneAndOtp(verificationId: verificationId, otpCode: otpCode);
+          final user = await provider.logInWithPhoneAndOtp(
+            verificationId: verificationId,
+            otpCode: otpCode,
+          );
           emit(AuthStateLoggedIn(user: user));
         } catch (e) {
-          emit(AuthStateLoginError(exception: e as Exception));
+          emit(AuthStateLoggedOut(exception: e as Exception));
         }
       },
     );
 
     on<AuthEventSendEmailVerification>(
       (event, emit) async {
-        emit(const AuthStateLoading());
+        emit(const AuthStateEmailVerificationSending());
         try {
           await provider.sendEmailVerification();
+          emit(const AuthStateEmailVerificationSent());
         } catch (e) {
-          emit(AuthStateLoginError(exception: e as Exception));
+          emit(AuthStateEmailVerificationSentError(exception: e as Exception));
         }
       },
     );
@@ -135,7 +153,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         try {
           await provider.sendPasswordReset(email: email);
         } catch (e) {
-          emit(AuthStateLoginError(exception: e as Exception));
+          emit(AuthStateLoggedOut(exception: e as Exception));
         }
       },
     );

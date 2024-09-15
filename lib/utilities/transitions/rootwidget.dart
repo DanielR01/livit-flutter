@@ -14,7 +14,7 @@ class RootWidgetBackground extends StatelessWidget {
   Widget build(BuildContext context) {
     Widget content = Stack(
       children: [
-        const MainBackground(),
+        MainBackground.colorful(),
         Navigator(
           key: navigatorKey,
           initialRoute: '/',

@@ -1,6 +1,5 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-import 'package:livit/services/auth/credential_types.dart';
 import 'package:livit/firebase_options.dart';
 import 'package:livit/services/auth/auth_user.dart';
 import 'package:livit/services/auth/auth_exceptions.dart';
@@ -23,7 +22,6 @@ class FirebaseAuthProvider implements AuthProvider {
     required String password,
   }) async {
     try {
-          
       await FirebaseAuth.instance.createUserWithEmailAndPassword(
         email: email,
         password: password,
@@ -52,13 +50,18 @@ class FirebaseAuthProvider implements AuthProvider {
   }
 
   @override
-  AuthUser? get currentUser {
+  AuthUser get currentUser {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) {
-      return null;
-    } else {
-      if (user.email != null && !user.emailVerified) {
-        return null;
+      throw UserNotLoggedInAuthException();
+    }
+    if (user.phoneNumber != null) {
+      return AuthUser.fromFirebase(user);
+    } else if (user.email != null) {
+      if (!user.emailVerified) {
+        throw NotVerifiedEmailAuthException();
+      } else {
+        return AuthUser.fromFirebase(user);
       }
     }
     return AuthUser.fromFirebase(user);
@@ -108,12 +111,14 @@ class FirebaseAuthProvider implements AuthProvider {
   Future<AuthUser> logInWithCredential({
     required dynamic credential,
   }) async {
-    await FirebaseAuth.instance.signInWithCredential(credential as PhoneAuthCredential);
-    final user = currentUser;
-    if (user != null) {
+    try {
+      await FirebaseAuth.instance.signInWithCredential(credential as PhoneAuthCredential);
+      final user = currentUser;
       return user;
-    } else {
-      throw UserNotLoggedInAuthException();
+    } on UserNotLoggedInAuthException {
+      rethrow;
+    } catch (_) {
+      throw GenericAuthException();
     }
   }
 
@@ -123,67 +128,28 @@ class FirebaseAuthProvider implements AuthProvider {
     required String password,
   }) async {
     try {
-      await logIn(credentialType: CredentialType.emailAndPassword, credentials: [email, password]);
+      await FirebaseAuth.instance.signInWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
       final user = currentUser;
-      if (user != null) {
-        return user;
-      } else {
-        throw UserNotLoggedInAuthException();
-      }
-    } catch (e) {
-      rethrow;
-    }
-  }
-
-  @override
-  Future<AuthUser> logIn({
-    required CredentialType credentialType,
-    List<String>? credentials,
-  }) async {
-    try {
-      switch (credentialType) {
-        case CredentialType.emailAndPassword:
-          if (credentials != null) {
-            await FirebaseAuth.instance.signInWithEmailAndPassword(
-              email: credentials[0],
-              password: credentials[1],
-            );
-          }
-          break;
-        case CredentialType.phoneAndOtp:
-          if (credentials != null) {
-            String verificationId = credentials[0];
-            String otpCode = credentials[1];
-            await logInWithPhoneAndOtp(verificationId: verificationId, otpCode: otpCode);
-          }
-          break;
-        case CredentialType.google:
-          await logInWithGoogle();
-          break;
-
-        default:
-          throw GenericAuthException();
-      }
-      final user = currentUser;
-      if (user != null) {
-        return user;
-      } else {
-        throw UserNotLoggedInAuthException();
-      }
-    } on FirebaseAuthException catch (error) {
-      switch (error.code) {
-        case "invalid-credential":
+      return user;
+    } on FirebaseAuthException catch (e) {
+      switch (e.code) {
+        case 'invalid-credential':
           throw InvalidCredentialsAuthException();
-        case "too-many-requests":
-          throw TooManyRequestsAuthException();
-        case "invalid-verification-code":
-          throw InvalidVerificationCodeAuthException();
         case 'network-request-failed':
           throw NetworkRequesFailed();
+        case 'too-many-requests':
+          throw TooManyRequestsAuthException();
         default:
           throw GenericAuthException();
       }
+    } on GenericAuthException {
+      rethrow;
     } on UserNotLoggedInAuthException {
+      rethrow;
+    } on NotVerifiedEmailAuthException {
       rethrow;
     } catch (_) {
       throw GenericAuthException();
@@ -218,17 +184,26 @@ class FirebaseAuthProvider implements AuthProvider {
 
   @override
   Future<AuthUser> logInWithPhoneAndOtp({required String verificationId, required String otpCode}) async {
-    PhoneAuthCredential credential = PhoneAuthProvider.credential(
-      verificationId: verificationId,
-      smsCode: otpCode,
-    );
-
-    await FirebaseAuth.instance.signInWithCredential(credential);
-    final user = currentUser;
-    if (user != null) {
+    try {
+      PhoneAuthCredential credential = PhoneAuthProvider.credential(
+        verificationId: verificationId,
+        smsCode: otpCode,
+      );
+      await FirebaseAuth.instance.signInWithCredential(credential);
+      final user = currentUser;
       return user;
-    } else {
-      throw UserNotLoggedInAuthException();
+    } on UserNotLoggedInAuthException {
+      rethrow;
+    } on FirebaseAuthException catch (e) {
+      if (e.code == 'invalid-verification-code') {
+        throw InvalidVerificationCodeAuthException();
+      } else if (e.code == 'network-request-failed') {
+        throw NetworkRequesFailed();
+      } else {
+        throw GenericAuthException();
+      }
+    } catch (e) {
+      throw GenericAuthException();
     }
   }
 

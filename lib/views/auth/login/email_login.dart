@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:livit/constants/colors.dart';
+import 'package:livit/constants/routes.dart';
 import 'package:livit/constants/styles/bar_style.dart';
 import 'package:livit/constants/styles/container_style.dart';
 import 'package:livit/constants/styles/spaces.dart';
@@ -238,88 +239,95 @@ class _SignInState extends State<SignIn> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<AuthBloc, AuthState>(
-      builder: (context, state) {
-        if (state is AuthStateLoggedOut && state.exception != null) {
-          switch (state.exception.runtimeType) {
-            case const (NetworkRequesFailed):
-              passwordCaptionText = 'Error de red';
-              break;
-            case const (UserNotLoggedInAuthException):
-              emailToVerify = _emailController.text;
-              //TODO AuthService.firebase().sendEmailVerification();
-              break;
-            case const (InvalidCredentialsAuthException):
-              passwordCaptionText = 'Email o contraseña incorrectos';
-              break;
-            case const (TooManyRequestsAuthException):
-              passwordCaptionText = 'Demasiados intentos, espera unos minutos';
-              break;
-
-            default:
-              passwordCaptionText = 'Error, intenta de nuevo en unos minutos';
-              break;
-          }
+    return BlocListener<AuthBloc, AuthState>(
+      listener: (context, state) {
+        if (state is AuthStateLoggedIn) {
+          Navigator.of(context).pushNamedAndRemoveUntil(Routes.mainViewRoute, (_) => false);
+        } else if (state is AuthStateLoading) {
+          setState(() {
+            passwordCaptionText = null;
+            emailCaptionText = null;
+            _isSigningIn = true;
+            emailToVerify = null;
+          });
+        } else if (state is AuthStateLoggedOut) {
+          _passwordController.clear();
+          setState(() {
+            _isPasswordValid = false;
+            if (state.exception != null) {
+              switch (state.exception.runtimeType) {
+                case const (NetworkRequesFailed):
+                  passwordCaptionText = 'Error de red';
+                  break;
+                case const (InvalidCredentialsAuthException):
+                  passwordCaptionText = 'Email no existente o contraseña incorrecta';
+                  break;
+                case const (GenericAuthException):
+                  passwordCaptionText = 'Algo salio mal, intentalo de nuevo mas tarde';
+                  break;
+                case const (TooManyRequestsAuthException):
+                  passwordCaptionText = 'Demasiados intentos, espera unos minutos';
+                  break;
+                case const (NotVerifiedEmailAuthException):
+                  emailToVerify = _emailController.text;
+                  context.read<AuthBloc>().add(
+                        AuthEventSendEmailVerification(email: _emailController.text),
+                      );
+                  break;
+                default:
+                  passwordCaptionText = 'Error: ${state.exception.toString()}';
+              }
+            }
+            _isSigningIn = false;
+          });
         }
-
-        return Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            LivitTextField(
-              controller: _emailController,
-              hint: 'Email',
-              inputType: TextInputType.emailAddress,
-              regExp: RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'),
-              onChanged: _onEmailChange,
-              bottomCaptionText: emailCaptionText,
-            ),
-            LivitSpaces.m,
-            LivitTextField(
-              controller: _passwordController,
-              hint: 'Contraseña',
-              blurInput: true,
-              onChanged: _onPasswordChange,
-              regExp: RegExp(r'^.{6,}$'),
-              bottomCaptionText: passwordCaptionText,
-            ),
-            LivitSpaces.m,
-            Button.main(
-              text: _isSigningIn ? 'Iniciando sesión' : 'Iniciar sesión',
-              isActive: _isEmailValid & _isPasswordValid,
-              onPressed: () async {
-                setState(
-                  () {
-                    passwordCaptionText = null;
-                    emailCaptionText = null;
-                    _isSigningIn = true;
-                    emailToVerify = null;
-                  },
-                );
-
-                context.read<AuthBloc>().add(
-                      AuthEventLogInWithEmailAndPassword(
-                        email: _emailController.text,
-                        password: _passwordController.text,
-                      ),
-                    );
-
-                setState(
-                  () {
-                    _isSigningIn = false;
-                  },
-                );
-              },
-            ),
-            emailToVerify == null
-                ? const SizedBox()
-                : VerifyEmail(
-                    email: emailToVerify!,
-                    isLoginVariant: true,
-                  ),
-          ],
-        );
       },
+      child: BlocBuilder<AuthBloc, AuthState>(
+        builder: (context, state) {
+          return Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              LivitTextField(
+                controller: _emailController,
+                hint: 'Email',
+                inputType: TextInputType.emailAddress,
+                regExp: RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'),
+                onChanged: _onEmailChange,
+                bottomCaptionText: emailCaptionText,
+              ),
+              LivitSpaces.m,
+              LivitTextField(
+                controller: _passwordController,
+                hint: 'Contraseña',
+                blurInput: true,
+                onChanged: _onPasswordChange,
+                regExp: RegExp(r'^.{6,}$'),
+                bottomCaptionText: passwordCaptionText,
+              ),
+              LivitSpaces.m,
+              Button.main(
+                text: _isSigningIn ? 'Iniciando sesión' : 'Iniciar sesión',
+                isActive: _isEmailValid & _isPasswordValid,
+                onPressed: () {
+                  context.read<AuthBloc>().add(
+                        AuthEventLogInWithEmailAndPassword(
+                          email: _emailController.text,
+                          password: _passwordController.text,
+                        ),
+                      );
+                },
+              ),
+              emailToVerify == null
+                  ? const SizedBox()
+                  : VerifyEmail(
+                      email: emailToVerify!,
+                      isLoginVariant: true,
+                    ),
+            ],
+          );
+        },
+      ),
     );
   }
 }
@@ -508,19 +516,6 @@ class _RegisterState extends State<Register> {
                         password: _passwordController.text,
                       ),
                     );
-
-                // TODO setState(
-                //   () {
-                //     emailToVerify = _emailController.text;
-                //     _resetFields();
-                //   },
-                // );
-
-                // setState(
-                //   () {
-                //     _isSigningIn = false;
-                //   },
-                // );
               },
             ),
             emailToVerify == null
@@ -554,69 +549,68 @@ class _VerifyEmail extends State<VerifyEmail> {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        LivitSpaces.m,
-        Container(
-          width: double.infinity,
-          constraints: const BoxConstraints(
-            minHeight: 54,
-          ),
-          decoration: LivitBarStyle.strongShadowDecoration,
-          padding: LivitContainerStyle.padding(null),
-          child: Center(
-            child: Row(
-              children: [
-                Expanded(
-                  child: widget.isLoginVariant
-                      ? const LivitText(
-                          'Termina de confirmar tu cuenta con el email que te hemos enviado.',
-                          textAlign: TextAlign.start,
-                        )
-                      : RichText(
-                          text: TextSpan(
-                            text: 'Hemos enviado un email a ',
-                            style: LivitTextStyle.regularWhiteActiveText,
-                            children: <TextSpan>[
-                              TextSpan(
-                                text: widget.email,
+    return BlocBuilder<AuthBloc, AuthState>(
+
+      builder: (context, state) {
+        if (state is AuthStateEmailVerificationSending) {
+          _isSendingCode = true;
+        } else if (state is AuthStateEmailVerificationSent) {
+          _isSendingCode = false;
+        } else if (state is AuthStateEmailVerificationSentError) {
+          _isSendingCode = false;
+        }
+        return Column(
+          children: [
+            LivitSpaces.m,
+            Container(
+              width: double.infinity,
+              constraints: const BoxConstraints(
+                minHeight: 54,
+              ),
+              decoration: LivitBarStyle.strongShadowDecoration,
+              padding: LivitContainerStyle.padding(null),
+              child: Center(
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: widget.isLoginVariant
+                          ? const LivitText(
+                              'Termina de confirmar tu cuenta con el email que te hemos enviado.',
+                              textAlign: TextAlign.start,
+                            )
+                          : RichText(
+                              text: TextSpan(
+                                text: 'Hemos enviado un email a ',
                                 style: LivitTextStyle.regularWhiteActiveText,
+                                children: <TextSpan>[
+                                  TextSpan(
+                                    text: widget.email,
+                                    style: LivitTextStyle.regularWhiteActiveText,
+                                  ),
+                                  TextSpan(
+                                    text: ' para que termines de confirmar tu cuenta.',
+                                    style: LivitTextStyle.regularWhiteActiveText,
+                                  ),
+                                ],
                               ),
-                              TextSpan(
-                                text: ' para que termines de confirmar tu cuenta.',
-                                style: LivitTextStyle.regularWhiteActiveText,
-                              ),
-                            ],
-                          ),
-                        ),
-                ),
-                Button.main(
-                  text: _isSendingCode ? 'Reenviando' : 'Reenviar',
-                  isActive: true,
-                  onPressed: () async {
-                    setState(
-                      () {
-                        _isSendingCode = true;
+                            ),
+                    ),
+                    Button.main(
+                      text: _isSendingCode ? 'Enviando' : 'Reenviar',
+                      isActive: true,
+                      onPressed: () async {
+                        context.read<AuthBloc>().add(
+                              AuthEventSendEmailVerification(email: widget.email),
+                            );
                       },
-                    );
-                    try {
-                      context.read<AuthBloc>().add(
-                            AuthEventSendEmailVerification(email: widget.email),
-                          );
-                    } on EmailAlreadyVerified {
-                    } on UserNotLoggedInAuthException {}
-                    setState(
-                      () {
-                        _isSendingCode = false;
-                      },
-                    );
-                  },
+                    ),
+                  ],
                 ),
-              ],
+              ),
             ),
-          ),
-        ),
-      ],
+          ],
+        );
+      },
     );
   }
 }

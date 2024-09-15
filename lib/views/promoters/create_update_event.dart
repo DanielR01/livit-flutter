@@ -4,7 +4,6 @@ import 'package:livit/constants/styles/spaces.dart';
 import 'package:livit/constants/styles/livit_text.dart';
 import 'package:livit/services/cloud/cloud_event.dart';
 import 'package:livit/services/cloud/firebase_cloud_storage.dart';
-import 'package:livit/utilities/background/main_background.dart';
 import 'package:livit/utilities/bars_containers_fields/glass_container.dart';
 import 'package:livit/utilities/buttons/arrow_back_button.dart';
 import 'package:livit/utilities/buttons/button.dart';
@@ -119,7 +118,6 @@ class _CreateUpdateEventViewState extends State<CreateUpdateEventView> {
     return Scaffold(
       body: Stack(
         children: [
-          const MainBackground(),
           SafeArea(
             child: Padding(
               padding: EdgeInsets.only(

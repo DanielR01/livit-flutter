@@ -8,14 +8,15 @@ import 'package:livit/constants/styles/shadows.dart';
 import 'package:livit/constants/styles/spaces.dart';
 import 'package:livit/constants/styles/livit_text.dart';
 import 'package:livit/constants/user_types.dart';
+import 'package:livit/services/auth/auth_exceptions.dart';
 import 'package:livit/services/auth/bloc/auth_bloc.dart';
 import 'package:livit/services/auth/bloc/auth_event.dart';
-import 'package:livit/services/auth/auth_exceptions.dart';
-import 'package:livit/utilities/background/main_background.dart';
 import 'package:livit/utilities/bars_containers_fields/glass_container.dart';
 import 'package:livit/utilities/bars_containers_fields/title_bar.dart';
 import 'package:livit/utilities/buttons/button.dart';
 import 'package:pinput/pinput.dart';
+import 'package:livit/services/auth/bloc/auth_state.dart';
+import 'package:livit/views/main_pages/mainmenu.dart';
 
 class ConfirmOTPCodeView extends StatefulWidget {
   final UserType userType;
@@ -41,7 +42,7 @@ class _ConfirmOTPCodeViewState extends State<ConfirmOTPCodeView> {
 
   String? otpCode;
   bool isOtpCodeValid = false;
-  bool invalidCode = false;
+  String? invalidCode;
   late Timer _timer;
   int countdown = 0;
   bool isResendButtonActive = false;
@@ -101,137 +102,155 @@ class _ConfirmOTPCodeViewState extends State<ConfirmOTPCodeView> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      resizeToAvoidBottomInset: false,
-      body: Stack(
-        children: [
-          const MainBackground(),
-          SafeArea(
-            child: SingleChildScrollView(
-              physics: const BouncingScrollPhysics(),
-              child: ConstrainedBox(
-                constraints: BoxConstraints(
-                  minHeight:
-                      MediaQuery.of(context).size.height - MediaQuery.of(context).padding.top - MediaQuery.of(context).padding.bottom,
-                ),
-                child: Padding(
-                  padding: EdgeInsets.only(
-                    bottom: MediaQuery.of(context).viewInsets.bottom,
+    return BlocListener<AuthBloc, AuthState>(
+      listener: (context, state) {
+        if (state is AuthStateLoggedIn) {
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(
+              builder: (context) => const MainMenu(),
+            ),
+          );
+        } else if (state is AuthStateLoggedOut) {
+          setState(() {
+            if (state.exception is InvalidVerificationCodeAuthException) {
+              invalidCode = 'Codigo invalido';
+            } else if (state.exception is NetworkRequesFailed) {
+              invalidCode = 'Error de red';
+            } else {
+              invalidCode = 'Error desconocido';
+            }
+            _isVerifyingCode = false;
+          });
+        } else if (state is AuthStateCodeSent) {
+          setState(() {
+            verificationId = state.verificationId;
+          });
+          startTimer();
+        }
+      },
+      child: Scaffold(
+        resizeToAvoidBottomInset: false,
+        backgroundColor: Colors.transparent,
+        body: Stack(
+          children: [
+            SafeArea(
+              child: SingleChildScrollView(
+                physics: const BouncingScrollPhysics(),
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(
+                    minHeight:
+                        MediaQuery.of(context).size.height - MediaQuery.of(context).padding.top - MediaQuery.of(context).padding.bottom,
                   ),
-                  child: Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Padding(
-                          padding: LivitContainerStyle.paddingFromScreen,
-                          child: GlassContainer(
-                            child: SizedBox(
-                              width: double.infinity,
-                              child: Padding(
-                                padding: LivitContainerStyle.padding([0, null, null, null]),
-                                child: Column(
-                                  children: [
-                                    const TitleBar(
-                                      title: 'Ingresa el código',
-                                      isBackEnabled: true,
-                                    ),
-                                    LivitText(
-                                      'Hemos enviado un codigo al +${widget.phoneCode} ${widget.phoneNumber}, ingresalo aqui para verificar tu cuenta:',
-                                    ),
-                                    LivitSpaces.m,
-                                    Pinput(
-                                      onTapOutside: (event) {
-                                        FocusManager.instance.primaryFocus?.unfocus();
-                                      },
-                                      autofocus: true,
-                                      controller: otpController,
-                                      length: 6,
-                                      defaultPinTheme: PinTheme(
-                                        height: LivitBarStyle.height,
-                                        width: LivitBarStyle.height,
-                                        decoration: BoxDecoration(
-                                          color: LivitColors.mainBlack,
-                                          borderRadius: LivitContainerStyle.radius,
-                                          boxShadow: [
-                                            LivitShadows.activeWhiteShadow,
-                                          ],
-                                        ),
-                                        textStyle: LivitTextStyle.regularWhiteActiveText,
+                  child: Padding(
+                    padding: EdgeInsets.only(
+                      bottom: MediaQuery.of(context).viewInsets.bottom,
+                    ),
+                    child: Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Padding(
+                            padding: LivitContainerStyle.paddingFromScreen,
+                            child: GlassContainer(
+                              child: SizedBox(
+                                width: double.infinity,
+                                child: Padding(
+                                  padding: LivitContainerStyle.padding([0, null, null, null]),
+                                  child: Column(
+                                    children: [
+                                      const TitleBar(
+                                        title: 'Ingresa el código',
+                                        isBackEnabled: true,
                                       ),
-                                      onChanged: (value) {
-                                        setState(() {
-                                          otpCode = value;
-                                          isOtpCodeValid = RegExp(r'^\d{6}$').hasMatch(otpCode ?? '');
-                                        });
-                                      },
-                                    ),
-                                    if (invalidCode) ...[
-                                      LivitSpaces.s,
-                                      const LivitText(
-                                        'Codigo invalido',
-                                        textType: TextType.small,
+                                      LivitText(
+                                        'Hemos enviado un codigo al ${widget.phoneCode} ${widget.phoneNumber}, ingresalo aqui para verificar tu cuenta:',
                                       ),
-                                    ],
-                                    LivitSpaces.m,
-                                    Row(
-                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                      mainAxisSize: MainAxisSize.max,
-                                      children: [
-                                        Button.secondary(
-                                          blueStyle: false,
-                                          text: isResendButtonActive ? 'Reenviar codigo' : 'Reenviar codigo... $countdown',
-                                          isActive: isResendButtonActive,
-                                          onPressed: () async {
-                                            invalidCode = false;
-                                            context.read<AuthBloc>().add(
-                                                  AuthEventSendOtpCode(
-                                                    phoneCode: widget.phoneCode,
-                                                    phoneNumber: widget.phoneNumber,
-                                                  ),
-                                                );
-                                            startTimer();
-                                          },
+                                      LivitSpaces.m,
+                                      Pinput(
+                                        onTapOutside: (event) {
+                                          FocusManager.instance.primaryFocus?.unfocus();
+                                        },
+                                        autofocus: true,
+                                        controller: otpController,
+                                        length: 6,
+                                        defaultPinTheme: PinTheme(
+                                          height: LivitBarStyle.height,
+                                          width: LivitBarStyle.height,
+                                          decoration: BoxDecoration(
+                                            color: LivitColors.mainBlack,
+                                            borderRadius: LivitContainerStyle.radius,
+                                            boxShadow: [
+                                              LivitShadows.activeWhiteShadow,
+                                            ],
+                                          ),
+                                          textStyle: LivitTextStyle.regularWhiteActiveText,
                                         ),
-                                        Button.main(
-                                          text: _isVerifyingCode ? 'Verificando...' : 'Verificar',
-                                          isActive: isOtpCodeValid,
-                                          onPressed: () async {
-                                            setState(() {
-                                              _isVerifyingCode = true;
-                                            });
-                                            try {
-                                              context.read<AuthBloc>().add(AuthEventLogInWithPhoneAndOtp(
-                                                    verificationId: verificationId,
-                                                    otpCode: otpController.text,
-                                                  ));
-                                            } on InvalidVerificationCodeAuthException {
-                                              otpController.text = '';
-                                              invalidCode = true;
-                                              // TODO implement invalidverificationCodeAuthException
-                                            } on GenericAuthException {
-                                              //TODO implement genericAuthException
-                                            }
-                                            setState(() {
-                                              _isVerifyingCode = false;
-                                            });
-                                          },
+                                        onChanged: (value) {
+                                          setState(() {
+                                            otpCode = value;
+                                            isOtpCodeValid = RegExp(r'^\d{6}$').hasMatch(otpCode ?? '');
+                                          });
+                                        },
+                                      ),
+                                      if (invalidCode != null) ...[
+                                        LivitSpaces.s,
+                                        LivitText(
+                                          invalidCode!,
+                                          textType: TextType.small,
                                         ),
                                       ],
-                                    ),
-                                  ],
+                                      LivitSpaces.m,
+                                      Row(
+                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                        mainAxisSize: MainAxisSize.max,
+                                        children: [
+                                          Button.secondary(
+                                            blueStyle: false,
+                                            text: isResendButtonActive ? 'Reenviar codigo' : 'Reenviar codigo... $countdown',
+                                            isActive: isResendButtonActive,
+                                            onPressed: () {
+                                              invalidCode = null;
+                                              context.read<AuthBloc>().add(
+                                                    AuthEventSendOtpCode(
+                                                      phoneCode: widget.phoneCode,
+                                                      phoneNumber: widget.phoneNumber,
+                                                    ),
+                                                  );
+                                              startTimer();
+                                            },
+                                          ),
+                                          Button.main(
+                                            text: _isVerifyingCode ? 'Verificando...' : 'Verificar',
+                                            isActive: isOtpCodeValid,
+                                            onPressed: () {
+                                              setState(() {
+                                                _isVerifyingCode = true;
+                                              });
+                                              context.read<AuthBloc>().add(
+                                                    AuthEventLogInWithPhoneAndOtp(
+                                                      verificationId: verificationId,
+                                                      otpCode: otpController.text,
+                                                    ),
+                                                  );
+                                            },
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
                                 ),
                               ),
                             ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
                 ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

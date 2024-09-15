@@ -1,12 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:livit/constants/routes.dart';
-import 'package:livit/constants/styles/container_style.dart';
-import 'package:livit/services/cloud/cloud_event.dart';
 import 'package:livit/services/cloud/firebase_cloud_storage.dart';
-import 'package:livit/utilities/background/main_background.dart';
-import 'package:livit/utilities/events/events_list.dart';
-import 'package:livit/utilities/loading_screen.dart';
 
 class HomeView extends StatefulWidget {
   const HomeView({
@@ -31,7 +25,6 @@ class _HomeViewState extends State<HomeView> {
   Widget build(BuildContext context) {
     return Stack(
       children: [
-        const MainBackground(),
         // StreamBuilder(
         //   stream: _livitDBService.allEvents(creatorId: userId),
         //   builder: (context, snapshot) {

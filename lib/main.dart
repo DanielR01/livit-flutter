@@ -32,7 +32,7 @@ class StartPage extends StatelessWidget {
             selectionHandleColor: LivitColors.whiteActive,
             cursorColor: LivitColors.whiteActive,
           ),
-          scaffoldBackgroundColor: LivitColors.mainBlack,
+          scaffoldBackgroundColor: Colors.transparent,
           appBarTheme: const AppBarTheme(
             color: LivitColors.mainBlack,
             titleTextStyle: TextStyle(

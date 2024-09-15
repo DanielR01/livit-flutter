@@ -15,11 +15,6 @@ class AuthStateLoggedIn extends AuthState {
   const AuthStateLoggedIn({required this.user});
 }
 
-class AuthStateLoginError extends AuthState {
-  final Exception exception;
-  const AuthStateLoginError({required this.exception});
-}
-
 class AuthStateLoggedOut extends AuthState {
   final Exception? exception;
   const AuthStateLoggedOut({this.exception});
@@ -42,4 +37,17 @@ class AuthStateCodeSent extends AuthState {
   final String verificationId;
   final int? forceResendingToken;
   const AuthStateCodeSent({required this.verificationId, this.forceResendingToken});
+}
+
+class AuthStateEmailVerificationSending extends AuthState {
+  const AuthStateEmailVerificationSending();
+}
+
+class AuthStateEmailVerificationSent extends AuthState {
+  const AuthStateEmailVerificationSent();
+}
+
+class AuthStateEmailVerificationSentError extends AuthState {
+  final Exception exception;
+  const AuthStateEmailVerificationSentError({required this.exception});
 }

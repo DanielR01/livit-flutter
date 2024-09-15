@@ -88,8 +88,9 @@ class WelcomeMessage extends StatelessWidget {
             text: 'Comenzar',
             isActive: true,
             onPressed: () {
-              Navigator.of(context).pushNamed(
+              Navigator.of(context).pushNamedAndRemoveUntil(
                 Routes.authRoute,
+                (route) => false,
                 arguments: {'userType': UserType.customer},
               );
             },

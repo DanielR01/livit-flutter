@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:livit/constants/routes.dart';
+import 'package:livit/constants/styles/container_style.dart';
 import 'package:livit/constants/styles/livit_text.dart';
 import 'package:livit/constants/styles/spaces.dart';
+import 'package:livit/constants/user_types.dart';
 import 'package:livit/utilities/buttons/button.dart';
 
 class ErrorView extends StatelessWidget {
@@ -16,7 +19,7 @@ class ErrorView extends StatelessWidget {
       body: SafeArea(
         child: Center(
           child: Padding(
-            padding: EdgeInsets.symmetric(vertical: 25, horizontal: 35),
+            padding: LivitContainerStyle.paddingFromScreen,
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -41,7 +44,17 @@ class ErrorView extends StatelessWidget {
                   isActive: true,
                   text: 'Volver',
                   onPressed: () {
-                    Navigator.of(context).pop();
+                    if (Navigator.canPop(context)) {
+                      Navigator.of(context).pop();
+                    } else {
+                      Navigator.of(context).pushNamedAndRemoveUntil(
+                        Routes.authRoute,
+                        arguments: {
+                          'userType': UserType.customer,
+                        },
+                        (route) => false,
+                      );
+                    }
                   },
                 ),
               ],

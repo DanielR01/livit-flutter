@@ -1,6 +1,8 @@
 //login exceptions
 class InvalidCredentialsAuthException implements Exception {}
 
+class NotVerifiedEmailAuthException implements Exception {}
+
 //register exceptions
 class EmailAlreadyInUseAuthException implements Exception {}
 
@@ -16,7 +18,12 @@ class InvalidPhoneNumberAuthException implements Exception {}
 class InvalidVerificationCodeAuthException implements Exception {}
 
 //generic exceptions
-class GenericAuthException implements Exception {}
+class GenericAuthException implements Exception {
+  @override
+  String toString() {
+    return 'Algo salió mal';
+  }
+}
 
 class UserNotLoggedInAuthException implements Exception {}
 

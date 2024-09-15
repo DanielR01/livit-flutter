@@ -3,11 +3,13 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:livit/constants/routes.dart';
 import 'package:livit/constants/user_types.dart';
+import 'package:livit/utilities/login/confirm_otp_code.dart';
 import 'package:livit/views/auth/initial_router.dart';
 import 'package:livit/views/auth/login/auth_view.dart';
 import 'package:livit/views/auth/login/email_login.dart';
 import 'package:livit/views/auth/login/phone_login.dart';
 import 'package:livit/views/error_route.dart';
+import 'package:livit/views/main_pages/mainmenu.dart';
 
 class CustomCupertinoPageRoute<T> extends CupertinoPageRoute<T> {
   CustomCupertinoPageRoute({
@@ -85,6 +87,9 @@ class RouteGenerator {
       case '/':
         page = const InitialRouterView();
         break;
+      case Routes.mainViewRoute:
+        page = const MainMenu();
+        break;
       case Routes.authRoute:
         if (args is Map<String, dynamic> && args.containsKey('userType')) {
           final userType = args['userType'] as UserType;
@@ -99,6 +104,26 @@ class RouteGenerator {
           page = PhoneLoginView(userType: userType);
         } else {
           page = const ErrorView(message: 'No se proporcionó el tipo de usuario.');
+        }
+        break;
+      case Routes.confirmOTPCodeRoute:
+        if (args is Map<String, dynamic> &&
+            args.containsKey('userType') &&
+            args.containsKey('phoneCode') &&
+            args.containsKey('initialVerificationId') &&
+            args.containsKey('phoneNumber')) {
+          final userType = args['userType'] as UserType;
+          final phoneCode = args['phoneCode'] as String;
+          final initialVerificationId = args['initialVerificationId'] as String;
+          final phoneNumber = args['phoneNumber'] as String;
+          page = ConfirmOTPCodeView(
+            userType: userType,
+            phoneCode: phoneCode,
+            initialVerificationId: initialVerificationId,
+            phoneNumber: phoneNumber,
+          );
+        } else {
+          page = const ErrorView(message: 'No se proporcionó toda la información necesaria.');
         }
         break;
       case Routes.loginEmailRoute:

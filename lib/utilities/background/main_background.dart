@@ -2,109 +2,217 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:livit/constants/colors.dart';
 import 'package:livit/utilities/background/blend_mask.dart';
+import 'dart:math' show Random;
 
 class MainBackground extends StatefulWidget {
   final bool blurred;
+  final List<List<List<double>>> blobPositions;
+  final List<List<Color>> blobColorStates;
+
+  static final List<String> _defaultBlobPaths = [
+    "assets/images/blobs/blob5.png",
+    "assets/images/blobs/blob4.png",
+    "assets/images/blobs/blob3.png",
+    "assets/images/blobs/blob2.png",
+    "assets/images/blobs/blob1.png",
+  ];
+  static final List<double> _defaultBlobHeights = [
+    (568 + 300) / 844,
+    (542 + 300) / 844,
+    (485 + 300) / 844,
+    (190 + 300) / 844,
+    (307.5 + 300) / 844,
+  ];
+  static final List<List<List<double>>> _defaultBlobPositions = [
+    [
+      [306, -206],
+      [354, 24],
+      [358, -146],
+      [330, 622],
+      [330, 622],
+    ],
+    [
+      [-495, 739],
+      [-495, 739],
+      [-182, 842],
+      [-182, 842],
+      [-182, 842],
+    ],
+    [
+      [-500, 179],
+      [-500, 422],
+      [-469, -63],
+      [-469, 388],
+      [-469, 388],
+    ],
+    [
+      [235, 488],
+      [296, 726],
+      [340, 347],
+      [284, 36],
+      [310, 190],
+    ],
+    [
+      [-312, -126],
+      [-162, -261],
+      [0, -265],
+      [-17, -191],
+      [-486, -36],
+    ],
+  ];
+  static final List<List<Color>> _defaultBlobColorStates = [
+    [
+      LivitColors.mainBlueActive,
+      LivitColors.mainBlueActive,
+      LivitColors.mainBlueActive,
+      LivitColors.mainBlueActive,
+      LivitColors.mainBlueActive,
+    ],
+    [
+      LivitColors.greenActive,
+      LivitColors.greenActive,
+      LivitColors.greenActive,
+      LivitColors.whiteActive,
+      LivitColors.whiteActive,
+    ],
+    [
+      LivitColors.mainBlueActive,
+      LivitColors.mainBlueActive,
+      LivitColors.mainBlueActive,
+      LivitColors.mainBlueActive,
+      LivitColors.mainBlueActive,
+    ],
+    const [
+      Color.fromARGB(255, 30, 104, 249),
+      Color.fromARGB(255, 30, 104, 249),
+      Color.fromARGB(255, 30, 104, 249),
+      Color.fromARGB(255, 30, 104, 249),
+      Color.fromARGB(255, 30, 104, 249),
+    ],
+    [
+      LivitColors.mainBlueActive,
+      LivitColors.mainBlueActive,
+      LivitColors.mainBlueActive,
+      LivitColors.whiteActive,
+      LivitColors.whiteActive,
+    ],
+  ];
+
   const MainBackground({
     super.key,
     this.blurred = false,
+    required this.blobPositions,
+    required this.blobColorStates,
   });
+
+  factory MainBackground.normal() {
+    return MainBackground(
+      blurred: false,
+      blobPositions: _defaultBlobPositions,
+      blobColorStates: _defaultBlobColorStates,
+    );
+  }
+
+  factory MainBackground.colorful({bool blurred = false}) {
+    List<List<List<double>>> colorfulBlobPositions = [
+      for (var blobSet in _defaultBlobPositions)
+        [
+          for (var position in blobSet)
+            [
+              position[0] * 0.9, // Reduce horizontal spread
+              position[1] * 0.9, // Reduce vertical spread
+            ]
+        ]
+    ];
+
+    return MainBackground(
+      blurred: blurred,
+      blobPositions: colorfulBlobPositions,
+      blobColorStates: _defaultBlobColorStates,
+    );
+  }
+
+  factory MainBackground.colorfulTinted({
+    required Color tintColor,
+    required double opacity,
+  }) {
+    final random = Random();
+    List<List<List<double>>> colorfulBlobPositions = [
+      for (var blobSet in _defaultBlobPositions)
+        [
+          for (var position in blobSet)
+            [
+              position[0] * 0.95, // Reduce horizontal spread
+              position[1] * 1, // Reduce vertical spread
+            ]
+        ]
+    ];
+    List<List<Color>> tintedBlobColorStates = _defaultBlobColorStates.map((blobColors) {
+      return blobColors.map((color) {
+        final randomOpacity = (opacity + (random.nextDouble() * 0.7 - 0.35)).clamp(0.0, 1.0);
+        return Color.alphaBlend(tintColor.withOpacity(randomOpacity), color);
+      }).toList();
+    }).toList();
+
+    return MainBackground(
+      blurred: false,
+      blobPositions: colorfulBlobPositions,
+      blobColorStates: tintedBlobColorStates,
+    );
+  }
+
+  factory MainBackground.normalTinted({
+    required Color tintColor,
+    required double opacity,
+  }) {
+    final random = Random();
+    List<List<Color>> tintedBlobColorStates = _defaultBlobColorStates.map((blobColors) {
+      return blobColors.map((color) {
+        final randomOpacity = (opacity + (random.nextDouble() * 0.7 - 0.35)).clamp(0.0, 1.0);
+        return Color.alphaBlend(tintColor.withOpacity(randomOpacity), color);
+      }).toList();
+    }).toList();
+
+    return MainBackground(
+      blurred: false,
+      blobPositions: _defaultBlobPositions,
+      blobColorStates: tintedBlobColorStates,
+    );
+  }
+
+  factory MainBackground.plainTinted({
+    required Color tintColor,
+    required double opacity,
+    bool blurred = false,
+  }) {
+    final random = Random();
+
+    List<List<Color>> grayscaleBlobColorStates = _defaultBlobColorStates.map((blobColors) {
+      return blobColors.map((color) {
+        final hslColor = HSLColor.fromColor(color);
+        return hslColor.withSaturation(0).toColor();
+      }).toList();
+    }).toList();
+
+    List<List<Color>> tintedBlobColorStates = grayscaleBlobColorStates.map((blobColors) {
+      return blobColors.map((color) {
+        final randomOpacity = (opacity + (random.nextDouble() * 0.8 - 0.4)).clamp(0.0, 1.0);
+        return Color.alphaBlend(tintColor.withOpacity(randomOpacity), color);
+      }).toList();
+    }).toList();
+
+    return MainBackground(
+      blurred: blurred,
+      blobPositions: _defaultBlobPositions,
+      blobColorStates: tintedBlobColorStates,
+    );
+  }
 
   @override
   State<MainBackground> createState() => _MainBackgroundState();
 }
 
-List<String> blobPaths = [
-  "assets/images/blobs/blob5.png",
-  "assets/images/blobs/blob4.png",
-  "assets/images/blobs/blob3.png",
-  "assets/images/blobs/blob2.png",
-  "assets/images/blobs/blob1.png",
-];
-List<double> blobHeights = [
-  (568 + 300) / 844,
-  (542 + 300) / 844,
-  (485 + 300) / 844,
-  (190 + 300) / 844,
-  (307.5 + 300) / 844,
-];
-List<List<List<double>>> blobPositions = [
-  [
-    [306, -206],
-    [354, 24],
-    [358, -146],
-    [330, 622],
-    [330, 622],
-  ],
-  [
-    [-495, 739],
-    [-495, 739],
-    [-182, 842],
-    [-182, 842],
-    [-182, 842],
-  ],
-  [
-    [-500, 179],
-    [-500, 422],
-    [-469, -63],
-    [-469, 388],
-    [-469, 388],
-  ],
-  [
-    [235, 488],
-    [296, 726],
-    [340, 347],
-    [284, 36],
-    [310, 190],
-  ],
-  [
-    [-312, -126],
-    [-162, -261],
-    [0, -265],
-    [-17, -191],
-    [-486, -36],
-  ],
-];
-List<List<Color>> blobColorStates = [
-  [
-    LivitColors.mainBlueActive,
-    LivitColors.mainBlueActive,
-    LivitColors.mainBlueActive,
-    LivitColors.mainBlueActive,
-    LivitColors.mainBlueActive,
-  ],
-  [
-    LivitColors.greenActive,
-    LivitColors.greenActive,
-    LivitColors.greenActive,
-    LivitColors.whiteActive,
-    LivitColors.whiteActive,
-  ],
-  [
-    LivitColors.mainBlueActive,
-    LivitColors.mainBlueActive,
-    LivitColors.mainBlueActive,
-    LivitColors.mainBlueActive,
-    LivitColors.mainBlueActive,
-  ],
-  const [
-    Color.fromARGB(255, 30, 104, 249),
-    Color.fromARGB(255, 30, 104, 249),
-    Color.fromARGB(255, 30, 104, 249),
-    Color.fromARGB(255, 30, 104, 249),
-    Color.fromARGB(255, 30, 104, 249),
-  ],
-  [
-    LivitColors.mainBlueActive,
-    LivitColors.mainBlueActive,
-    LivitColors.mainBlueActive,
-    LivitColors.whiteActive,
-    LivitColors.whiteActive,
-  ],
-];
-
-class _MainBackgroundState extends State<MainBackground>
-    with TickerProviderStateMixin {
+class _MainBackgroundState extends State<MainBackground> with TickerProviderStateMixin {
   late List<AnimationController> _controllers;
   late List<Animation<Offset>> _positionAnimations;
   late List<Animation<Color?>> _colorAnimations;
@@ -115,9 +223,9 @@ class _MainBackgroundState extends State<MainBackground>
   void initState() {
     super.initState();
 
-    animationStates = blobPositions[0].map((_) => 0).toList();
+    animationStates = widget.blobPositions[0].map((_) => 0).toList();
 
-    _controllers = blobPaths.map(
+    _controllers = MainBackground._defaultBlobPaths.map(
       (_) {
         return AnimationController(
           duration: const Duration(milliseconds: 5000),
@@ -154,12 +262,10 @@ class _MainBackgroundState extends State<MainBackground>
   }
 
   void _animateBlob(int blobIndex) {
-    final start = blobPositions[blobIndex][animationStates[blobIndex]];
-    final end = blobPositions[blobIndex]
-        [(animationStates[blobIndex] + 1) % blobPositions[blobIndex].length];
-    final colorStart = blobColorStates[blobIndex][animationStates[blobIndex]];
-    final colorEnd = blobColorStates[blobIndex]
-        [(animationStates[blobIndex] + 1) % blobColorStates[blobIndex].length];
+    final start = widget.blobPositions[blobIndex][animationStates[blobIndex]];
+    final end = widget.blobPositions[blobIndex][(animationStates[blobIndex] + 1) % widget.blobPositions[blobIndex].length];
+    final colorStart = widget.blobColorStates[blobIndex][animationStates[blobIndex]];
+    final colorEnd = widget.blobColorStates[blobIndex][(animationStates[blobIndex] + 1) % widget.blobColorStates[blobIndex].length];
 
     _positionAnimations[blobIndex] = Tween<Offset>(
       begin: Offset(start[0], start[1]),
@@ -185,8 +291,7 @@ class _MainBackgroundState extends State<MainBackground>
       () {
         setState(
           () {
-            animationStates[blobIndex] = (animationStates[blobIndex] + 1) %
-                blobPositions[blobIndex].length;
+            animationStates[blobIndex] = (animationStates[blobIndex] + 1) % widget.blobPositions[blobIndex].length;
           },
         );
         _animateBlob(blobIndex);
@@ -252,8 +357,7 @@ class DotsBackground extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    String imagePath =
-        blurred ? 'assets/images/dots-blurred.png' : 'assets/images/dots.png';
+    String imagePath = blurred ? 'assets/images/dots-blurred.png' : 'assets/images/dots.png';
     return SizedBox(
       child: Image(
         image: AssetImage(imagePath),
@@ -288,7 +392,7 @@ class Blobs extends StatelessWidget {
     return Container(
       color: LivitColors.mainBlack,
       child: Stack(
-        children: blobPaths.asMap().entries.map(
+        children: MainBackground._defaultBlobPaths.asMap().entries.map(
           (entry) {
             int index = entry.key;
             String blob = entry.value;
@@ -315,7 +419,7 @@ class Blobs extends StatelessWidget {
                           ),
                           child: Image.asset(
                             blob,
-                            height: blobHeights[index] * screenHeight,
+                            height: MainBackground._defaultBlobHeights[index] * screenHeight,
                           ),
                         ),
                 );

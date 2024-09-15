@@ -4,6 +4,6 @@ class Routes {
   static const loginEmailRoute = '/loginEmail';
   static const confirmOTPCodeRoute = '/confirmOTPCode';
   static const getOrCreateUserRoute = '/getOrCreateUser';
-  static const mainviewRoute = '/mainView';
+  static const mainViewRoute = '/mainView';
   static const createUpdateEventRoute = '/createUpdateEvent';
 }

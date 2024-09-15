@@ -1,15 +1,9 @@
-import 'package:livit/services/auth/credential_types.dart';
 import 'package:livit/services/auth/auth_user.dart';
 
 abstract class AuthProvider {
-  AuthUser? get currentUser;
+  AuthUser get currentUser;
 
   Future<void> initialize();
-
-  Future<AuthUser> logIn({
-    required CredentialType credentialType,
-    required List<String> credentials,
-  });
 
   Future<AuthUser> logInWithEmailAndPassword({
     required String email,

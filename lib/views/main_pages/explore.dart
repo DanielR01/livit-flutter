@@ -1,5 +1,5 @@
 import 'package:flutter/cupertino.dart';
-import 'package:livit/utilities/background/main_background.dart';
+
 
 class ExploreView extends StatefulWidget {
   
@@ -14,7 +14,7 @@ class _ExploreViewState extends State<ExploreView> {
   Widget build(BuildContext context) {
     return const Stack(
       children: [
-        MainBackground(),
+        
         Center(
           child: Text('Explore'),
         ),

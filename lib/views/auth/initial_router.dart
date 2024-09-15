@@ -20,6 +20,7 @@ class InitialRouterView extends StatelessWidget {
         } else if (state is AuthStateLoggedOut) {
           return const WelcomeView();
         }
+        
         return const LoadingScreenWithBackground();
       },
     );

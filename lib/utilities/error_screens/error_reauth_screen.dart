@@ -4,7 +4,6 @@ import 'package:livit/constants/styles/spaces.dart';
 import 'package:livit/constants/styles/livit_text.dart';
 import 'package:livit/services/auth/bloc/auth_bloc.dart';
 import 'package:livit/services/auth/bloc/auth_event.dart';
-import 'package:livit/utilities/background/main_background.dart';
 import 'package:livit/utilities/buttons/button.dart';
 
 class ErrorReauthScreen extends StatefulWidget {
@@ -20,7 +19,6 @@ class _ErrorReauthScreenState extends State<ErrorReauthScreen> {
     return Scaffold(
       body: Stack(
         children: [
-          const MainBackground(),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             mainAxisSize: MainAxisSize.max,

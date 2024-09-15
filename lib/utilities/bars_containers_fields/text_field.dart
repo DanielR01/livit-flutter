@@ -189,6 +189,7 @@ class _LivitTextFieldState extends State<LivitTextField> {
             child: Text(
               '+${selectedCountry.phoneCode}',
               style: LivitTextStyle.regularWhiteActiveText,
+              textAlign: TextAlign.center,
             ),
           ),
         ),
