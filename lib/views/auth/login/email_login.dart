@@ -243,7 +243,7 @@ class _SignInState extends State<SignIn> {
       listener: (context, state) {
         if (state is AuthStateLoggedIn) {
           Navigator.of(context).pushNamedAndRemoveUntil(Routes.mainViewRoute, (_) => false);
-        } else if (state is AuthStateLoading) {
+        } else if (state is AuthStateLoggingIn) {
           setState(() {
             passwordCaptionText = null;
             emailCaptionText = null;
@@ -260,7 +260,7 @@ class _SignInState extends State<SignIn> {
                   passwordCaptionText = 'Error de red';
                   break;
                 case const (InvalidCredentialsAuthException):
-                  passwordCaptionText = 'Email no existente o contraseña incorrecta';
+                  passwordCaptionText = 'Email no registrado o contraseña incorrecta';
                   break;
                 case const (GenericAuthException):
                   passwordCaptionText = 'Algo salio mal, intentalo de nuevo mas tarde';
@@ -300,7 +300,7 @@ class _SignInState extends State<SignIn> {
               LivitTextField(
                 controller: _passwordController,
                 hint: 'Contraseña',
-                blurInput: true,
+                isPasswordField: true,
                 onChanged: _onPasswordChange,
                 regExp: RegExp(r'^.{6,}$'),
                 bottomCaptionText: passwordCaptionText,
@@ -466,7 +466,7 @@ class _RegisterState extends State<Register> {
             LivitTextField(
               controller: _passwordController,
               hint: 'Contraseña',
-              blurInput: true,
+              isPasswordField: true,
               onChanged: _onPasswordChange,
               regExp: RegExp(r'^.{6,}$'),
               bottomCaptionText: passwordCaptionText,
@@ -483,7 +483,7 @@ class _RegisterState extends State<Register> {
             LivitTextField(
               controller: _confirmPasswordController,
               hint: 'Verifica tu contraseña',
-              blurInput: true,
+              isPasswordField: true,
               onChanged: _onConfirmPasswordChange,
               externalIsValid: _arePasswordsEqual,
               bottomCaptionText: confirmPasswordCaptionText,
@@ -550,7 +550,6 @@ class _VerifyEmail extends State<VerifyEmail> {
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<AuthBloc, AuthState>(
-
       builder: (context, state) {
         if (state is AuthStateEmailVerificationSending) {
           _isSendingCode = true;
@@ -659,71 +658,77 @@ class _ForgotPassword extends State<ForgotPassword> {
 
   @override
   Widget build(BuildContext context) {
-    return GlassContainer(
-      child: Padding(
-        padding: LivitContainerStyle.padding(null),
-        child: Column(
-          children: [
-            const LivitText(
-              '¿Olvidaste tu contraseña?',
-              textType: TextType.smallTitle,
-            ),
-            LivitSpaces.s,
-            const LivitText(
-              'Digita tu correo y te enviaremos un mensaje para que reestablezcas tu contraseña.',
-            ),
-            LivitSpaces.m,
-            Row(
+    return BlocBuilder<AuthBloc, AuthState>(
+      builder: (context, state) {
+        if (state is AuthStateSendingPasswordReset) {
+          emailCaptionText = null;
+          _isSendingEmail = true;
+        } else if (state is AuthStatePasswordResetSent) {
+          _isSendingEmail = false;
+          _isEmailSent = true;
+          emailCaptionText = 'Solo te llegará un correo si existe una cuenta asociada a este email.';
+        } else if (state is AuthStatePasswordResetSentError) {
+          _isSendingEmail = false;
+          _isEmailSent = false;
+          if (state.exception.runtimeType == NetworkRequesFailed) {
+            emailCaptionText = 'Error de conexión';
+          } else if (state.exception.runtimeType == GenericAuthException) {
+            emailCaptionText = 'Algo salio mal, intenta mas tarde';
+          }
+        }
+        return GlassContainer(
+          child: Padding(
+            padding: LivitContainerStyle.padding(null),
+            child: Column(
               children: [
-                Expanded(
-                  child: LivitTextField(
-                    controller: _emailController,
-                    hint: 'Email',
-                    inputType: TextInputType.emailAddress,
-                    regExp: RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'),
-                    onChanged: _onEmailChange,
-                    bottomCaptionText: emailCaptionText,
-                  ),
+                const LivitText(
+                  '¿Olvidaste tu contraseña?',
+                  textType: TextType.smallTitle,
+                ),
+                LivitSpaces.s,
+                const LivitText(
+                  'Digita tu correo y te enviaremos un mensaje para que reestablezcas tu contraseña.',
                 ),
                 LivitSpaces.m,
-                Button.main(
-                  text: _isSendingEmail
-                      ? 'Enviando'
-                      : _isEmailSent
-                          ? 'Enviado'
-                          : 'Enviar',
-                  isActive: _isEmailValid,
-                  onPressed: () async {
-                    setState(
-                      () {
-                        _isSendingEmail = true;
-                      },
-                    );
-                    try {
-                      context.read<AuthBloc>().add(
-                            AuthEventSendPasswordReset(email: _emailController.text),
-                          );
-                      _isEmailSent = true;
-                      emailCaptionText = '¡Listo!, revisa tu correo.';
-                    } on NetworkRequesFailed {
-                      emailCaptionText = 'Error de conexión';
-                      _isEmailSent = false;
-                    } on GenericAuthException {
-                      emailCaptionText = 'Algo salio mal, intenta mas tarde';
-                      _isEmailSent = false;
-                    }
-                    setState(
-                      () {
-                        _isSendingEmail = false;
-                      },
-                    );
-                  },
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: LivitTextField(
+                        controller: _emailController,
+                        hint: 'Email',
+                        inputType: TextInputType.emailAddress,
+                        regExp: RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'),
+                        onChanged: _onEmailChange,
+                        bottomCaptionText: emailCaptionText,
+                      ),
+                    ),
+                    LivitSpaces.m,
+                    SizedBox(
+                      height: LivitBarStyle.height,
+                      child: Center(
+                        child: Button.main(
+                          text: _isSendingEmail
+                              ? 'Enviando'
+                              : _isEmailSent
+                                  ? 'Enviado'
+                                  : 'Enviar',
+                          isActive: _isEmailValid,
+                          onPressed: () async {
+                            context.read<AuthBloc>().add(
+                                  AuthEventSendPasswordReset(email: _emailController.text),
+                                );
+                          },
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 }

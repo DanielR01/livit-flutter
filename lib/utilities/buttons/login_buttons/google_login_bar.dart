@@ -32,7 +32,7 @@ class _GoogleLoginBarState extends State<GoogleLoginBar> {
           Navigator.of(context).pushNamedAndRemoveUntil(Routes.mainViewRoute, (_) => false);
         } else if (state is AuthStateLoggedOut) {
           setState(() => _isSigningIn = false);
-        } else if (state is AuthStateLoading) {
+        } else if (state is AuthStateGoogleLoggingIn) {
           setState(() => _isSigningIn = true);
         }
       },

@@ -10,6 +10,14 @@ class AuthStateLoading extends AuthState {
   const AuthStateLoading();
 }
 
+class AuthStateLoggingIn extends AuthState {
+  const AuthStateLoggingIn();
+}
+
+class AuthStateGoogleLoggingIn extends AuthState {
+  const AuthStateGoogleLoggingIn();
+}
+
 class AuthStateLoggedIn extends AuthState {
   final AuthUser user;
   const AuthStateLoggedIn({required this.user});
@@ -18,6 +26,10 @@ class AuthStateLoggedIn extends AuthState {
 class AuthStateLoggedOut extends AuthState {
   final Exception? exception;
   const AuthStateLoggedOut({this.exception});
+}
+
+class AuthStateRegistering extends AuthState {
+  const AuthStateRegistering();
 }
 
 class AuthStateRegistered extends AuthState {
@@ -31,6 +43,10 @@ class AuthStateRegisterError extends AuthState {
 
 class AuthStateNeedsVerification extends AuthState {
   const AuthStateNeedsVerification();
+}
+
+class AuthStateSendingCode extends AuthState {
+  const AuthStateSendingCode();
 }
 
 class AuthStateCodeSent extends AuthState {
@@ -50,4 +66,17 @@ class AuthStateEmailVerificationSent extends AuthState {
 class AuthStateEmailVerificationSentError extends AuthState {
   final Exception exception;
   const AuthStateEmailVerificationSentError({required this.exception});
+}
+
+class AuthStateSendingPasswordReset extends AuthState {
+  const AuthStateSendingPasswordReset();
+}
+
+class AuthStatePasswordResetSent extends AuthState {
+  const AuthStatePasswordResetSent();
+}
+
+class AuthStatePasswordResetSentError extends AuthState {
+  final Exception exception;
+  const AuthStatePasswordResetSentError({required this.exception});
 }

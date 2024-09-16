@@ -23,7 +23,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
     on<AuthEventLogInWithEmailAndPassword>(
       (event, emit) async {
-        emit(const AuthStateLoading());
+        emit(const AuthStateLoggingIn());
         final email = event.email;
         final password = event.password;
         try {
@@ -49,7 +49,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
     on<AuthEventSendOtpCode>(
       (event, emit) async {
-        emit(const AuthStateLoading());
+        emit(const AuthStateSendingCode());
         final phoneCode = event.phoneCode;
         final phoneNumber = event.phoneNumber;
         try {
@@ -92,7 +92,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
     on<AuthEventLogInWithGoogle>(
       (event, emit) async {
-        emit(const AuthStateLoading());
+        emit(const AuthStateGoogleLoggingIn());
         try {
           await provider.logInWithGoogle();
           final user = provider.currentUser;
@@ -105,7 +105,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
     on<AuthEventLogInWithPhoneAndOtp>(
       (event, emit) async {
-        emit(const AuthStateLoading());
+        emit(const AuthStateLoggingIn());
         final verificationId = event.verificationId;
         final otpCode = event.otpCode;
         try {
@@ -134,7 +134,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
     on<AuthEventRegister>(
       (event, emit) async {
-        emit(const AuthStateLoading());
+        emit(const AuthStateRegistering());
         final email = event.email;
         final password = event.password;
         try {
@@ -148,12 +148,13 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
     on<AuthEventSendPasswordReset>(
       (event, emit) async {
-        emit(const AuthStateLoading());
+        emit(const AuthStateSendingPasswordReset());
         final email = event.email;
         try {
           await provider.sendPasswordReset(email: email);
+          emit(const AuthStatePasswordResetSent());
         } catch (e) {
-          emit(AuthStateLoggedOut(exception: e as Exception));
+          emit(AuthStatePasswordResetSentError(exception: e as Exception));
         }
       },
     );

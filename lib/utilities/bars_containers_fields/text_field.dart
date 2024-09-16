@@ -1,8 +1,10 @@
 import 'package:country_picker_pro/country_picker_pro.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:livit/constants/colors.dart';
 import 'package:livit/constants/styles/bar_style.dart';
+import 'package:livit/constants/styles/container_style.dart';
 import 'package:livit/constants/styles/spaces.dart';
 import 'package:livit/constants/styles/livit_text.dart';
 
@@ -20,6 +22,7 @@ class LivitTextField extends StatefulWidget {
   final String? bottomCaptionText;
   final TextStyle? bottomCaptionStyle;
   final bool? externalIsValid;
+  final bool isPasswordField;
 
   const LivitTextField({
     super.key,
@@ -36,6 +39,7 @@ class LivitTextField extends StatefulWidget {
     this.bottomCaptionStyle,
     this.bottomCaptionText,
     this.externalIsValid,
+    this.isPasswordField = false,
   });
 
   @override
@@ -46,6 +50,7 @@ class _LivitTextFieldState extends State<LivitTextField> {
   bool isFocused = false;
   bool isValid = false;
   late Country selectedCountry;
+  bool _obscureText = true;
 
   @override
   void initState() {
@@ -65,6 +70,7 @@ class _LivitTextFieldState extends State<LivitTextField> {
           capital: 'Bogota',
           language: 'Spanish',
         );
+    _obscureText = widget.isPasswordField ? true : widget.blurInput ?? false;
   }
 
   @override
@@ -94,21 +100,17 @@ class _LivitTextFieldState extends State<LivitTextField> {
                   widget.onChanged?.call(isValid);
                 },
                 decoration: InputDecoration(
-                  //isDense: true,
-                  //contentPadding: EdgeInsets.zero,
                   hintText: widget.hint,
                   hintStyle: LivitTextStyle.regularWhiteInactiveText,
                   enabledBorder: const OutlineInputBorder(borderSide: BorderSide.none),
                   focusedBorder: const OutlineInputBorder(borderSide: BorderSide.none),
                   suffixIcon: _buildSuffixIcon(),
                   prefixIcon: widget.phoneNumberField ? _buildCountryCodePicker() : null,
-                  // suffixIconConstraints: const BoxConstraints(maxHeight: 20),
-                  // prefixIconConstraints: const BoxConstraints(maxHeight: 20),
                   contentPadding: const EdgeInsets.symmetric(horizontal: 16),
                   isCollapsed: true,
                 ),
                 style: LivitTextStyle.regularWhiteActiveText,
-                obscureText: widget.blurInput ?? false,
+                obscureText: widget.isPasswordField ? _obscureText : (widget.blurInput ?? false),
                 enableSuggestions: !(widget.blurInput ?? true),
                 autocorrect: !(widget.blurInput ?? true),
               ),
@@ -120,6 +122,7 @@ class _LivitTextFieldState extends State<LivitTextField> {
           Text(
             widget.bottomCaptionText!,
             style: widget.bottomCaptionStyle ?? LivitTextStyle.regularWhiteActiveBoldText,
+            textAlign: TextAlign.center,
           ),
         ],
       ],
@@ -132,26 +135,69 @@ class _LivitTextFieldState extends State<LivitTextField> {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          if ((widget.externalIsValid == null && isValid) || (widget.externalIsValid ?? false))
-            widget.icon ??
-                const Icon(
+          if (widget.controller.text.isNotEmpty)
+          Padding(
+            padding: EdgeInsets.only(right: LivitContainerStyle.horizontalPadding / 2),
+            child: widget.icon ??
+                Icon(
                   Icons.done,
-                  color: Color.fromARGB(255, 255, 255, 255),
-                  size: 16,
+                  color: (widget.externalIsValid == null && isValid) || (widget.externalIsValid ?? false)
+                      ? LivitColors.whiteActive
+                      : LivitColors.whiteInactive,
+                  size: 16.sp,
                 ),
-          if (isFocused) ...[
-            LivitSpaces.s,
+          ),
+          if (widget.isPasswordField && widget.controller.text.isNotEmpty)
             GestureDetector(
               onTap: () {
-                FocusManager.instance.primaryFocus?.unfocus();
+                setState(() {
+                  _obscureText = !_obscureText;
+                });
               },
-              child: const Icon(
-                CupertinoIcons.clear_circled_solid,
-                color: LivitColors.gray,
-                size: 16,
+              child: Container(
+                color: Colors.transparent,
+                child: Padding(
+                  padding: EdgeInsets.all(
+                    LivitContainerStyle.horizontalPadding / 2,
+                  ),
+                  child: SizedBox(
+                    height: 16.sp,
+                    child: Icon(
+                      _obscureText ? Icons.visibility_off : Icons.visibility,
+                      color: LivitColors.whiteActive,
+                      size: 16.sp,
+                    ),
+                  ),
+                ),
               ),
             ),
-          ],
+          if (widget.controller.text.isNotEmpty && isFocused && !widget.isPasswordField)
+            GestureDetector(
+              onTap: () {
+                widget.controller.clear();
+                setState(
+                  () {
+                    isValid = false;
+                  },
+                );
+              },
+              child: Container(
+                color: Colors.transparent,
+                child: Padding(
+                  padding: EdgeInsets.all(
+                    LivitContainerStyle.horizontalPadding / 2,
+                  ),
+                  child: SizedBox(
+                    height: 16.sp,
+                    child: const Icon(
+                      CupertinoIcons.clear_circled_solid,
+                      color: LivitColors.whiteInactive,
+                      size: 16,
+                    ),
+                  ),
+                ),
+              ),
+            ),
         ],
       ),
     );
@@ -160,7 +206,7 @@ class _LivitTextFieldState extends State<LivitTextField> {
   Widget _buildCountryCodePicker() {
     return IntrinsicWidth(
       child: Padding(
-        padding: const EdgeInsets.only(left: 16, right: 16),
+        padding: EdgeInsets.symmetric(horizontal: LivitContainerStyle.horizontalPadding),
         child: Center(
           child: GestureDetector(
             onTap: () {
