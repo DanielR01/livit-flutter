@@ -16,6 +16,7 @@ class LivitTextField extends StatefulWidget {
   final RegExp? regExp;
   final Icon? icon;
   final ValueChanged<bool>? onChanged;
+  final VoidCallback? onClear;
   final bool phoneNumberField;
   final ValueChanged<String>? onCountryCodeChanged;
   final Country? initialCountry;
@@ -33,6 +34,7 @@ class LivitTextField extends StatefulWidget {
     this.regExp,
     this.icon,
     this.onChanged,
+    this.onClear,
     this.phoneNumberField = false,
     this.onCountryCodeChanged,
     this.initialCountry,
@@ -129,6 +131,32 @@ class _LivitTextFieldState extends State<LivitTextField> {
     );
   }
 
+  Widget? _buildPasswordIcon() {
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          _obscureText = !_obscureText;
+        });
+      },
+      child: Container(
+        color: Colors.transparent,
+        child: Padding(
+          padding: EdgeInsets.all(
+            LivitContainerStyle.horizontalPadding / 2,
+          ),
+          child: SizedBox(
+            height: 16.sp,
+            child: Icon(
+              _obscureText ? Icons.visibility_off : Icons.visibility,
+              color: LivitColors.whiteActive,
+              size: 16.sp,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget? _buildSuffixIcon() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -136,45 +164,22 @@ class _LivitTextFieldState extends State<LivitTextField> {
         mainAxisSize: MainAxisSize.min,
         children: [
           if (widget.controller.text.isNotEmpty)
-          Padding(
-            padding: EdgeInsets.only(right: LivitContainerStyle.horizontalPadding / 2),
-            child: widget.icon ??
-                Icon(
-                  Icons.done,
-                  color: (widget.externalIsValid == null && isValid) || (widget.externalIsValid ?? false)
-                      ? LivitColors.whiteActive
-                      : LivitColors.whiteInactive,
-                  size: 16.sp,
-                ),
-          ),
-          if (widget.isPasswordField && widget.controller.text.isNotEmpty)
-            GestureDetector(
-              onTap: () {
-                setState(() {
-                  _obscureText = !_obscureText;
-                });
-              },
-              child: Container(
-                color: Colors.transparent,
-                child: Padding(
-                  padding: EdgeInsets.all(
-                    LivitContainerStyle.horizontalPadding / 2,
+            Padding(
+              padding: EdgeInsets.only(right: LivitContainerStyle.horizontalPadding / 2),
+              child: widget.icon ??
+                  Icon(
+                    Icons.done,
+                    color: (widget.externalIsValid == null && isValid) || (widget.externalIsValid ?? false)
+                        ? LivitColors.whiteActive
+                        : LivitColors.whiteInactive,
+                    size: 16.sp,
                   ),
-                  child: SizedBox(
-                    height: 16.sp,
-                    child: Icon(
-                      _obscureText ? Icons.visibility_off : Icons.visibility,
-                      color: LivitColors.whiteActive,
-                      size: 16.sp,
-                    ),
-                  ),
-                ),
-              ),
             ),
-          if (widget.controller.text.isNotEmpty && isFocused && !widget.isPasswordField)
+          if (widget.controller.text.isNotEmpty && isFocused)
             GestureDetector(
               onTap: () {
                 widget.controller.clear();
+                widget.onClear?.call();
                 setState(
                   () {
                     isValid = false;

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:livit/constants/colors.dart';
 import 'package:livit/constants/styles/button_style.dart';
 import 'package:livit/constants/styles/shadows.dart';
@@ -17,6 +18,7 @@ class Button extends StatelessWidget {
   final String text;
   final VoidCallback onPressed;
   final bool isActive;
+  final bool isLoading;
   final double? width;
   final bool blueStyle;
   final bool isShadowActive;
@@ -32,6 +34,7 @@ class Button extends StatelessWidget {
     required this.text,
     required this.isActive,
     required this.onPressed,
+    this.isLoading = false,
     this.width,
     this.blueStyle = false,
     this.isShadowActive = true,
@@ -248,15 +251,29 @@ class Button extends StatelessWidget {
           ),
           child: InkWell(
             borderRadius: LivitButtonStyle.radius,
-            onTap: isActive ? onPressed : null,
+            onTap: (isActive && !isLoading) ? onPressed : null,
             child: Padding(
               padding: LivitButtonStyle.horizontalPadding,
               child: Center(
-                child: LivitText(
-                  text,
-                  textType: TextType.regular,
-                  color: textColor,
-                  fontWeight: bold ? FontWeight.bold : null,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    LivitText(
+                      text,
+                      textType: TextType.regular,
+                      color: textColor,
+                      fontWeight: bold ? FontWeight.bold : null,
+                    ),
+                    if (isLoading)
+                      SizedBox(
+                        width: 16.sp,
+                        height: 16.sp,
+                        child: CircularProgressIndicator(
+                          color: textColor,
+                          backgroundColor: Colors.transparent,
+                        ),
+                      ),
+                  ],
                 ),
               ),
             ),

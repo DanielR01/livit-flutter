@@ -8,7 +8,7 @@ import 'package:livit/services/auth/bloc/auth_event.dart';
 import 'package:livit/services/auth/bloc/auth_state.dart';
 
 class AuthBloc extends Bloc<AuthEvent, AuthState> {
-  AuthBloc({required AuthProvider provider}) : super(const AuthStateLoading()) {
+  AuthBloc({required AuthProvider provider}) : super(const AuthStateUninitialized()) {
     on<AuthEventInitialize>(
       (event, emit) async {
         await provider.initialize();
@@ -16,33 +16,59 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
           final AuthUser user = provider.currentUser;
           emit(AuthStateLoggedIn(user: user));
         } catch (e) {
-          emit(const AuthStateLoggedOut());
+          emit(
+            const AuthStateLoggedOut(
+              isLoggingInWithEmailAndPassword: false,
+              isLoggingInWithGoogle: false,
+              isLoggingIngWithPhoneAndOtp: false,
+            ),
+          );
         }
       },
     );
 
     on<AuthEventLogInWithEmailAndPassword>(
       (event, emit) async {
-        emit(const AuthStateLoggingIn());
+        emit(const AuthStateLoggedOut(
+          isLoggingInWithEmailAndPassword: true,
+          isLoggingInWithGoogle: false,
+          isLoggingIngWithPhoneAndOtp: false,
+        ));
         final email = event.email;
         final password = event.password;
         try {
           final user = await provider.logInWithEmailAndPassword(email: email, password: password);
           emit(AuthStateLoggedIn(user: user));
         } catch (e) {
-          emit(AuthStateLoggedOut(exception: e as Exception));
+          emit(
+            AuthStateLoggedOut(
+              isLoggingInWithEmailAndPassword: false,
+              isLoggingInWithGoogle: false,
+              isLoggingIngWithPhoneAndOtp: false,
+              exception: e as Exception,
+            ),
+          );
         }
       },
     );
 
     on<AuthEventLogOut>(
       (event, emit) async {
-        emit(const AuthStateLoading());
+        emit(const AuthStateLoggingOut());
         try {
           await provider.logOut();
-          emit(const AuthStateLoggedOut());
+          emit(const AuthStateLoggedOut(
+            isLoggingInWithEmailAndPassword: false,
+            isLoggingInWithGoogle: false,
+            isLoggingIngWithPhoneAndOtp: false,
+          ));
         } catch (e) {
-          emit(AuthStateLoggedOut(exception: e as Exception));
+          emit(AuthStateLoggedOut(
+            isLoggingInWithEmailAndPassword: false,
+            isLoggingInWithGoogle: false,
+            isLoggingIngWithPhoneAndOtp: false,
+            exception: e as Exception,
+          ));
         }
       },
     );
@@ -57,16 +83,30 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
           await provider.sendOtpCode(
             onVerificationCompleted: (credential) {
               print('onVerificationCompleted but not implemented');
-              completer.complete(const AuthStateLoggedOut());
+              completer.complete(const AuthStateLoggedOut(
+                isLoggingInWithEmailAndPassword: false,
+                isLoggingInWithGoogle: false,
+                isLoggingIngWithPhoneAndOtp: false,
+              ));
             },
             onVerificationFailed: (error) {
               final errorM = error as FirebaseAuthException;
               switch (errorM.code) {
                 case 'invalid-phone-number':
-                  completer.complete(AuthStateLoggedOut(exception: InvalidPhoneNumberAuthException()));
+                  completer.complete(AuthStateLoggedOut(
+                    isLoggingInWithEmailAndPassword: false,
+                    isLoggingInWithGoogle: false,
+                    isLoggingIngWithPhoneAndOtp: false,
+                    exception: InvalidPhoneNumberAuthException(),
+                  ));
                   break;
                 default:
-                  completer.complete(AuthStateLoggedOut(exception: GenericAuthException()));
+                  completer.complete(AuthStateLoggedOut(
+                    isLoggingInWithEmailAndPassword: false,
+                    isLoggingInWithGoogle: false,
+                    isLoggingIngWithPhoneAndOtp: false,
+                    exception: GenericAuthException(),
+                  ));
                   break;
               }
             },
@@ -78,34 +118,56 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
             onCodeAutoRetrievalTimeout: (verificationId) {
               print('onCodeAutoRetrievalTimeout but not implemented');
               if (!completer.isCompleted) {
-                completer.complete(const AuthStateLoggedOut());
+                completer.complete(const AuthStateLoggedOut(
+                  isLoggingInWithEmailAndPassword: false,
+                  isLoggingInWithGoogle: false,
+                  isLoggingIngWithPhoneAndOtp: false,
+                ));
               }
             },
           );
           final result = await completer.future;
           emit(result);
         } catch (e) {
-          emit(AuthStateLoggedOut(exception: e as Exception));
+          emit(AuthStateLoggedOut(
+            isLoggingInWithEmailAndPassword: false,
+            isLoggingInWithGoogle: false,
+            isLoggingIngWithPhoneAndOtp: false,
+            exception: e as Exception,
+          ));
         }
       },
     );
 
     on<AuthEventLogInWithGoogle>(
       (event, emit) async {
-        emit(const AuthStateGoogleLoggingIn());
+        emit(const AuthStateLoggedOut(
+          isLoggingInWithEmailAndPassword: false,
+          isLoggingInWithGoogle: true,
+          isLoggingIngWithPhoneAndOtp: false,
+        ));
         try {
           await provider.logInWithGoogle();
           final user = provider.currentUser;
           emit(AuthStateLoggedIn(user: user));
         } catch (e) {
-          emit(AuthStateLoggedOut(exception: e as Exception));
+          emit(AuthStateLoggedOut(
+            isLoggingInWithEmailAndPassword: false,
+            isLoggingInWithGoogle: false,
+            isLoggingIngWithPhoneAndOtp: false,
+            exception: e as Exception,
+          ));
         }
       },
     );
 
     on<AuthEventLogInWithPhoneAndOtp>(
       (event, emit) async {
-        emit(const AuthStateLoggingIn());
+        emit(const AuthStateLoggedOut(
+          isLoggingInWithEmailAndPassword: false,
+          isLoggingInWithGoogle: false,
+          isLoggingIngWithPhoneAndOtp: true,
+        ));
         final verificationId = event.verificationId;
         final otpCode = event.otpCode;
         try {
@@ -115,7 +177,12 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
           );
           emit(AuthStateLoggedIn(user: user));
         } catch (e) {
-          emit(AuthStateLoggedOut(exception: e as Exception));
+          emit(AuthStateLoggedOut(
+            isLoggingInWithEmailAndPassword: false,
+            isLoggingInWithGoogle: false,
+            isLoggingIngWithPhoneAndOtp: false,
+            exception: e as Exception,
+          ));
         }
       },
     );

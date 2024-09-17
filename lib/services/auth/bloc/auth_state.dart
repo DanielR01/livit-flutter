@@ -1,3 +1,4 @@
+import 'package:equatable/equatable.dart';
 import 'package:flutter/foundation.dart' show immutable;
 import 'package:livit/services/auth/auth_user.dart';
 
@@ -6,16 +7,8 @@ abstract class AuthState {
   const AuthState();
 }
 
-class AuthStateLoading extends AuthState {
-  const AuthStateLoading();
-}
-
-class AuthStateLoggingIn extends AuthState {
-  const AuthStateLoggingIn();
-}
-
-class AuthStateGoogleLoggingIn extends AuthState {
-  const AuthStateGoogleLoggingIn();
+class AuthStateUninitialized extends AuthState {
+  const AuthStateUninitialized();
 }
 
 class AuthStateLoggedIn extends AuthState {
@@ -23,9 +16,23 @@ class AuthStateLoggedIn extends AuthState {
   const AuthStateLoggedIn({required this.user});
 }
 
-class AuthStateLoggedOut extends AuthState {
+class AuthStateLoggingOut extends AuthState {
+  const AuthStateLoggingOut();
+}
+
+class AuthStateLoggedOut extends AuthState with EquatableMixin {
   final Exception? exception;
-  const AuthStateLoggedOut({this.exception});
+  final bool isLoggingInWithEmailAndPassword;
+  final bool isLoggingInWithGoogle;
+  final bool isLoggingIngWithPhoneAndOtp;
+  const AuthStateLoggedOut(
+      {this.exception,
+      required this.isLoggingInWithEmailAndPassword,
+      required this.isLoggingInWithGoogle,
+      required this.isLoggingIngWithPhoneAndOtp});
+
+  @override
+  List<Object?> get props => [exception, isLoggingInWithEmailAndPassword, isLoggingInWithGoogle, isLoggingIngWithPhoneAndOtp];
 }
 
 class AuthStateRegistering extends AuthState {
@@ -53,6 +60,11 @@ class AuthStateCodeSent extends AuthState {
   final String verificationId;
   final int? forceResendingToken;
   const AuthStateCodeSent({required this.verificationId, this.forceResendingToken});
+}
+
+class AuthStateCodeSentError extends AuthState {
+  final Exception exception;
+  const AuthStateCodeSentError({required this.exception});
 }
 
 class AuthStateEmailVerificationSending extends AuthState {

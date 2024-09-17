@@ -30,10 +30,10 @@ class _GoogleLoginBarState extends State<GoogleLoginBar> {
       listener: (context, state) {
         if (state is AuthStateLoggedIn) {
           Navigator.of(context).pushNamedAndRemoveUntil(Routes.mainViewRoute, (_) => false);
-        } else if (state is AuthStateLoggedOut) {
-          setState(() => _isSigningIn = false);
-        } else if (state is AuthStateGoogleLoggingIn) {
+        } else if (state is AuthStateLoggedOut && state.isLoggingInWithGoogle) {
           setState(() => _isSigningIn = true);
+        } else {
+          setState(() => _isSigningIn = false);
         }
       },
       child: GestureDetector(

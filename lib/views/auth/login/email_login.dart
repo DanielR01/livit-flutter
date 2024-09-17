@@ -237,53 +237,70 @@ class _SignInState extends State<SignIn> {
     );
   }
 
+  void _onPasswordClear() {
+    setState(
+      () {
+        _isPasswordValid = false;
+      },
+    );
+  }
+
+  void _onEmailClear() {
+    setState(
+      () {
+        _isEmailValid = false;
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return BlocListener<AuthBloc, AuthState>(
       listener: (context, state) {
         if (state is AuthStateLoggedIn) {
           Navigator.of(context).pushNamedAndRemoveUntil(Routes.mainViewRoute, (_) => false);
-        } else if (state is AuthStateLoggingIn) {
-          setState(() {
-            passwordCaptionText = null;
-            emailCaptionText = null;
-            _isSigningIn = true;
-            emailToVerify = null;
-          });
-        } else if (state is AuthStateLoggedOut) {
-          _passwordController.clear();
-          setState(() {
-            _isPasswordValid = false;
-            if (state.exception != null) {
-              switch (state.exception.runtimeType) {
-                case const (NetworkRequesFailed):
-                  passwordCaptionText = 'Error de red';
-                  break;
-                case const (InvalidCredentialsAuthException):
-                  passwordCaptionText = 'Email no registrado o contraseña incorrecta';
-                  break;
-                case const (GenericAuthException):
-                  passwordCaptionText = 'Algo salio mal, intentalo de nuevo mas tarde';
-                  break;
-                case const (TooManyRequestsAuthException):
-                  passwordCaptionText = 'Demasiados intentos, espera unos minutos';
-                  break;
-                case const (NotVerifiedEmailAuthException):
-                  emailToVerify = _emailController.text;
-                  context.read<AuthBloc>().add(
-                        AuthEventSendEmailVerification(email: _emailController.text),
-                      );
-                  break;
-                default:
-                  passwordCaptionText = 'Error: ${state.exception.toString()}';
-              }
-            }
-            _isSigningIn = false;
-          });
         }
       },
       child: BlocBuilder<AuthBloc, AuthState>(
         builder: (context, state) {
+          if (state is AuthStateLoggedOut) {
+            if (state.isLoggingInWithEmailAndPassword) {
+              passwordCaptionText = null;
+              emailCaptionText = null;
+              _isSigningIn = true;
+              emailToVerify = null;
+            } else {
+              if (_isSigningIn) {
+                _passwordController.clear();
+                _isPasswordValid = false;
+              }
+              _isSigningIn = false;
+              if (state.exception != null) {
+                switch (state.exception.runtimeType) {
+                  case const (NetworkRequesFailed):
+                    passwordCaptionText = 'Error de red';
+                    break;
+                  case const (InvalidCredentialsAuthException):
+                    passwordCaptionText = 'Email no registrado o contraseña incorrecta';
+                    break;
+                  case const (GenericAuthException):
+                    passwordCaptionText = 'Algo salio mal, intentalo de nuevo mas tarde';
+                    break;
+                  case const (TooManyRequestsAuthException):
+                    passwordCaptionText = 'Demasiados intentos, espera unos minutos';
+                    break;
+                  case const (NotVerifiedEmailAuthException):
+                    emailToVerify = _emailController.text;
+                    context.read<AuthBloc>().add(
+                          AuthEventSendEmailVerification(email: _emailController.text),
+                        );
+                    break;
+                  default:
+                    passwordCaptionText = 'Error: ${state.exception.toString()}';
+                }
+              }
+            }
+          }
           return Column(
             mainAxisAlignment: MainAxisAlignment.center,
             mainAxisSize: MainAxisSize.min,
@@ -295,6 +312,7 @@ class _SignInState extends State<SignIn> {
                 regExp: RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'),
                 onChanged: _onEmailChange,
                 bottomCaptionText: emailCaptionText,
+                onClear: _onEmailClear,
               ),
               LivitSpaces.m,
               LivitTextField(
@@ -304,6 +322,7 @@ class _SignInState extends State<SignIn> {
                 onChanged: _onPasswordChange,
                 regExp: RegExp(r'^.{6,}$'),
                 bottomCaptionText: passwordCaptionText,
+                onClear: _onPasswordClear,
               ),
               LivitSpaces.m,
               Button.main(
@@ -435,7 +454,7 @@ class _RegisterState extends State<Register> {
               confirmPasswordCaptionText = 'Algo salio mal, intentalo de nuevo mas tarde';
               break;
           }
-        } else if (state is AuthStateLoading) {
+        } else if (state is AuthStateRegistering) {
           _isRegistering = true;
         } else if (state is AuthStateRegistered) {
           _isRegistering = false;

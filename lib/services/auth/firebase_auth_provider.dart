@@ -30,7 +30,7 @@ class FirebaseAuthProvider implements AuthProvider {
       if (user == null) {
         throw GenericAuthException();
       }
-      sendEmailVerification();
+      await sendEmailVerification();
     } on FirebaseAuthException catch (error) {
       switch (error.code) {
         case "weak-password":
