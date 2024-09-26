@@ -18,10 +18,11 @@ class ArrowBackButton extends StatelessWidget {
         color: Colors.transparent,
         child: Padding(
           padding: EdgeInsets.all(
-            LivitContainerStyle.horizontalPadding / 2,
+            LivitContainerStyle.horizontalPadding,
           ),
           child: SizedBox(
             height: 16.sp,
+            width: 16.sp,
             child: SvgPicture.asset(
               'assets/icons/arrow-back.svg',
               height: 16.sp,

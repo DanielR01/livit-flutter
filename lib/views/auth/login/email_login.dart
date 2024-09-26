@@ -71,73 +71,79 @@ class _EmailLogin extends State<EmailLoginView> {
                     child: GlassContainer(
                       child: SizedBox(
                         width: double.infinity,
-                        child: Padding(
-                          padding: LivitContainerStyle.padding([0, null, null, null]),
-                          child: Column(
-                            children: [
-                              const TitleBar(
-                                title: 'Continua con email y contraseña',
-                                isBackEnabled: true,
-                              ),
-                              Row(
-                                mainAxisSize: MainAxisSize.max,
+                        child: Column(
+                          children: [
+                            const TitleBar(
+                              title: 'Continua con email y contraseña',
+                              isBackEnabled: true,
+                            ),
+                            Padding(
+                              padding: LivitContainerStyle.padding([0, null, null, null]),
+                              child: Column(
                                 children: [
-                                  Expanded(
-                                    child: GestureDetector(
-                                      onTap: _onLoginPressed,
-                                      child: Container(
-                                        padding: EdgeInsets.only(bottom: 8.sp),
-                                        width: double.infinity,
-                                        decoration: BoxDecoration(
-                                          border: Border(
-                                              bottom: BorderSide(
-                                            color: _currentView == EmailLoginViews.login ? LivitColors.whiteActive : Colors.transparent,
-                                          )),
-                                        ),
-                                        child: Center(
-                                          child: LivitText(
-                                            'Iniciar sesión',
-                                            color:
-                                                _currentView == EmailLoginViews.login ? LivitColors.whiteActive : LivitColors.whiteInactive,
-                                            fontWeight: _currentView == EmailLoginViews.login ? FontWeight.bold : null,
+                                  Row(
+                                    mainAxisSize: MainAxisSize.max,
+                                    children: [
+                                      Expanded(
+                                        child: GestureDetector(
+                                          onTap: _onLoginPressed,
+                                          child: Container(
+                                            padding: EdgeInsets.only(bottom: 8.sp),
+                                            width: double.infinity,
+                                            decoration: BoxDecoration(
+                                              border: Border(
+                                                  bottom: BorderSide(
+                                                color: _currentView == EmailLoginViews.login ? LivitColors.whiteActive : Colors.transparent,
+                                              )),
+                                            ),
+                                            child: Center(
+                                              child: LivitText(
+                                                'Iniciar sesión',
+                                                color: _currentView == EmailLoginViews.login
+                                                    ? LivitColors.whiteActive
+                                                    : LivitColors.whiteInactive,
+                                                fontWeight: _currentView == EmailLoginViews.login ? FontWeight.bold : null,
+                                              ),
+                                            ),
                                           ),
                                         ),
                                       ),
-                                    ),
-                                  ),
-                                  Expanded(
-                                    child: GestureDetector(
-                                      onTap: _onRegisterPressed,
-                                      child: Container(
-                                        padding: EdgeInsets.only(bottom: 8.sp),
-                                        width: double.infinity,
-                                        decoration: BoxDecoration(
-                                          border: Border(
-                                              bottom: BorderSide(
-                                            color: _currentView == EmailLoginViews.register ? LivitColors.whiteActive : Colors.transparent,
-                                          )),
-                                        ),
-                                        child: Center(
-                                          child: LivitText(
-                                            'Crear cuenta',
-                                            color: _currentView == EmailLoginViews.register
-                                                ? LivitColors.whiteActive
-                                                : LivitColors.whiteInactive,
+                                      Expanded(
+                                        child: GestureDetector(
+                                          onTap: _onRegisterPressed,
+                                          child: Container(
+                                            padding: EdgeInsets.only(bottom: 8.sp),
+                                            width: double.infinity,
+                                            decoration: BoxDecoration(
+                                              border: Border(
+                                                  bottom: BorderSide(
+                                                color:
+                                                    _currentView == EmailLoginViews.register ? LivitColors.whiteActive : Colors.transparent,
+                                              )),
+                                            ),
+                                            child: Center(
+                                              child: LivitText(
+                                                'Crear cuenta',
+                                                color: _currentView == EmailLoginViews.register
+                                                    ? LivitColors.whiteActive
+                                                    : LivitColors.whiteInactive,
+                                              ),
+                                            ),
                                           ),
                                         ),
                                       ),
-                                    ),
+                                      LivitSpaces.m,
+                                    ],
                                   ),
-                                  LivitSpaces.m,
+                                  LivitSpaces.l,
+                                  Redirector(
+                                    userType: widget.userType,
+                                    view: _currentView,
+                                  ),
                                 ],
                               ),
-                              LivitSpaces.l,
-                              Redirector(
-                                userType: widget.userType,
-                                view: _currentView,
-                              ),
-                            ],
-                          ),
+                            ),
+                          ],
                         ),
                       ),
                     ),

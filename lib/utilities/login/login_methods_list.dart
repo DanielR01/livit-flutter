@@ -25,33 +25,6 @@ class LoginMethodsList extends StatefulWidget {
 }
 
 class _LoginMethodsListState extends State<LoginMethodsList> {
-  // void onSendCode(Map<String, dynamic> values) {
-  //   setState(
-  //     () {
-  //       _isCodeSending = false;
-  //     },
-  //   );
-  //   if (values['success']) {
-  //     final Map<String, dynamic> args = {
-  //       'userType': widget.userType,
-  //       'phoneCode': selectedCountryCode,
-  //       'verificationId': values['verificationId'],
-  //       'phoneNumber': phoneController.text,
-  //     };
-  //     Navigator.of(context).pushNamed(
-  //       Routes.confirmOTPCodeRoute,
-  //       arguments: args,
-  //     );
-  //   } else {
-  //     String errorCode = values['errorCode'];
-  //     if (errorCode == 'invalid-phone-number') {
-  //       invalidPhoneError = true;
-  //     } else if (errorCode == 'network-request-failed') {
-  //       networkRequestFailedError = true;
-  //     }
-  //   }
-  // }
-
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -66,97 +39,53 @@ class _LoginMethodsListState extends State<LoginMethodsList> {
             mainAxisSize: MainAxisSize.min,
             children: [
               GlassContainer(
-                child: Padding(
-                  padding: LivitContainerStyle.padding([0, null, null, null]),
-                  child: Column(
-                    children: [
-                      TitleBar(
-                        title: widget.userType == UserType.customer ? 'Ingresa a Livit' : 'Ingresa como Promocionador',
-                        isBackEnabled: widget.userType == UserType.promoter,
-                        onBackPressed: () {
-                          Navigator.of(context).pop();
-                        },
+                child: Column(
+                  children: [
+                    TitleBar(
+                      title: widget.userType == UserType.customer ? 'Ingresa a Livit' : 'Ingresa como Promocionador',
+                      isBackEnabled: widget.userType == UserType.promoter,
+                    ),
+                    Padding(
+                      padding: LivitContainerStyle.padding([0, null, null, null]),
+                      child: Column(
+                        children: [
+                          widget.userType == UserType.promoter
+                              ? Column(
+                                  children: [
+                                    const LivitText(
+                                      'En LIVIT podras promocionar tus eventos y negocio, permitiendo que muchos mas clientes te encuentren y tengan una gran experiencia de compra.',
+                                    ),
+                                    LivitSpaces.m,
+                                  ],
+                                )
+                              : const SizedBox(),
+                          EmailLoginBar(
+                            userType: widget.userType,
+                          ),
+                          LivitSpaces.m,
+                          PhoneLoginBar(
+                            userType: widget.userType,
+                          ),
+                          LivitSpaces.m,
+                          const Divider(
+                            height: 1,
+                            color: LivitColors.whiteInactive,
+                          ),
+                          LivitSpaces.m,
+                          const LivitText(
+                            'O también puedes',
+                          ),
+                          LivitSpaces.m,
+                          const AppleLoginBar(),
+                          LivitSpaces.m,
+                          GoogleLoginBar(
+                            userType: widget.userType,
+                          ),
+                          LivitSpaces.m,
+                        ],
                       ),
-                      widget.userType == UserType.promoter
-                          ? Column(
-                              children: [
-                                const LivitText(
-                                  'En LIVIT podras promocionar tus eventos y negocio, permitiendo que muchos mas clientes te encuentren y tengan una gran experiencia de compra.',
-                                ),
-                                LivitSpaces.m,
-                              ],
-                            )
-                          : const SizedBox(),
-                      EmailLoginBar(
-                        userType: widget.userType,
-                      ),
-                      LivitSpaces.m,
-                      PhoneLoginBar(
-                        userType: widget.userType,
-                      ),
-                      LivitSpaces.m,
-                      const Divider(
-                        height: 1,
-                        color: LivitColors.whiteInactive,
-                      ),
-                      LivitSpaces.m,
-                      const LivitText(
-                        'O también puedes',
-                      ),
-                      LivitSpaces.m,
-                      const AppleLoginBar(),
-                      LivitSpaces.m,
-                      GoogleLoginBar(
-                        userType: widget.userType,
-                      ),
-                      LivitSpaces.m,
-
-                      // const LivitText(
-                      //   'O usa tu número de teléfono',
-                      // ),
-                      // LivitSpaces.m,
-
-                      // LivitTextField(
-                      //   controller: phoneController,
-                      //   hint: 'Número de teléfono',
-                      //   phoneNumberField: true,
-                      //   onChanged: onPhoneChange,
-                      //   initialCountry: initialCountry,
-                      //   onCountryCodeChanged: (value) {
-                      //     setState(
-                      //       () {
-                      //         selectedCountryCode = value;
-                      //       },
-                      //     );
-                      //   },
-                      //   bottomCaptionText: invalidPhoneError
-                      //       ? 'Número de teléfono invalido'
-                      //       : networkRequestFailedError
-                      //           ? 'Error de red'
-                      //           : null,
-                      // ),
-                      // LivitSpaces.m,
-                      // Button.main(
-                      //   text: _isCodeSending ? 'Enviando codigo...' : 'Continuar',
-                      //   isActive: isPhoneValid,
-                      //   onPressed: () async {
-                      //     setState(
-                      //       () {
-                      //         networkRequestFailedError = false;
-                      //         invalidPhoneError = false;
-                      //         _isCodeSending = true;
-                      //       },
-                      //     );
-                      //     context.read<AuthBloc>().add(
-                      //           AuthEventSendOtpCode(
-                      //             phoneCode: selectedCountryCode,
-                      //             phoneNumber: phoneController.text,
-                      //           ),
-                      //         );
-                      //   },
-                      // ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
               LivitSpaces.l,

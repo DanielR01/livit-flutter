@@ -8,7 +8,6 @@ class AuthUser {
   final bool isEmailVerified;
   final String? phoneNumber;
 
-
   const AuthUser({
     required this.id,
     this.email,
@@ -22,4 +21,9 @@ class AuthUser {
         phoneNumber: user.phoneNumber,
         isEmailVerified: user.emailVerified,
       );
+
+  @override
+  String toString() {
+    return 'User -> id: $id, email: $email, isEmailVerified: $isEmailVerified, phoneNumber: $phoneNumber';
+  }
 }

@@ -74,33 +74,6 @@ Future<T?> showGenericDialog<T>({
           ),
         ),
       );
-      // return AlertDialog(
-      //   backgroundColor: LivitColors.mainBlack,
-      //   surfaceTintColor: Colors.transparent,
-      //   title: LivitText(
-      //     title,
-      //     textType: TextType.smallTitle,
-      //   ),
-      //   content: LivitText(content),
-      //   actions: options.keys.map(
-      //     (optionTitle) {
-      //       final T value = options[optionTitle]!['return'];
-      //       final ButtonType buttonType = options[optionTitle]!['buttonType'];
-      //       return Button.fromType(
-      //         type: buttonType,
-      //         text: optionTitle,
-      //         isActive: true,
-      //         onPressed: () {
-      //           if (value != null) {
-      //             Navigator.of(context).pop(value);
-      //           } else {
-      //             Navigator.of(context).pop();
-      //           }
-      //         },
-      //       );
-      //     },
-      //   ).toList(),
-      // );
     },
   );
 }

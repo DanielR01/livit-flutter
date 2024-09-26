@@ -8,6 +8,7 @@ import 'package:livit/constants/styles/livit_text.dart';
 enum ButtonType {
   main,
   secondary,
+  secondaryRed,
   whiteText,
   redText,
   blueText,
@@ -26,8 +27,10 @@ class Button extends StatelessWidget {
   final bool bold;
   final Color? activeBackgroundColor;
   final Color? activeTextColor;
+  final Color? activeShadowColor;
   final Color? inactiveBackgroundColor;
   final Color? inactiveTextColor;
+  final Color? inactiveShadowColor;
 
   const Button({
     super.key,
@@ -42,8 +45,10 @@ class Button extends StatelessWidget {
     this.bold = false,
     this.activeBackgroundColor,
     this.activeTextColor,
+    this.activeShadowColor,
     this.inactiveBackgroundColor,
     this.inactiveTextColor,
+    this.inactiveShadowColor,
   });
 
   factory Button.fromType({
@@ -97,6 +102,12 @@ class Button extends StatelessWidget {
           isActive: isActive,
           onPressed: onPressed,
         );
+      case ButtonType.secondaryRed:
+        return Button.secondaryRed(
+          text: text,
+          isActive: isActive,
+          onPressed: onPressed,
+        );
     }
   }
 
@@ -140,6 +151,28 @@ class Button extends StatelessWidget {
       activeTextColor: LivitColors.whiteActive,
       inactiveBackgroundColor: LivitColors.mainBlack,
       inactiveTextColor: LivitColors.whiteInactive,
+    );
+  }
+
+  factory Button.secondaryRed({
+    required String text,
+    required bool isActive,
+    required VoidCallback onPressed,
+    bool blueStyle = false,
+  }) {
+    return Button(
+      text: text,
+      onPressed: onPressed,
+      isActive: isActive,
+      blueStyle: blueStyle,
+      isShadowActive: true,
+      transparent: false,
+      bold: false,
+      activeBackgroundColor: LivitColors.mainBlack,
+      activeTextColor: LivitColors.red,
+      inactiveBackgroundColor: LivitColors.mainBlack,
+      inactiveTextColor: LivitColors.whiteInactive,
+      activeShadowColor: LivitColors.red,
     );
   }
 
@@ -232,7 +265,13 @@ class Button extends StatelessWidget {
         : (inactiveTextColor ?? (blueStyle ? LivitColors.mainBlueInactive : LivitColors.whiteInactive));
 
     final List<BoxShadow> boxShadow = isActive && isShadowActive
-        ? [blueStyle ? LivitShadows.activeBlueShadow : LivitShadows.activeWhiteShadow]
+        ? [
+            blueStyle
+                ? LivitShadows.activeBlueShadow
+                : (activeShadowColor != null)
+                    ? LivitShadows.shadow(activeShadowColor!)
+                    : LivitShadows.activeWhiteShadow
+          ]
         : (isShadowActive ? [blueStyle ? LivitShadows.inactiveBlueShadow : LivitShadows.inactiveWhiteShadow] : []);
 
     return Container(

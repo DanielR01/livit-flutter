@@ -134,47 +134,51 @@ class _PhoneLoginViewState extends State<PhoneLoginView> {
                           child: GlassContainer(
                             child: SizedBox(
                               width: double.infinity,
-                              child: Padding(
-                                padding: LivitContainerStyle.padding([0, null, null, null]),
-                                child: Column(
-                                  children: [
-                                    const TitleBar(
-                                      title: 'Continuar con número de teléfono',
-                                      isBackEnabled: true,
-                                    ),
-                                    const LivitText('Ingresa tu número de teléfono, te llegará un código de verificación.'),
-                                    LivitSpaces.m,
-                                    LivitTextField(
-                                      controller: _phoneController,
-                                      hint: 'Número de teléfono',
-                                      phoneNumberField: true,
-                                      onChanged: onPhoneChange,
-                                      onClear: onPhoneCleared,
-                                      initialCountry: initialCountry,
-                                      onCountryCodeChanged: (value) {
-                                        setState(
-                                          () {
-                                            selectedCountryCode = value;
-                                          },
-                                        );
-                                      },
-                                      bottomCaptionText: phoneError,
-                                    ),
-                                    LivitSpaces.m,
-                                    Button.main(
-                                      text: isLoading ? 'Enviando código...' : 'Enviar código',
-                                      isActive: isPhoneValid,
-                                      onPressed: () {
-                                        context.read<AuthBloc>().add(
-                                              AuthEventSendOtpCode(
-                                                phoneCode: selectedCountryCode,
-                                                phoneNumber: _phoneController.text,
-                                              ),
+                              child: Column(
+                                children: [
+                                  const TitleBar(
+                                    title: 'Continuar con número de teléfono',
+                                    isBackEnabled: true,
+                                  ),
+                                  Padding(
+                                    padding: LivitContainerStyle.padding([0, null, null, null]),
+                                    child: Column(
+                                      children: [
+                                        const LivitText('Ingresa tu número de teléfono, te llegará un código de verificación.'),
+                                        LivitSpaces.m,
+                                        LivitTextField(
+                                          controller: _phoneController,
+                                          hint: 'Número de teléfono',
+                                          phoneNumberField: true,
+                                          onChanged: onPhoneChange,
+                                          onClear: onPhoneCleared,
+                                          initialCountry: initialCountry,
+                                          onCountryCodeChanged: (value) {
+                                            setState(
+                                              () {
+                                                selectedCountryCode = value;
+                                              },
                                             );
-                                      },
+                                          },
+                                          bottomCaptionText: phoneError,
+                                        ),
+                                        LivitSpaces.m,
+                                        Button.main(
+                                          text: isLoading ? 'Enviando código...' : 'Enviar código',
+                                          isActive: isPhoneValid,
+                                          onPressed: () {
+                                            context.read<AuthBloc>().add(
+                                                  AuthEventSendOtpCode(
+                                                    phoneCode: selectedCountryCode,
+                                                    phoneNumber: _phoneController.text,
+                                                  ),
+                                                );
+                                          },
+                                        ),
+                                      ],
                                     ),
-                                  ],
-                                ),
+                                  ),
+                                ],
                               ),
                             ),
                           ),

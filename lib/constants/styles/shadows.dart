@@ -2,6 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:livit/constants/colors.dart';
 
 class LivitShadows {
+  static BoxShadow shadow(Color color) => BoxShadow(
+        color: color,
+        blurRadius: 9,
+        offset: const Offset(0, 0),
+      );
+
   static BoxShadow inactiveWhiteShadow = const BoxShadow(
     color: Color.fromARGB(40, 255, 255, 255),
     blurRadius: 9,

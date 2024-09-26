@@ -18,12 +18,16 @@ class LivitContainerStyle {
   );
 
   static EdgeInsets padding(List<double?>? padding) {
-    return EdgeInsets.only(
-      top: padding?[0] ?? verticalPadding,
-      right: padding?[1] ?? horizontalPadding,
-      bottom: padding?[2] ?? verticalPadding,
-      left: padding?[3] ?? horizontalPadding,
-    );
+    if (padding == null) {
+      return EdgeInsets.all(verticalPadding);
+    } else {
+      return EdgeInsets.only(
+        top: padding[0] ?? verticalPadding,
+        right: padding[1] ?? horizontalPadding,
+        bottom: padding[2] ?? verticalPadding,
+        left: padding[3] ?? horizontalPadding,
+      );
+    }
   }
 
   static BoxDecoration decoration = BoxDecoration(
