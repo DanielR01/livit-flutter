@@ -25,7 +25,7 @@ class ErrorView extends StatelessWidget {
               children: [
                 const LivitText(
                   '¡Ups!',
-                  textType: TextType.bigTitle,
+                  textStyle: TextType.bigTitle,
                 ),
                 //LivitSpaces.s,
                 const LivitText(

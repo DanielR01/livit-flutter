@@ -81,11 +81,14 @@ class _PhoneLoginViewState extends State<PhoneLoginView> {
     language: 'Spanish',
   );
 
+  bool _isFirstTime = true;
+
   @override
   Widget build(BuildContext context) {
     return BlocConsumer<AuthBloc, AuthState>(
       listener: (context, state) {
-        if (state is AuthStateCodeSent) {
+        if (state is AuthStateCodeSent && _isFirstTime) {
+          _isFirstTime = false;
           Navigator.of(context).pushNamed(
             Routes.confirmOTPCodeRoute,
             arguments: {

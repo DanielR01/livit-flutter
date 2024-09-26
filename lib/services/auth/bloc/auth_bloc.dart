@@ -93,18 +93,13 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
               final errorM = error as FirebaseAuthException;
               switch (errorM.code) {
                 case 'invalid-phone-number':
-                  completer.complete(AuthStateLoggedOut(
-                    isLoggingInWithEmailAndPassword: false,
-                    isLoggingInWithGoogle: false,
-                    isLoggingIngWithPhoneAndOtp: false,
+                  completer.complete(AuthStateCodeSentError(
                     exception: InvalidPhoneNumberAuthException(),
                   ));
                   break;
                 default:
-                  completer.complete(AuthStateLoggedOut(
-                    isLoggingInWithEmailAndPassword: false,
-                    isLoggingInWithGoogle: false,
-                    isLoggingIngWithPhoneAndOtp: false,
+                  print(error);
+                  completer.complete(AuthStateCodeSentError(
                     exception: GenericAuthException(),
                   ));
                   break;

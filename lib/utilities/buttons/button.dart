@@ -260,7 +260,7 @@ class Button extends StatelessWidget {
                   children: [
                     LivitText(
                       text,
-                      textType: TextType.regular,
+                      textStyle: TextType.regular,
                       color: textColor,
                       fontWeight: bold ? FontWeight.bold : null,
                     ),

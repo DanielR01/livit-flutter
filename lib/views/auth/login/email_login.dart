@@ -295,6 +295,8 @@ class _SignInState extends State<SignIn> {
                           AuthEventSendEmailVerification(email: _emailController.text),
                         );
                     break;
+                  case const (UserNotLoggedInAuthException):
+                    break;
                   default:
                     passwordCaptionText = 'Error: ${state.exception.toString()}';
                 }
@@ -474,11 +476,10 @@ class _RegisterState extends State<Register> {
               bottomCaptionText: emailCaptionText,
             ),
             LivitSpaces.m,
-            if (_emailController.text.isNotEmpty) ...[
-              LivitText(
+            if (_emailController.text.isNotEmpty && !_isEmailValid) ...[
+              const LivitText(
                 'Ingresa un email válido',
-                color: _isEmailValid ? LivitColors.whiteInactive : LivitColors.whiteActive,
-                isLineThrough: _isEmailValid,
+                color: LivitColors.whiteActive,
               ),
               LivitSpaces.m,
             ],
@@ -491,11 +492,10 @@ class _RegisterState extends State<Register> {
               bottomCaptionText: passwordCaptionText,
             ),
             LivitSpaces.m,
-            if (_passwordController.text.isNotEmpty) ...[
-              LivitText(
+            if (_passwordController.text.isNotEmpty && !_isPasswordValid) ...[
+              const LivitText(
                 'Tu contraseña debe tener al menos 8 caracteres',
-                color: _isPasswordValid ? LivitColors.whiteInactive : LivitColors.whiteActive,
-                isLineThrough: _isPasswordValid,
+                color: LivitColors.whiteActive,
               ),
               LivitSpaces.m,
             ],
@@ -508,11 +508,10 @@ class _RegisterState extends State<Register> {
               bottomCaptionText: confirmPasswordCaptionText,
             ),
             LivitSpaces.m,
-            if (_confirmPasswordController.text.isNotEmpty) ...[
-              LivitText(
+            if (_confirmPasswordController.text.isNotEmpty && !_arePasswordsEqual) ...[
+              const LivitText(
                 'Las contraseñas deben coincidir',
-                color: _arePasswordsEqual ? LivitColors.whiteInactive : LivitColors.whiteActive,
-                isLineThrough: _arePasswordsEqual,
+                color: LivitColors.whiteActive,
               ),
               LivitSpaces.m,
             ],
@@ -702,7 +701,7 @@ class _ForgotPassword extends State<ForgotPassword> {
               children: [
                 const LivitText(
                   '¿Olvidaste tu contraseña?',
-                  textType: TextType.smallTitle,
+                  textStyle: TextType.smallTitle,
                 ),
                 LivitSpaces.s,
                 const LivitText(

@@ -107,7 +107,11 @@ class _LivitTextFieldState extends State<LivitTextField> {
                   enabledBorder: const OutlineInputBorder(borderSide: BorderSide.none),
                   focusedBorder: const OutlineInputBorder(borderSide: BorderSide.none),
                   suffixIcon: _buildSuffixIcon(),
-                  prefixIcon: widget.phoneNumberField ? _buildCountryCodePicker() : null,
+                  prefixIcon: widget.phoneNumberField
+                      ? _buildCountryCodePicker()
+                      : widget.isPasswordField
+                          ? _buildPasswordIcon()
+                          : null,
                   contentPadding: const EdgeInsets.symmetric(horizontal: 16),
                   isCollapsed: true,
                 ),
@@ -148,7 +152,7 @@ class _LivitTextFieldState extends State<LivitTextField> {
             height: 16.sp,
             child: Icon(
               _obscureText ? Icons.visibility_off : Icons.visibility,
-              color: LivitColors.whiteActive,
+              color: LivitColors.whiteInactive,
               size: 16.sp,
             ),
           ),
@@ -176,32 +180,41 @@ class _LivitTextFieldState extends State<LivitTextField> {
                   ),
             ),
           if (widget.controller.text.isNotEmpty && isFocused)
-            GestureDetector(
-              onTap: () {
-                widget.controller.clear();
-                widget.onClear?.call();
-                setState(
-                  () {
-                    isValid = false;
+            Row(
+              children: [
+                Container(
+                  width: 1,
+                  height: 16.sp,
+                  color: LivitColors.whiteInactive,
+                ),
+                GestureDetector(
+                  onTap: () {
+                    widget.controller.clear();
+                    widget.onClear?.call();
+                    setState(
+                      () {
+                        isValid = false;
+                      },
+                    );
                   },
-                );
-              },
-              child: Container(
-                color: Colors.transparent,
-                child: Padding(
-                  padding: EdgeInsets.all(
-                    LivitContainerStyle.horizontalPadding / 2,
-                  ),
-                  child: SizedBox(
-                    height: 16.sp,
-                    child: const Icon(
-                      CupertinoIcons.clear_circled_solid,
-                      color: LivitColors.whiteInactive,
-                      size: 16,
+                  child: Container(
+                    color: Colors.transparent,
+                    child: Padding(
+                      padding: EdgeInsets.all(
+                        LivitContainerStyle.horizontalPadding / 2,
+                      ),
+                      child: SizedBox(
+                        height: 16.sp,
+                        child: const Icon(
+                          CupertinoIcons.delete_solid,
+                          color: LivitColors.whiteInactive,
+                          size: 16,
+                        ),
+                      ),
                     ),
                   ),
                 ),
-              ),
+              ],
             ),
         ],
       ),

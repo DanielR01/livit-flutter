@@ -18,7 +18,7 @@ class LivitText extends StatelessWidget {
   final double? height;
   final double? fontSize;
   final FontWeight? fontWeight;
-  final TextType textType;
+  final TextType textStyle;
   final String text;
   final TextAlign textAlign;
   final bool isLineThrough;
@@ -30,7 +30,7 @@ class LivitText extends StatelessWidget {
     this.height,
     this.fontSize,
     this.fontWeight,
-    this.textType = TextType.regular,
+    this.textStyle = TextType.regular,
     this.textAlign = TextAlign.center,
     this.isLineThrough = false,
   });
@@ -42,7 +42,7 @@ class LivitText extends StatelessWidget {
     late FontWeight _fontWeight;
     late double? _height;
 
-    switch (textType) {
+    switch (textStyle) {
       case TextType.small:
         _fontSize = fontSize ?? 11.sp;
         _fontWeight = fontWeight ?? FontWeight.w500;

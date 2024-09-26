@@ -29,7 +29,7 @@ class _ErrorReauthScreenState extends State<ErrorReauthScreen> {
                 children: [
                   const LivitText(
                     'Algo salio mal :(',
-                    textType: TextType.bigTitle,
+                    textStyle: TextType.bigTitle,
                   ),
                   LivitSpaces.s,
                   const LivitText('Intenta iniciar sesión de nuevo en unos momentos'),

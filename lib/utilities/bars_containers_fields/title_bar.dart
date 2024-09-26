@@ -29,7 +29,7 @@ class TitleBar extends StatelessWidget {
             padding: LivitButtonStyle.horizontalPadding * 2,
             child: LivitText(
               title,
-              textType: TextType.normalTitle,
+              textStyle: TextType.normalTitle,
             ),
           ),
           isBackEnabled

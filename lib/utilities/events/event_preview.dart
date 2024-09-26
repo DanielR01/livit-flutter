@@ -59,7 +59,7 @@ class _EventPreviewState extends State<EventPreview> {
               children: [
                 LivitText(
                   title,
-                  textType: TextType.smallTitle,
+                  textStyle: TextType.smallTitle,
                 ),
                 LivitText(location),
                 LivitText(creatorId),

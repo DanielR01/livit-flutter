@@ -34,7 +34,7 @@ Future<T?> showGenericDialog<T>({
                 children: [
                   LivitText(
                     title,
-                    textType: TextType.smallTitle,
+                    textStyle: TextType.smallTitle,
                   ),
                   content == null
                       ? LivitSpaces.s
