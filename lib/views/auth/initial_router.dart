@@ -16,7 +16,6 @@ class InitialRouterView extends StatelessWidget {
     return BlocBuilder<AuthBloc, AuthState>(
       builder: (context, state) {
         if (state is AuthStateLoggedIn) {
-          print(state.user);
           return const MainMenu();
         } else if (state is AuthStateLoggedOut) {
           return const WelcomeView();

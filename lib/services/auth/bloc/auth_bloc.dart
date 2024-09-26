@@ -34,6 +34,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
           isLoggingInWithGoogle: false,
           isLoggingIngWithPhoneAndOtp: false,
         ));
+
         final email = event.email;
         final password = event.password;
         try {
