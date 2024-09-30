@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:livit/constants/colors.dart';
 import 'package:livit/constants/routes.dart';
 import 'package:livit/constants/styles/bar_style.dart';
@@ -16,6 +17,8 @@ import 'package:livit/utilities/bars_containers_fields/glass_container.dart';
 import 'package:livit/utilities/bars_containers_fields/text_field.dart';
 import 'package:livit/utilities/bars_containers_fields/title_bar.dart';
 import 'package:livit/utilities/buttons/button.dart';
+import 'package:livit/utilities/buttons/help_button.dart';
+import 'package:livit/utilities/dialogs/generic_dialog.dart';
 
 class EmailLoginView extends StatefulWidget {
   final UserType userType;
@@ -336,6 +339,7 @@ class _SignInState extends State<SignIn> {
               Button.main(
                 text: _isSigningIn ? 'Iniciando sesión' : 'Iniciar sesión',
                 isActive: _isEmailValid & _isPasswordValid,
+                isLoading: _isSigningIn,
                 onPressed: () {
                   context.read<AuthBloc>().add(
                         AuthEventLogInWithEmailAndPassword(
@@ -524,6 +528,7 @@ class _RegisterState extends State<Register> {
             Button.main(
               text: _isRegistering ? 'Creando cuenta' : 'Crear cuenta',
               isActive: _isEmailValid & _isPasswordValid & _arePasswordsEqual,
+              isLoading: _isRegistering,
               onPressed: () async {
                 setState(
                   () {
@@ -621,6 +626,7 @@ class _VerifyEmail extends State<VerifyEmail> {
                     Button.main(
                       text: _isSendingCode ? 'Enviando' : 'Reenviar',
                       isActive: true,
+                      isLoading: _isSendingCode,
                       onPressed: () async {
                         context.read<AuthBloc>().add(
                               AuthEventSendEmailVerification(email: widget.email),
@@ -658,12 +664,31 @@ class _ForgotPassword extends State<ForgotPassword> {
 
   bool _isEmailValid = false;
 
-  String? emailCaptionText;
+  Widget? emailCaptionWidget;
 
   void _onEmailChange(bool isValid) {
     setState(
       () {
         _isEmailValid = isValid;
+      },
+    );
+  }
+
+  void _showInfoDialog() {
+    showGenericDialog<void>(
+      context: context,
+      title: '¿No recibiste el correo de restablecimiento?',
+      content: 'Si no recibes el correo, por favor verifica lo siguiente:\n\n'
+          '- Revisa tu carpeta de spam o correo no deseado.\n\n'
+          '- Asegúrate de que la dirección de correo sea correcta y que este registrada en LIVIT.\n\n'
+          '- Espera unos minutos, a veces puede tardar en llegar.\n\n'
+          '- Si aún no lo recibes, intenta enviar la solicitud nuevamente.',
+      contentAlign: TextAlign.left,
+      optionBuilder: () => {
+        'Volver': {
+          'return': null,
+          'buttonType': ButtonType.main,
+        },
       },
     );
   }
@@ -685,19 +710,47 @@ class _ForgotPassword extends State<ForgotPassword> {
     return BlocBuilder<AuthBloc, AuthState>(
       builder: (context, state) {
         if (state is AuthStateSendingPasswordReset) {
-          emailCaptionText = null;
+          emailCaptionWidget = null;
           _isSendingEmail = true;
         } else if (state is AuthStatePasswordResetSent) {
           _isSendingEmail = false;
           _isEmailSent = true;
-          emailCaptionText = 'Solo te llegará un correo si existe una cuenta asociada a este email.';
+          emailCaptionWidget = Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.max,
+            children: [
+              const LivitText(
+                'Listo, ¿no te ha llegado?',
+                textAlign: TextAlign.center,
+              ),
+              HelpButton(onPressed: _showInfoDialog),
+            ],
+          );
         } else if (state is AuthStatePasswordResetSentError) {
           _isSendingEmail = false;
           _isEmailSent = false;
           if (state.exception.runtimeType == NetworkRequesFailed) {
-            emailCaptionText = 'Error de conexión';
+            emailCaptionWidget = const Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.max,
+              children: [
+                LivitText(
+                  'Error de conexión',
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            );
           } else if (state.exception.runtimeType == GenericAuthException) {
-            emailCaptionText = 'Algo salio mal, intenta mas tarde';
+            emailCaptionWidget = const Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.max,
+              children: [
+                LivitText(
+                  'Algo salio mal, intenta mas tarde',
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            );
           }
         }
         return GlassContainer(
@@ -724,7 +777,7 @@ class _ForgotPassword extends State<ForgotPassword> {
                         inputType: TextInputType.emailAddress,
                         regExp: RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'),
                         onChanged: _onEmailChange,
-                        bottomCaptionText: emailCaptionText,
+                        bottomCaptionWidget: emailCaptionWidget,
                       ),
                     ),
                     LivitSpaces.m,
@@ -738,6 +791,7 @@ class _ForgotPassword extends State<ForgotPassword> {
                                   ? 'Enviado'
                                   : 'Enviar',
                           isActive: _isEmailValid,
+                          isLoading: _isSendingEmail,
                           onPressed: () async {
                             context.read<AuthBloc>().add(
                                   AuthEventSendPasswordReset(email: _emailController.text),

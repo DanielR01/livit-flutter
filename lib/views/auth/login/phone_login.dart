@@ -29,7 +29,7 @@ class PhoneLoginView extends StatefulWidget {
 class _PhoneLoginViewState extends State<PhoneLoginView> {
   String? phoneError;
   late TextEditingController _phoneController;
-  bool isLoading = false;
+  bool _isSendingCode = false;
   bool isPhoneValid = false;
   String selectedCountryCode = '+57';
 
@@ -102,9 +102,9 @@ class _PhoneLoginViewState extends State<PhoneLoginView> {
       },
       builder: (context, state) {
         if (state is AuthStateSendingCode) {
-          isLoading = true;
+          _isSendingCode = true;
         } else if (state is AuthStateCodeSentError) {
-          isLoading = false;
+          _isSendingCode = false;
           if (state.exception is InvalidPhoneNumberAuthException) {
             phoneError = 'El número de teléfono no es válido.';
           } else {
@@ -164,11 +164,13 @@ class _PhoneLoginViewState extends State<PhoneLoginView> {
                                         ),
                                         LivitSpaces.m,
                                         Button.main(
-                                          text: isLoading ? 'Enviando código...' : 'Enviar código',
+                                          text: _isSendingCode ? 'Enviando código...' : 'Enviar código',
                                           isActive: isPhoneValid,
+                                          isLoading: _isSendingCode,
                                           onPressed: () {
                                             context.read<AuthBloc>().add(
                                                   AuthEventSendOtpCode(
+                                                    isResending: false,
                                                     phoneCode: selectedCountryCode,
                                                     phoneNumber: _phoneController.text,
                                                   ),

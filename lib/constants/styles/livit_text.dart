@@ -86,72 +86,76 @@ class LivitText extends StatelessWidget {
 }
 
 class LivitTextStyle {
+  static const double _goldenRatio = 1.618;
+  static final double regularFontSize = 13.sp;
+  static final double smallFontSize = regularFontSize * (_goldenRatio - 1) * 1.5;
+
   static TextStyle regularWhiteActiveText = TextStyle(
     color: LivitColors.whiteActive,
     fontWeight: FontWeight.w500,
     fontFamily: 'HelveticaNowDisplay',
-    fontSize: 13.sp,
+    fontSize: regularFontSize,
   );
   static TextStyle regularWhiteActiveBoldText = TextStyle(
     color: LivitColors.whiteActive,
     fontFamily: 'HelveticaNowDisplay',
     fontWeight: FontWeight.bold,
-    fontSize: 13.sp,
+    fontSize: regularFontSize,
   );
   static TextStyle regularWhiteInactiveText = TextStyle(
     color: LivitColors.whiteInactive,
     fontFamily: 'HelveticaNowDisplay',
-    fontSize: 13.sp,
+    fontSize: regularFontSize,
   );
   static TextStyle regularWhiteInactiveBoldText = TextStyle(
     color: LivitColors.whiteInactive,
     fontFamily: 'HelveticaNowDisplay',
     fontWeight: FontWeight.bold,
-    fontSize: 13.sp,
+    fontSize: regularFontSize,
   );
   static TextStyle regularBlackText = TextStyle(
     color: LivitColors.mainBlack,
     fontFamily: 'HelveticaNowDisplay',
     fontWeight: FontWeight.w500,
-    fontSize: 13.sp,
+    fontSize: regularFontSize,
   );
   static TextStyle regularBlackBoldText = TextStyle(
     color: LivitColors.mainBlack,
     fontFamily: 'HelveticaNowDisplay',
     fontWeight: FontWeight.bold,
-    fontSize: 13.sp,
+    fontSize: regularFontSize,
   );
   static TextStyle regularBlueActiveText = TextStyle(
     color: LivitColors.mainBlueActive,
     fontFamily: 'HelveticaNowDisplay',
-    fontSize: 13.sp,
+    fontSize: regularFontSize,
   );
   static TextStyle regularBlueBoldActiveText = TextStyle(
     color: LivitColors.mainBlueActive,
     fontFamily: 'HelveticaNowDisplay',
-    fontSize: 13.sp,
+    fontSize: regularFontSize,
     fontWeight: FontWeight.bold,
   );
   static TextStyle regularBlueInactiveText = TextStyle(
     color: LivitColors.mainBlueInactive,
     fontFamily: 'HelveticaNowDisplay',
-    fontSize: 13.sp,
+    fontSize: regularFontSize,
   );
   static TextStyle regularBlueBoldInactiveText = TextStyle(
     color: LivitColors.mainBlueInactive,
     fontFamily: 'HelveticaNowDisplay',
-    fontSize: 13.sp,
+    fontSize: regularFontSize,
     fontWeight: FontWeight.bold,
   );
   static TextStyle smallWhiteActiveText = TextStyle(
     color: LivitColors.whiteActive,
     fontFamily: 'HelveticaNowDisplay',
-    fontSize: 12.sp,
+    fontSize: smallFontSize,
   );
   static TextStyle smallWhiteActiveBoldText = TextStyle(
     color: LivitColors.whiteActive,
     fontFamily: 'HelveticaNowDisplay',
     fontWeight: FontWeight.bold,
-    fontSize: 12.sp,
+    fontSize: smallFontSize,
   );
 }

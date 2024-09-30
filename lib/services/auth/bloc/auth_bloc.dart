@@ -76,7 +76,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
     on<AuthEventSendOtpCode>(
       (event, emit) async {
-        emit(const AuthStateSendingCode());
+        emit(AuthStateSendingCode(isResending: event.isResending));
         final phoneCode = event.phoneCode;
         final phoneNumber = event.phoneNumber;
         try {
@@ -164,6 +164,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
           isLoggingInWithGoogle: false,
           isLoggingIngWithPhoneAndOtp: true,
         ));
+        await Future.delayed(const Duration(seconds: 5));
         final verificationId = event.verificationId;
         final otpCode = event.otpCode;
         try {

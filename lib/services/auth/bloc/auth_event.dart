@@ -25,9 +25,11 @@ class AuthEventLogInWithGoogle extends AuthEvent {
 class AuthEventSendOtpCode extends AuthEvent {
   final String phoneCode;
   final String phoneNumber;
+  final bool isResending;
   const AuthEventSendOtpCode({
     required this.phoneCode,
     required this.phoneNumber,
+    required this.isResending
   });
 }
 

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:livit/constants/colors.dart';
 import 'package:livit/constants/styles/button_style.dart';
 import 'package:livit/constants/styles/shadows.dart';
@@ -15,7 +14,7 @@ enum ButtonType {
   mainRed,
 }
 
-class Button extends StatelessWidget {
+class Button extends StatefulWidget {
   final String text;
   final VoidCallback onPressed;
   final bool isActive;
@@ -116,6 +115,7 @@ class Button extends StatelessWidget {
     required bool isActive,
     required VoidCallback onPressed,
     bool blueStyle = false,
+    bool isLoading = false,
   }) {
     Color activeBackgroundColor = blueStyle ? LivitColors.mainBlueActive : LivitColors.whiteActive;
     return Button(
@@ -126,6 +126,7 @@ class Button extends StatelessWidget {
       isShadowActive: false,
       transparent: false,
       bold: false,
+      isLoading: isLoading,
       activeBackgroundColor: activeBackgroundColor,
       activeTextColor: LivitColors.mainBlack,
       inactiveBackgroundColor: LivitColors.whiteInactive,
@@ -137,6 +138,7 @@ class Button extends StatelessWidget {
     required String text,
     required bool isActive,
     required VoidCallback onPressed,
+    bool isLoading = false,
     bool blueStyle = false,
   }) {
     return Button(
@@ -255,70 +257,126 @@ class Button extends StatelessWidget {
   }
 
   @override
+  State<Button> createState() => _ButtonState();
+}
+
+class _ButtonState extends State<Button> with SingleTickerProviderStateMixin {
+  late AnimationController _dotsAnimationController;
+  late Animation<int> _dotsAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _dotsAnimationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 900),
+    )..repeat();
+
+    _dotsAnimation = IntTween(begin: 0, end: 3).animate(
+      CurvedAnimation(parent: _dotsAnimationController, curve: Curves.easeInOut),
+    );
+  }
+
+  @override
+  void dispose() {
+    _dotsAnimationController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final backgroundColor = isActive
-        ? (transparent ? Colors.transparent : activeBackgroundColor ?? LivitColors.mainBlack)
-        : (transparent ? Colors.transparent : inactiveBackgroundColor);
+    final backgroundColor = widget.isActive
+        ? (widget.transparent ? Colors.transparent : widget.activeBackgroundColor ?? LivitColors.mainBlack)
+        : (widget.transparent ? Colors.transparent : widget.inactiveBackgroundColor);
 
-    final textColor = isActive
-        ? (activeTextColor ?? (blueStyle ? LivitColors.mainBlueActive : LivitColors.whiteActive))
-        : (inactiveTextColor ?? (blueStyle ? LivitColors.mainBlueInactive : LivitColors.whiteInactive));
+    final textColor = widget.isActive
+        ? (widget.activeTextColor ?? (widget.blueStyle ? LivitColors.mainBlueActive : LivitColors.whiteActive))
+        : (widget.inactiveTextColor ?? (widget.blueStyle ? LivitColors.mainBlueInactive : LivitColors.whiteInactive));
 
-    final List<BoxShadow> boxShadow = isActive && isShadowActive
+    final List<BoxShadow> boxShadow = widget.isActive && widget.isShadowActive
         ? [
-            blueStyle
+            widget.blueStyle
                 ? LivitShadows.activeBlueShadow
-                : (activeShadowColor != null)
-                    ? LivitShadows.shadow(activeShadowColor!)
+                : (widget.activeShadowColor != null)
+                    ? LivitShadows.shadow(widget.activeShadowColor!)
                     : LivitShadows.activeWhiteShadow
           ]
-        : (isShadowActive ? [blueStyle ? LivitShadows.inactiveBlueShadow : LivitShadows.inactiveWhiteShadow] : []);
+        : (widget.isShadowActive ? [widget.blueStyle ? LivitShadows.inactiveBlueShadow : LivitShadows.inactiveWhiteShadow] : []);
 
-    return Container(
-      width: width,
-      height: LivitButtonStyle.height,
-      decoration: BoxDecoration(
-        borderRadius: LivitButtonStyle.radius,
-        color: backgroundColor,
-        boxShadow: boxShadow,
-      ),
-      child: IntrinsicWidth(
-        child: Material(
-          color: backgroundColor,
-          shape: RoundedRectangleBorder(
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return Container(
+          width: widget.width,
+          height: LivitButtonStyle.height,
+          decoration: BoxDecoration(
             borderRadius: LivitButtonStyle.radius,
+            color: backgroundColor,
+            boxShadow: boxShadow,
           ),
-          child: InkWell(
-            borderRadius: LivitButtonStyle.radius,
-            onTap: (isActive && !isLoading) ? onPressed : null,
-            child: Padding(
-              padding: LivitButtonStyle.horizontalPadding,
-              child: Center(
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    LivitText(
-                      text,
-                      textStyle: TextType.regular,
-                      color: textColor,
-                      fontWeight: bold ? FontWeight.bold : null,
-                    ),
-                    if (isLoading)
-                      SizedBox(
-                        width: 16.sp,
-                        height: 16.sp,
-                        child: CircularProgressIndicator(
-                          color: textColor,
-                          backgroundColor: Colors.transparent,
-                        ),
+          child: IntrinsicWidth(
+            child: ConstrainedBox(
+              constraints: BoxConstraints(
+                minWidth: _calculateMinWidth(context, textColor),
+              ),
+              child: Material(
+                color: backgroundColor,
+                shape: RoundedRectangleBorder(
+                  borderRadius: LivitButtonStyle.radius,
+                ),
+                child: InkWell(
+                  borderRadius: LivitButtonStyle.radius,
+                  onTap: (widget.isActive && !widget.isLoading) ? widget.onPressed : null,
+                  child: Padding(
+                    padding: LivitButtonStyle.padding,
+                    child: Center(
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          LivitText(
+                            widget.text,
+                            textStyle: TextType.regular,
+                            color: textColor,
+                            fontWeight: widget.bold ? FontWeight.bold : null,
+                          ),
+                          if (widget.isLoading)
+                            AnimatedBuilder(
+                              animation: _dotsAnimation,
+                              builder: (context, child) {
+                                return LivitText(
+                                  '.' * _dotsAnimation.value,
+                                  textStyle: TextType.regular,
+                                  color: textColor,
+                                  fontWeight: widget.bold ? FontWeight.bold : null,
+                                );
+                              },
+                            ),
+                        ],
                       ),
-                  ],
+                    ),
+                  ),
                 ),
               ),
             ),
           ),
+        );
+      },
+    );
+  }
+
+  double _calculateMinWidth(BuildContext context, Color textColor) {
+    final TextPainter textPainter = TextPainter(
+      text: TextSpan(
+        text: widget.text + '...',
+        style: TextStyle(
+          fontSize: LivitTextStyle.regularFontSize,
+          fontWeight: widget.bold ? FontWeight.bold : FontWeight.normal,
+          color: textColor,
         ),
       ),
-    );
+      maxLines: 1,
+      textDirection: TextDirection.ltr,
+    )..layout(minWidth: 0, maxWidth: double.infinity);
+
+    return textPainter.width + LivitButtonStyle.paddingValue * 2;
   }
 }

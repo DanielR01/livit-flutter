@@ -1,5 +1,4 @@
 import 'dart:ui';
-
 import 'package:flutter/material.dart';
 import 'package:livit/constants/styles/container_style.dart';
 import 'package:livit/constants/styles/spaces.dart';
@@ -13,6 +12,7 @@ Future<T?> showGenericDialog<T>({
   required BuildContext context,
   required String title,
   String? content,
+  TextAlign? contentAlign,
   required DialogOptionBuilder optionBuilder,
 }) {
   final options = optionBuilder();
@@ -42,7 +42,7 @@ Future<T?> showGenericDialog<T>({
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             LivitSpaces.m,
-                            LivitText(content),
+                            LivitText(content, textAlign: contentAlign ?? TextAlign.center),
                             LivitSpaces.l,
                           ],
                         ),

@@ -53,7 +53,8 @@ class AuthStateNeedsVerification extends AuthState {
 }
 
 class AuthStateSendingCode extends AuthState {
-  const AuthStateSendingCode();
+  final bool isResending;
+  const AuthStateSendingCode({required this.isResending});
 }
 
 class AuthStateCodeSent extends AuthState {

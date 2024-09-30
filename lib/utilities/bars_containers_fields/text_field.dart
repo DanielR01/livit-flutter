@@ -24,6 +24,7 @@ class LivitTextField extends StatefulWidget {
   final TextStyle? bottomCaptionStyle;
   final bool? externalIsValid;
   final bool isPasswordField;
+  final Widget? bottomCaptionWidget;
 
   const LivitTextField({
     super.key,
@@ -42,6 +43,7 @@ class LivitTextField extends StatefulWidget {
     this.bottomCaptionText,
     this.externalIsValid,
     this.isPasswordField = false,
+    this.bottomCaptionWidget,
   });
 
   @override
@@ -123,13 +125,17 @@ class _LivitTextFieldState extends State<LivitTextField> {
             ),
           ),
         ),
-        if (widget.bottomCaptionText != null) ...[
+        if (widget.bottomCaptionText != null && widget.bottomCaptionWidget == null) ...[
           LivitSpaces.s,
           Text(
             widget.bottomCaptionText!,
             style: widget.bottomCaptionStyle ?? LivitTextStyle.regularWhiteActiveBoldText,
             textAlign: TextAlign.center,
           ),
+        ],
+        if (widget.bottomCaptionWidget != null) ...[
+          LivitSpaces.s,
+          widget.bottomCaptionWidget!,
         ],
       ],
     );
@@ -205,10 +211,10 @@ class _LivitTextFieldState extends State<LivitTextField> {
                       ),
                       child: SizedBox(
                         height: 16.sp,
-                        child: const Icon(
+                        child:  Icon(
                           CupertinoIcons.delete_solid,
                           color: LivitColors.whiteInactive,
-                          size: 16,
+                          size: 16.sp,
                         ),
                       ),
                     ),

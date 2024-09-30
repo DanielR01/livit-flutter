@@ -45,8 +45,9 @@ class _ConfirmOTPCodeViewState extends State<ConfirmOTPCodeView> {
   String? invalidCode;
   late Timer _timer;
   int countdown = 0;
-  bool isResendButtonActive = false;
+  bool _isResendButtonActive = false;
   bool _isVerifyingCode = false;
+  bool _isResendingCode = false;
 
   void onResendedCode(Map<String, dynamic> values) {
     setState(
@@ -63,7 +64,7 @@ class _ConfirmOTPCodeViewState extends State<ConfirmOTPCodeView> {
   void startTimer() {
     setState(
       () {
-        isResendButtonActive = false;
+        _isResendButtonActive = false;
         countdown = 45;
       },
     );
@@ -76,7 +77,7 @@ class _ConfirmOTPCodeViewState extends State<ConfirmOTPCodeView> {
             if (countdown > 1) {
               countdown--;
             } else {
-              isResendButtonActive = true;
+              _isResendButtonActive = true;
               _timer.cancel();
             }
           },
@@ -127,9 +128,15 @@ class _ConfirmOTPCodeViewState extends State<ConfirmOTPCodeView> {
           } else {
             _isVerifyingCode = false;
           }
+        } else if (state is AuthStateSendingCode) {
+          if (state.isResending) {
+            _isResendingCode = true;
+          }
         } else if (state is AuthStateCodeSent) {
+          _isResendingCode = false;
           verificationId = state.verificationId;
         } else if (state is AuthStateCodeSentError) {
+          _isResendingCode = false;
           invalidCode = 'Error reenviando el codigo';
         }
 
@@ -203,7 +210,7 @@ class _ConfirmOTPCodeViewState extends State<ConfirmOTPCodeView> {
                                               LivitSpaces.s,
                                               LivitText(
                                                 invalidCode!,
-                                                textStyle: TextType.small,
+                                                textStyle: TextType.regular,
                                               ),
                                             ],
                                             LivitSpaces.m,
@@ -213,11 +220,13 @@ class _ConfirmOTPCodeViewState extends State<ConfirmOTPCodeView> {
                                               children: [
                                                 Button.secondary(
                                                   blueStyle: false,
-                                                  text: isResendButtonActive ? 'Reenviar codigo' : 'Reenviar codigo... $countdown',
-                                                  isActive: isResendButtonActive,
+                                                  text: _isResendButtonActive ? 'Reenviar codigo' : 'Reenviar codigo... $countdown',
+                                                  isActive: _isResendButtonActive,
+                                                  isLoading: _isResendingCode,
                                                   onPressed: () {
                                                     context.read<AuthBloc>().add(
                                                           AuthEventSendOtpCode(
+                                                            isResending: true,
                                                             phoneCode: widget.phoneCode,
                                                             phoneNumber: widget.phoneNumber,
                                                           ),
@@ -226,12 +235,11 @@ class _ConfirmOTPCodeViewState extends State<ConfirmOTPCodeView> {
                                                   },
                                                 ),
                                                 Button.main(
-                                                  text: _isVerifyingCode ? 'Verificando...' : 'Verificar',
+                                                  text: _isVerifyingCode ? 'Verificando' : 'Verificar',
                                                   isActive: isOtpCodeValid,
+                                                  isLoading: _isVerifyingCode,
                                                   onPressed: () {
-                                                    setState(() {
-                                                      _isVerifyingCode = true;
-                                                    });
+                                                    print('verifying');
                                                     context.read<AuthBloc>().add(
                                                           AuthEventLogInWithPhoneAndOtp(
                                                             verificationId: verificationId,
