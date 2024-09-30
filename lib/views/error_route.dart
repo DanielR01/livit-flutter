@@ -3,7 +3,7 @@ import 'package:livit/constants/routes.dart';
 import 'package:livit/constants/styles/container_style.dart';
 import 'package:livit/constants/styles/livit_text.dart';
 import 'package:livit/constants/styles/spaces.dart';
-import 'package:livit/constants/user_types.dart';
+import 'package:livit/constants/enums.dart';
 import 'package:livit/utilities/buttons/button.dart';
 
 class ErrorView extends StatelessWidget {

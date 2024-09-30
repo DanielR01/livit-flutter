@@ -5,7 +5,7 @@ import 'package:livit/constants/routes.dart';
 import 'package:livit/constants/styles/bar_style.dart';
 import 'package:livit/constants/styles/livit_text.dart';
 import 'package:livit/constants/styles/shadows.dart';
-import 'package:livit/constants/user_types.dart';
+import 'package:livit/constants/enums.dart';
 
 class PhoneLoginBar extends StatelessWidget {
   final UserType userType;

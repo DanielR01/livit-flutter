@@ -1,4 +1,0 @@
-enum UserType {
-  customer,
-  promoter,
-}

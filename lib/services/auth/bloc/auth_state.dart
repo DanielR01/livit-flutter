@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter/foundation.dart' show immutable;
+import 'package:livit/constants/enums.dart';
 import 'package:livit/services/auth/auth_user.dart';
 
 @immutable
@@ -22,17 +23,11 @@ class AuthStateLoggingOut extends AuthState {
 
 class AuthStateLoggedOut extends AuthState with EquatableMixin {
   final Exception? exception;
-  final bool isLoggingInWithEmailAndPassword;
-  final bool isLoggingInWithGoogle;
-  final bool isLoggingIngWithPhoneAndOtp;
-  const AuthStateLoggedOut(
-      {this.exception,
-      required this.isLoggingInWithEmailAndPassword,
-      required this.isLoggingInWithGoogle,
-      required this.isLoggingIngWithPhoneAndOtp});
+  final LoginMethod? loginMethod;
+  const AuthStateLoggedOut({this.exception, this.loginMethod});
 
   @override
-  List<Object?> get props => [exception, isLoggingInWithEmailAndPassword, isLoggingInWithGoogle, isLoggingIngWithPhoneAndOtp];
+  List<Object?> get props => [exception, loginMethod];
 }
 
 class AuthStateRegistering extends AuthState {

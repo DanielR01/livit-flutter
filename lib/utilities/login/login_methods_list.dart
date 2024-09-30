@@ -3,7 +3,7 @@ import 'package:livit/constants/colors.dart';
 import 'package:livit/constants/styles/container_style.dart';
 import 'package:livit/constants/styles/spaces.dart';
 import 'package:livit/constants/styles/livit_text.dart';
-import 'package:livit/constants/user_types.dart';
+import 'package:livit/constants/enums.dart';
 import 'package:livit/utilities/bars_containers_fields/glass_container.dart';
 import 'package:livit/utilities/bars_containers_fields/title_bar.dart';
 import 'package:livit/utilities/buttons/login_buttons/email_login_bar.dart';

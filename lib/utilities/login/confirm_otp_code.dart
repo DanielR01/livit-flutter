@@ -8,7 +8,7 @@ import 'package:livit/constants/styles/container_style.dart';
 import 'package:livit/constants/styles/shadows.dart';
 import 'package:livit/constants/styles/spaces.dart';
 import 'package:livit/constants/styles/livit_text.dart';
-import 'package:livit/constants/user_types.dart';
+import 'package:livit/constants/enums.dart';
 import 'package:livit/services/auth/auth_exceptions.dart';
 import 'package:livit/services/auth/bloc/auth_bloc.dart';
 import 'package:livit/services/auth/bloc/auth_event.dart';
@@ -123,7 +123,7 @@ class _ConfirmOTPCodeViewState extends State<ConfirmOTPCodeView> {
               invalidCode = 'Error desconocido';
             }
           }
-          if (state.isLoggingIngWithPhoneAndOtp) {
+          if (state.loginMethod == LoginMethod.phoneAndOtp) {
             _isVerifyingCode = true;
           } else {
             _isVerifyingCode = false;

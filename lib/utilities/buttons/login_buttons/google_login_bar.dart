@@ -5,7 +5,7 @@ import 'package:livit/constants/colors.dart';
 import 'package:livit/constants/routes.dart';
 import 'package:livit/constants/styles/bar_style.dart';
 import 'package:livit/constants/styles/livit_text.dart';
-import 'package:livit/constants/user_types.dart';
+import 'package:livit/constants/enums.dart';
 import 'package:livit/services/auth/bloc/auth_bloc.dart';
 import 'package:livit/services/auth/bloc/auth_event.dart';
 import 'package:livit/services/auth/bloc/auth_state.dart';
@@ -30,7 +30,7 @@ class _GoogleLoginBarState extends State<GoogleLoginBar> {
       listener: (context, state) {
         if (state is AuthStateLoggedIn) {
           Navigator.of(context).pushNamedAndRemoveUntil(Routes.mainViewRoute, (_) => false);
-        } else if (state is AuthStateLoggedOut && state.isLoggingInWithGoogle) {
+        } else if (state is AuthStateLoggedOut && state.loginMethod == LoginMethod.google) {
           setState(() => _isSigningIn = true);
         } else {
           setState(() => _isSigningIn = false);

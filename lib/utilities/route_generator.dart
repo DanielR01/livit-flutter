@@ -2,7 +2,7 @@ import 'dart:io' show Platform;
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:livit/constants/routes.dart';
-import 'package:livit/constants/user_types.dart';
+import 'package:livit/constants/enums.dart';
 import 'package:livit/utilities/login/confirm_otp_code.dart';
 import 'package:livit/views/auth/initial_router.dart';
 import 'package:livit/views/auth/login/auth_view.dart';
