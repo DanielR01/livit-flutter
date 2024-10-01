@@ -134,7 +134,6 @@ class _LivitTextFieldState extends State<LivitTextField> {
           ),
         ],
         if (widget.bottomCaptionWidget != null) ...[
-          LivitSpaces.s,
           widget.bottomCaptionWidget!,
         ],
       ],
@@ -211,7 +210,7 @@ class _LivitTextFieldState extends State<LivitTextField> {
                       ),
                       child: SizedBox(
                         height: 16.sp,
-                        child:  Icon(
+                        child: Icon(
                           CupertinoIcons.delete_solid,
                           color: LivitColors.whiteInactive,
                           size: 16.sp,

@@ -16,7 +16,7 @@ import 'package:livit/utilities/bars_containers_fields/glass_container.dart';
 import 'package:livit/utilities/bars_containers_fields/text_field.dart';
 import 'package:livit/utilities/bars_containers_fields/title_bar.dart';
 import 'package:livit/utilities/buttons/button.dart';
-import 'package:livit/utilities/buttons/help_button.dart';
+import 'package:livit/utilities/buttons/question_mark_button.dart';
 import 'package:livit/utilities/dialogs/generic_dialog.dart';
 
 class EmailLoginView extends StatefulWidget {
@@ -663,7 +663,7 @@ class _ForgotPassword extends State<ForgotPassword> {
 
   bool _isEmailValid = false;
 
-  Widget? emailCaptionWidget;
+  Widget emailCaptionWidget = LivitSpaces.m;
 
   void _onEmailChange(bool isValid) {
     setState(
@@ -709,7 +709,7 @@ class _ForgotPassword extends State<ForgotPassword> {
     return BlocBuilder<AuthBloc, AuthState>(
       builder: (context, state) {
         if (state is AuthStateSendingPasswordReset) {
-          emailCaptionWidget = null;
+          emailCaptionWidget = LivitSpaces.m;
           _isSendingEmail = true;
         } else if (state is AuthStatePasswordResetSent) {
           _isSendingEmail = false;
@@ -717,44 +717,72 @@ class _ForgotPassword extends State<ForgotPassword> {
           emailCaptionWidget = Row(
             mainAxisAlignment: MainAxisAlignment.center,
             mainAxisSize: MainAxisSize.max,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const LivitText(
-                'Listo, ¿no te ha llegado?',
-                textAlign: TextAlign.center,
+              Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  LivitSpaces.s,
+                  const LivitText(
+                    '¡Listo!, ¿no te ha llegado?',
+                    textAlign: TextAlign.center,
+                  ),
+                  LivitSpaces.m,
+                ],
               ),
-              HelpButton(onPressed: _showInfoDialog),
+              QuestionMarkButton(
+                onPressed: _showInfoDialog,
+                verticalOffset: -(LivitSpaces.mDouble - LivitSpaces.sDouble),
+              ),
             ],
           );
         } else if (state is AuthStatePasswordResetSentError) {
           _isSendingEmail = false;
           _isEmailSent = false;
           if (state.exception.runtimeType == NetworkRequesFailed) {
-            emailCaptionWidget = const Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              mainAxisSize: MainAxisSize.max,
+            emailCaptionWidget = Column(
               children: [
-                LivitText(
-                  'Error de conexión',
-                  textAlign: TextAlign.center,
+                LivitSpaces.s,
+                const Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisSize: MainAxisSize.max,
+                  children: [
+                    
+                     LivitText(
+                      'Error de conexión',
+                      textAlign: TextAlign.center,
+                    ),
+                    
+                  ],
                 ),
+                LivitSpaces.m,
               ],
             );
           } else if (state.exception.runtimeType == GenericAuthException) {
-            emailCaptionWidget = const Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              mainAxisSize: MainAxisSize.max,
+            emailCaptionWidget = Column(
               children: [
-                LivitText(
-                  'Algo salio mal, intenta mas tarde',
-                  textAlign: TextAlign.center,
+                LivitSpaces.s,
+                const Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisSize: MainAxisSize.max,
+                  children: [
+                    
+                     LivitText(
+                      'Algo salio mal, intenta mas tarde',
+                      textAlign: TextAlign.center,
+                    ),
+                    
+                  ],
                 ),
+                LivitSpaces.m,
               ],
             );
           }
         }
         return GlassContainer(
           child: Padding(
-            padding: LivitContainerStyle.padding(null),
+            padding: LivitContainerStyle.padding([null, null, 0, null]),
             child: Column(
               children: [
                 const LivitText(
@@ -770,13 +798,18 @@ class _ForgotPassword extends State<ForgotPassword> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Expanded(
-                      child: LivitTextField(
-                        controller: _emailController,
-                        hint: 'Email',
-                        inputType: TextInputType.emailAddress,
-                        regExp: RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'),
-                        onChanged: _onEmailChange,
-                        bottomCaptionWidget: emailCaptionWidget,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          LivitTextField(
+                            controller: _emailController,
+                            hint: 'Email',
+                            inputType: TextInputType.emailAddress,
+                            regExp: RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'),
+                            onChanged: _onEmailChange,
+                          ),
+                          emailCaptionWidget,
+                        ],
                       ),
                     ),
                     LivitSpaces.m,

@@ -5,28 +5,34 @@ class LivitSpaces {
   static const double _goldenRatio = 1.618;
   static const double _baseSize = 16.0;
 
+  static const double xsDouble = (_baseSize / (_goldenRatio * _goldenRatio));
+  static const double sDouble = (_baseSize / _goldenRatio);
+  static const double mDouble = _baseSize;
+  static const double lDouble = (_baseSize * _goldenRatio);
+  static const double xlDouble = (_baseSize * _goldenRatio * _goldenRatio);
+
   static SizedBox xs = SizedBox(
-    height: (_baseSize / (_goldenRatio * _goldenRatio)).sp,
-    width: (_baseSize / (_goldenRatio * _goldenRatio)).sp,
+    height: xsDouble.sp,
+    width: xsDouble.sp,
   );
 
   static SizedBox s = SizedBox(
-    height: (_baseSize / _goldenRatio).sp,
-    width: (_baseSize / _goldenRatio).sp,
+    height: sDouble.sp,
+    width: sDouble.sp,
   );
 
   static SizedBox m = SizedBox(
-    height: _baseSize.sp,
-    width: _baseSize.sp,
+    height: mDouble.sp,
+    width: mDouble.sp,
   );
 
   static SizedBox l = SizedBox(
-    height: (_baseSize * _goldenRatio).sp,
-    width: (_baseSize * _goldenRatio).sp,
+    height: lDouble.sp,
+    width: lDouble.sp,
   );
 
   static SizedBox xl = SizedBox(
-    height: (_baseSize * _goldenRatio * _goldenRatio).sp,
-    width: (_baseSize * _goldenRatio * _goldenRatio).sp,
+    height: xlDouble.sp,
+    width: xlDouble.sp,
   );
 }

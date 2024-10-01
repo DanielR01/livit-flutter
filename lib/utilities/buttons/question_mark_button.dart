@@ -4,9 +4,15 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:livit/constants/colors.dart';
 import 'package:livit/constants/styles/container_style.dart';
 
-class HelpButton extends StatelessWidget {
+class QuestionMarkButton extends StatelessWidget {
   final VoidCallback onPressed;
-  const HelpButton({super.key, required this.onPressed});
+  final double verticalOffset;
+
+  const QuestionMarkButton({
+    super.key,
+    required this.onPressed,
+    this.verticalOffset = 0,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -15,10 +21,15 @@ class HelpButton extends StatelessWidget {
       child: Container(
         color: Colors.transparent,
         child: Padding(
-          padding: EdgeInsets.all(LivitContainerStyle.horizontalPadding / 2),
+          padding: EdgeInsets.only(
+            top: LivitContainerStyle.verticalPadding + verticalOffset,
+            left: LivitContainerStyle.horizontalPadding,
+            right: LivitContainerStyle.horizontalPadding,
+            bottom: LivitContainerStyle.verticalPadding,
+          ),
           child: Icon(
             CupertinoIcons.question_circle_fill,
-            color: LivitColors.whiteInactive,
+            color: LivitColors.whiteActive,
             size: 16.sp,
           ),
         ),
