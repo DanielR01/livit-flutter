@@ -5,25 +5,24 @@ import 'package:flutter/material.dart';
 class AuthUser {
   final String id;
   final String? email;
-  final bool isEmailVerified;
   final String? phoneNumber;
+  final bool isEmailVerified;
 
   const AuthUser({
     required this.id,
-    this.email,
-    this.phoneNumber,
+    required this.email,
     required this.isEmailVerified,
+    this.phoneNumber,
   });
 
-  factory AuthUser.fromFirebase(User user) => AuthUser(
-        id: user.uid,
-        email: user.email,
-        phoneNumber: user.phoneNumber,
-        isEmailVerified: user.emailVerified,
-      );
-
-  @override
-  String toString() {
-    return 'User -> id: $id, email: $email, isEmailVerified: $isEmailVerified, phoneNumber: $phoneNumber';
+  factory AuthUser.fromFirebase(User user) {
+    return AuthUser(
+      id: user.uid,
+      email: user.email,
+      isEmailVerified: user.emailVerified,
+      phoneNumber: user.phoneNumber,
+    );
   }
 }
+
+

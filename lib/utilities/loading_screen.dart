@@ -15,7 +15,7 @@ class _LoadingScreenState extends State<LoadingScreen> {
       children: [
         Center(
           child: CircularProgressIndicator(
-            color: LivitColors.whiteInactive,
+            color: LivitColors.whiteActive,
           ),
         ),
       ],

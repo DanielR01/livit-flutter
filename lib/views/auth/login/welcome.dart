@@ -48,7 +48,7 @@ class _WelcomeViewState extends State<WelcomeView> {
                 ],
                 child: const LivitText(
                   'LIVIT',
-                  textStyle: TextType.bigTitle,
+                  textType: TextType.bigTitle,
                 ),
               ),
             if (displayContent)

@@ -18,7 +18,7 @@ class LivitText extends StatelessWidget {
   final double? height;
   final double? fontSize;
   final FontWeight? fontWeight;
-  final TextType textStyle;
+  final TextType textType;
   final String text;
   final TextAlign textAlign;
   final bool isLineThrough;
@@ -30,7 +30,7 @@ class LivitText extends StatelessWidget {
     this.height,
     this.fontSize,
     this.fontWeight,
-    this.textStyle = TextType.regular,
+    this.textType = TextType.regular,
     this.textAlign = TextAlign.center,
     this.isLineThrough = false,
   });
@@ -42,29 +42,29 @@ class LivitText extends StatelessWidget {
     late FontWeight _fontWeight;
     late double? _height;
 
-    switch (textStyle) {
+    switch (textType) {
       case TextType.small:
-        _fontSize = fontSize ?? 11.sp;
+        _fontSize = fontSize ?? LivitTextStyle.smallFontSize;
         _fontWeight = fontWeight ?? FontWeight.w500;
         _height = null;
         break;
       case TextType.regular:
-        _fontSize = fontSize ?? 13.sp;
+        _fontSize = fontSize ?? LivitTextStyle.regularFontSize;
         _fontWeight = fontWeight ?? FontWeight.w500;
         _height = 1.2;
         break;
       case TextType.smallTitle:
-        _fontSize = fontSize ?? 18.sp;
+        _fontSize = fontSize ?? LivitTextStyle.smallTitleFontSize;
         _fontWeight = fontWeight ?? FontWeight.bold;
         _height = 1.2;
         break;
       case TextType.normalTitle:
-        _fontSize = fontSize ?? 26.sp;
+        _fontSize = fontSize ?? LivitTextStyle.normalTitleFontSize;
         _fontWeight = fontWeight ?? FontWeight.bold;
         _height = 1.2;
         break;
       case TextType.bigTitle:
-        _fontSize = fontSize ?? 36.sp;
+        _fontSize = fontSize ?? LivitTextStyle.bigTitleFontSize;
         _fontWeight = fontWeight ?? FontWeight.bold;
         _height = 1.2;
         break;
@@ -89,6 +89,9 @@ class LivitTextStyle {
   static const double _goldenRatio = 1.618;
   static final double regularFontSize = 13.sp;
   static final double smallFontSize = regularFontSize * (_goldenRatio - 1) * 1.5;
+  static final double smallTitleFontSize = regularFontSize * (_goldenRatio - 1) * 2;
+  static final double normalTitleFontSize = regularFontSize * (_goldenRatio - 1) * 3;
+  static final double bigTitleFontSize = regularFontSize * (_goldenRatio - 1) * 5;
 
   static TextStyle regularWhiteActiveText = TextStyle(
     color: LivitColors.whiteActive,
@@ -157,5 +160,23 @@ class LivitTextStyle {
     fontFamily: 'HelveticaNowDisplay',
     fontWeight: FontWeight.bold,
     fontSize: smallFontSize,
+  );
+  static TextStyle smallTitleWhiteActiveText = TextStyle(
+    color: LivitColors.whiteActive,
+    fontFamily: 'HelveticaNowDisplay',
+    fontSize: smallTitleFontSize,
+    fontWeight: FontWeight.bold,
+  );
+  static TextStyle normalTitleWhiteActiveText = TextStyle(
+    color: LivitColors.whiteActive,
+    fontFamily: 'HelveticaNowDisplay',
+    fontSize: normalTitleFontSize,
+    fontWeight: FontWeight.bold,
+  );
+  static TextStyle bigTitleWhiteActiveText = TextStyle(
+    color: LivitColors.whiteActive,
+    fontFamily: 'HelveticaNowDisplay',
+    fontSize: bigTitleFontSize,
+    fontWeight: FontWeight.bold,
   );
 }

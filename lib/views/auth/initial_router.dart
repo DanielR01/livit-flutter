@@ -4,8 +4,8 @@ import 'package:livit/services/auth/bloc/auth_bloc.dart';
 import 'package:livit/services/auth/bloc/auth_event.dart';
 import 'package:livit/services/auth/bloc/auth_state.dart';
 import 'package:livit/utilities/loading_screen.dart';
+import 'package:livit/views/auth/get_or_create_user/get_or_create_user.dart';
 import 'package:livit/views/auth/login/welcome.dart';
-import 'package:livit/views/main_pages/mainmenu.dart';
 
 class InitialRouterView extends StatelessWidget {
   const InitialRouterView({super.key});
@@ -16,11 +16,10 @@ class InitialRouterView extends StatelessWidget {
     return BlocBuilder<AuthBloc, AuthState>(
       builder: (context, state) {
         if (state is AuthStateLoggedIn) {
-          return const MainMenu();
+          return  GetOrCreateUserView(userType: state.userType);
         } else if (state is AuthStateLoggedOut) {
           return const WelcomeView();
         }
-
         return const LoadingScreenWithBackground();
       },
     );

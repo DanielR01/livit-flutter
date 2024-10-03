@@ -14,7 +14,8 @@ class AuthStateUninitialized extends AuthState {
 
 class AuthStateLoggedIn extends AuthState {
   final AuthUser user;
-  const AuthStateLoggedIn({required this.user});
+  final UserType? userType;
+  const AuthStateLoggedIn({required this.user, this.userType});
 }
 
 class AuthStateLoggingOut extends AuthState {

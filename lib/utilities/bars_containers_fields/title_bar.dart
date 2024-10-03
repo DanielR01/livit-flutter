@@ -17,7 +17,7 @@ class TitleBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color:Colors.transparent,
+      color: Colors.transparent,
       width: double.infinity,
       child: Stack(
         alignment: Alignment.topCenter,
@@ -29,7 +29,7 @@ class TitleBar extends StatelessWidget {
             ),
             child: LivitText(
               title,
-              textStyle: TextType.normalTitle,
+              textType: TextType.normalTitle,
             ),
           ),
           isBackEnabled

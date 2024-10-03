@@ -107,7 +107,10 @@ class _ConfirmOTPCodeViewState extends State<ConfirmOTPCodeView> {
       listener: (context, state) {
         if (state is AuthStateLoggedIn) {
           Navigator.of(context).pushNamedAndRemoveUntil(
-            Routes.mainViewRoute,
+            Routes.getOrCreateUserRoute,
+            arguments: {
+              'userType': state.userType,
+            },
             (_) => false,
           );
         }
@@ -192,7 +195,7 @@ class _ConfirmOTPCodeViewState extends State<ConfirmOTPCodeView> {
                                                 width: LivitBarStyle.height,
                                                 decoration: BoxDecoration(
                                                   color: LivitColors.mainBlack,
-                                                  borderRadius: LivitContainerStyle.radius,
+                                                  borderRadius: LivitContainerStyle.borderRadius,
                                                   boxShadow: [
                                                     LivitShadows.activeWhiteShadow,
                                                   ],
@@ -210,7 +213,7 @@ class _ConfirmOTPCodeViewState extends State<ConfirmOTPCodeView> {
                                               LivitSpaces.s,
                                               LivitText(
                                                 invalidCode!,
-                                                textStyle: TextType.regular,
+                                                textType: TextType.regular,
                                               ),
                                             ],
                                             LivitSpaces.m,
@@ -220,7 +223,11 @@ class _ConfirmOTPCodeViewState extends State<ConfirmOTPCodeView> {
                                               children: [
                                                 Button.secondary(
                                                   blueStyle: false,
-                                                  text: _isResendButtonActive ? 'Reenviar codigo' : 'Reenviar codigo... $countdown',
+                                                  text: _isResendingCode
+                                                      ? 'Reenviando codigo'
+                                                      : _isResendButtonActive
+                                                          ? 'Reenviar codigo'
+                                                          : 'Reenviar codigo... $countdown',
                                                   isActive: _isResendButtonActive,
                                                   isLoading: _isResendingCode,
                                                   onPressed: () {
@@ -242,6 +249,7 @@ class _ConfirmOTPCodeViewState extends State<ConfirmOTPCodeView> {
                                                     print('verifying');
                                                     context.read<AuthBloc>().add(
                                                           AuthEventLogInWithPhoneAndOtp(
+                                                            userType: widget.userType,
                                                             verificationId: verificationId,
                                                             otpCode: otpController.text,
                                                           ),

@@ -3,7 +3,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:livit/constants/colors.dart';
 
 class LivitContainerStyle {
-  static BorderRadius radius = BorderRadius.circular(16.sp);
+  static BorderRadius borderRadius = BorderRadius.circular(16.sp);
   static BoxShadow activeWhiteShadow = const BoxShadow(
     color: Color.fromARGB(77, 255, 255, 255),
     blurRadius: 9,
@@ -31,7 +31,7 @@ class LivitContainerStyle {
   }
 
   static BoxDecoration decoration = BoxDecoration(
-    borderRadius: LivitContainerStyle.radius,
+    borderRadius: LivitContainerStyle.borderRadius,
     color: LivitColors.mainBlack,
   );
 }

@@ -30,7 +30,7 @@ Future<void> showDialog2b({
                 children: [
                   LivitText(
                     title,
-                    textStyle: TextType.smallTitle,
+                    textType: TextType.smallTitle,
                   ),
                   body == null
                       ? LivitSpaces.s

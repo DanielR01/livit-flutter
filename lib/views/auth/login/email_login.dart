@@ -266,7 +266,13 @@ class _SignInState extends State<SignIn> {
     return BlocListener<AuthBloc, AuthState>(
       listener: (context, state) {
         if (state is AuthStateLoggedIn) {
-          Navigator.of(context).pushNamedAndRemoveUntil(Routes.mainViewRoute, (_) => false);
+          Navigator.of(context).pushNamedAndRemoveUntil(
+            Routes.getOrCreateUserRoute,
+            (_) => false,
+            arguments: {
+              'userType': state.userType,
+            },
+          );
         }
       },
       child: BlocBuilder<AuthBloc, AuthState>(
@@ -344,6 +350,7 @@ class _SignInState extends State<SignIn> {
                         AuthEventLogInWithEmailAndPassword(
                           email: _emailController.text,
                           password: _passwordController.text,
+                          userType: widget.userType,
                         ),
                       );
                 },
@@ -719,21 +726,27 @@ class _ForgotPassword extends State<ForgotPassword> {
             mainAxisSize: MainAxisSize.max,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  LivitSpaces.s,
-                  const LivitText(
-                    '¡Listo!, ¿no te ha llegado?',
-                    textAlign: TextAlign.center,
-                  ),
-                  LivitSpaces.m,
-                ],
+              const Expanded(
+                child: LivitText(
+                  '¡Listo!, ¿no te ha llegado?',
+                  textAlign: TextAlign.center,
+                ),
               ),
-              QuestionMarkButton(
-                onPressed: _showInfoDialog,
-                verticalOffset: -(LivitSpaces.mDouble - LivitSpaces.sDouble),
+              SizedBox(
+                width: 32.sp, // Adjust this value as needed
+                height: 24.sp, // Adjust this value as needed
+                child: Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    Positioned(
+                      top: -LivitContainerStyle.horizontalPadding,
+                      right: 0,
+                      child: QuestionMarkButton(
+                        onPressed: _showInfoDialog,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ],
           );
@@ -748,12 +761,10 @@ class _ForgotPassword extends State<ForgotPassword> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   mainAxisSize: MainAxisSize.max,
                   children: [
-                    
-                     LivitText(
+                    LivitText(
                       'Error de conexión',
                       textAlign: TextAlign.center,
                     ),
-                    
                   ],
                 ),
                 LivitSpaces.m,
@@ -767,12 +778,10 @@ class _ForgotPassword extends State<ForgotPassword> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   mainAxisSize: MainAxisSize.max,
                   children: [
-                    
-                     LivitText(
+                    LivitText(
                       'Algo salio mal, intenta mas tarde',
                       textAlign: TextAlign.center,
                     ),
-                    
                   ],
                 ),
                 LivitSpaces.m,
@@ -787,7 +796,7 @@ class _ForgotPassword extends State<ForgotPassword> {
               children: [
                 const LivitText(
                   '¿Olvidaste tu contraseña?',
-                  textStyle: TextType.smallTitle,
+                  textType: TextType.smallTitle,
                 ),
                 LivitSpaces.s,
                 const LivitText(

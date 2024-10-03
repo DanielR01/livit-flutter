@@ -6,4 +6,5 @@ class Routes {
   static const getOrCreateUserRoute = '/getOrCreateUser';
   static const mainViewRoute = '/mainView';
   static const createUpdateEventRoute = '/createUpdateEvent';
+  static const mainviewRoute = '/main';
 }

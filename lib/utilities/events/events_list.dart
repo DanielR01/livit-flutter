@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:livit/constants/styles/spaces.dart';
-import 'package:livit/services/cloud/cloud_event.dart';
+import 'package:livit/services/cloud/livit_event.dart';
 import 'package:livit/utilities/dialogs/delete_event_dialog.dart';
 import 'package:livit/utilities/events/event_preview.dart';
 
-typedef EventCallback = void Function(CloudEvent event);
+typedef EventCallback = void Function(LivitEvent event);
 
 class EventPreviewList extends StatefulWidget {
-  final Iterable<CloudEvent> events;
+  final Iterable<LivitEvent> events;
   final EventCallback onDeleteEvent;
   final EventCallback onEditEvent;
   const EventPreviewList({
@@ -33,7 +33,7 @@ class _EventPreviewListState extends State<EventPreviewList> {
       itemCount: widget.events.length,
       separatorBuilder: (context, index) => LivitSpaces.m,
       itemBuilder: (context, index) {
-        final CloudEvent event = widget.events.elementAt(index);
+        final LivitEvent event = widget.events.elementAt(index);
         return EventPreview(
           event: event,
           onDeletePressed: () async {

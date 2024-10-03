@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart' show immutable;
+import 'package:livit/constants/enums.dart';
 
 @immutable
 abstract class AuthEvent {
@@ -12,14 +13,17 @@ class AuthEventInitialize extends AuthEvent {
 class AuthEventLogInWithEmailAndPassword extends AuthEvent {
   final String email;
   final String password;
+  final UserType userType;
   const AuthEventLogInWithEmailAndPassword({
     required this.email,
     required this.password,
+    required this.userType,
   });
 }
 
 class AuthEventLogInWithGoogle extends AuthEvent {
-  const AuthEventLogInWithGoogle();
+  final UserType userType;
+  const AuthEventLogInWithGoogle({required this.userType});
 }
 
 class AuthEventSendOtpCode extends AuthEvent {
@@ -36,9 +40,11 @@ class AuthEventSendOtpCode extends AuthEvent {
 class AuthEventLogInWithPhoneAndOtp extends AuthEvent {
   final String verificationId;
   final String otpCode;
+  final UserType userType;
   const AuthEventLogInWithPhoneAndOtp({
     required this.verificationId,
     required this.otpCode,
+    required this.userType,
   });
 }
 

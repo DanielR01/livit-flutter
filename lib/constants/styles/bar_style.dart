@@ -7,15 +7,15 @@ import 'package:livit/constants/styles/shadows.dart';
 class LivitBarStyle {
   static double height = 54.sp;
 
-  static BorderRadius borderRadius = LivitContainerStyle.radius;
+  static BorderRadius borderRadius = LivitContainerStyle.borderRadius;
 
   static BoxDecoration normalDecoration = BoxDecoration(
-    borderRadius: LivitContainerStyle.radius,
+    borderRadius: LivitContainerStyle.borderRadius,
     color: LivitColors.mainBlack,
   );
 
   static BoxDecoration shadowDecoration = BoxDecoration(
-    borderRadius: LivitContainerStyle.radius,
+    borderRadius: LivitContainerStyle.borderRadius,
     color: LivitColors.mainBlack,
     boxShadow: [
       LivitShadows.activeWhiteShadow,
@@ -23,7 +23,7 @@ class LivitBarStyle {
   );
 
   static BoxDecoration strongShadowDecoration = BoxDecoration(
-    borderRadius: LivitContainerStyle.radius,
+    borderRadius: LivitContainerStyle.borderRadius,
     color: LivitColors.mainBlack,
     boxShadow: [
       LivitShadows.strongActiveWhiteShadow,

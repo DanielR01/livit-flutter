@@ -164,7 +164,7 @@ class _PhoneLoginViewState extends State<PhoneLoginView> {
                                         ),
                                         LivitSpaces.m,
                                         Button.main(
-                                          text: _isSendingCode ? 'Enviando código...' : 'Enviar código',
+                                          text: _isSendingCode ? 'Enviando código' : 'Enviar código',
                                           isActive: isPhoneValid,
                                           isLoading: _isSendingCode,
                                           onPressed: () {

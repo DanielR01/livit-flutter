@@ -16,24 +16,26 @@ class QuestionMarkButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onPressed,
-      child: Container(
-        color: Colors.transparent,
-        child: Padding(
-          padding: EdgeInsets.only(
-            top: LivitContainerStyle.verticalPadding + verticalOffset,
-            left: LivitContainerStyle.horizontalPadding,
-            right: LivitContainerStyle.horizontalPadding,
-            bottom: LivitContainerStyle.verticalPadding,
-          ),
-          child: Icon(
-            CupertinoIcons.question_circle_fill,
-            color: LivitColors.whiteActive,
-            size: 16.sp,
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        Positioned(
+          top: verticalOffset,
+          child: GestureDetector(
+            onTap: onPressed,
+            behavior: HitTestBehavior.translucent,
+            child: Container(
+              color: Colors.transparent,
+              padding: EdgeInsets.all(LivitContainerStyle.horizontalPadding),
+              child: Icon(
+                CupertinoIcons.question_circle_fill,
+                color: LivitColors.whiteInactive,
+                size: 16.sp,
+              ),
+            ),
           ),
         ),
-      ),
+      ],
     );
   }
 }

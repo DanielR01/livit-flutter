@@ -2,13 +2,13 @@ import 'package:flutter/widgets.dart';
 import 'package:livit/constants/styles/container_style.dart';
 import 'package:livit/constants/styles/spaces.dart';
 import 'package:livit/constants/styles/livit_text.dart';
-import 'package:livit/services/cloud/cloud_event.dart';
+import 'package:livit/services/cloud/livit_event.dart';
 import 'package:livit/utilities/bars_containers_fields/glass_container.dart';
 import 'package:livit/utilities/buttons/button.dart';
 import 'package:livit/utilities/buttons/share_button.dart';
 
 class EventPreview extends StatefulWidget {
-  final CloudEvent? event;
+  final LivitEvent? event;
   final VoidCallback onDeletePressed;
   final VoidCallback onEditPressed;
   final bool error;
@@ -45,9 +45,9 @@ class _EventPreviewState extends State<EventPreview> {
 
   @override
   Widget build(BuildContext context) {
-    String title = widget.error ? 'Error' : widget.event?.title ?? 'Cargando';
-    String location = widget.error ? 'Error' : widget.event?.location ?? 'Cargando';
-    String creatorId = widget.error ? 'Error' : widget.event?.creatorId ?? 'Cargando';
+    String title = widget.error ? 'Error' : widget.event?.name ?? 'Cargando';
+    String location = widget.error ? 'Error' : widget.event?.locations.first.name ?? 'Cargando';
+    String creatorId = widget.error ? 'Error' : widget.event?.promoters.first ?? 'Cargando';
     return GlassContainer(
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -59,7 +59,7 @@ class _EventPreviewState extends State<EventPreview> {
               children: [
                 LivitText(
                   title,
-                  textStyle: TextType.smallTitle,
+                  textType: TextType.smallTitle,
                 ),
                 LivitText(location),
                 LivitText(creatorId),

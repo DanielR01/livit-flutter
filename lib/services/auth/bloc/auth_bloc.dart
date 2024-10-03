@@ -34,7 +34,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         final password = event.password;
         try {
           final user = await provider.logInWithEmailAndPassword(email: email, password: password);
-          emit(AuthStateLoggedIn(user: user));
+          emit(AuthStateLoggedIn(user: user, userType: event.userType));
         } catch (e) {
           _emitError(emit, e as Exception);
         }
@@ -109,7 +109,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         try {
           await provider.logInWithGoogle();
           final user = provider.currentUser;
-          emit(AuthStateLoggedIn(user: user));
+          emit(AuthStateLoggedIn(user: user, userType: event.userType));
         } catch (e) {
           _emitError(emit, e as Exception);
         }
@@ -129,7 +129,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
             verificationId: verificationId,
             otpCode: otpCode,
           );
-          emit(AuthStateLoggedIn(user: user));
+          emit(AuthStateLoggedIn(user: user, userType: event.userType));
         } catch (e) {
           _emitError(emit, e as Exception);
         }

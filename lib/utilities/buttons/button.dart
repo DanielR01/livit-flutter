@@ -18,6 +18,7 @@ class Button extends StatefulWidget {
   final String text;
   final VoidCallback onPressed;
   final bool isActive;
+  final bool? forceOnPressed;
   final bool isLoading;
   final double? width;
   final bool blueStyle;
@@ -48,6 +49,7 @@ class Button extends StatefulWidget {
     this.inactiveBackgroundColor,
     this.inactiveTextColor,
     this.inactiveShadowColor,
+    this.forceOnPressed,
   });
 
   factory Button.fromType({
@@ -57,6 +59,7 @@ class Button extends StatefulWidget {
     required bool isActive,
     bool? bold,
     bool? blueStyle,
+    bool? forceOnPressed,
   }) {
     switch (type) {
       case ButtonType.main:
@@ -65,6 +68,7 @@ class Button extends StatefulWidget {
           onPressed: onPressed,
           isActive: isActive,
           blueStyle: blueStyle ?? false,
+          forceOnPressed: forceOnPressed,
         );
 
       case ButtonType.secondary:
@@ -73,6 +77,7 @@ class Button extends StatefulWidget {
           onPressed: onPressed,
           isActive: isActive,
           blueStyle: blueStyle ?? false,
+          forceOnPressed: forceOnPressed,
         );
       case ButtonType.whiteText:
         return Button.whiteText(
@@ -80,6 +85,7 @@ class Button extends StatefulWidget {
           onPressed: onPressed,
           isActive: isActive,
           bold: bold ?? true,
+          forceOnPressed: forceOnPressed,
         );
       case ButtonType.redText:
         return Button.redText(
@@ -87,6 +93,7 @@ class Button extends StatefulWidget {
           onPressed: onPressed,
           isActive: isActive,
           bold: bold ?? true,
+          forceOnPressed: forceOnPressed,
         );
       case ButtonType.blueText:
         return Button.blueText(
@@ -94,18 +101,21 @@ class Button extends StatefulWidget {
           onPressed: onPressed,
           isActive: isActive,
           bold: bold ?? false,
+          forceOnPressed: forceOnPressed,
         );
       case ButtonType.mainRed:
         return Button.mainRed(
           text: text,
           isActive: isActive,
           onPressed: onPressed,
+          forceOnPressed: forceOnPressed,
         );
       case ButtonType.secondaryRed:
         return Button.secondaryRed(
           text: text,
           isActive: isActive,
           onPressed: onPressed,
+          forceOnPressed: forceOnPressed,
         );
     }
   }
@@ -116,6 +126,7 @@ class Button extends StatefulWidget {
     required VoidCallback onPressed,
     bool blueStyle = false,
     bool isLoading = false,
+    bool? forceOnPressed,
   }) {
     Color activeBackgroundColor = blueStyle ? LivitColors.mainBlueActive : LivitColors.whiteActive;
     return Button(
@@ -131,6 +142,7 @@ class Button extends StatefulWidget {
       activeTextColor: LivitColors.mainBlack,
       inactiveBackgroundColor: LivitColors.whiteInactive,
       inactiveTextColor: LivitColors.mainBlack,
+      forceOnPressed: forceOnPressed,
     );
   }
 
@@ -140,6 +152,7 @@ class Button extends StatefulWidget {
     required VoidCallback onPressed,
     bool isLoading = false,
     bool blueStyle = false,
+    bool? forceOnPressed,
   }) {
     return Button(
       text: text,
@@ -153,6 +166,8 @@ class Button extends StatefulWidget {
       activeTextColor: LivitColors.whiteActive,
       inactiveBackgroundColor: LivitColors.mainBlack,
       inactiveTextColor: LivitColors.whiteInactive,
+      isLoading: isLoading,
+      forceOnPressed: forceOnPressed,
     );
   }
 
@@ -161,6 +176,7 @@ class Button extends StatefulWidget {
     required bool isActive,
     required VoidCallback onPressed,
     bool blueStyle = false,
+    bool? forceOnPressed,
   }) {
     return Button(
       text: text,
@@ -175,6 +191,7 @@ class Button extends StatefulWidget {
       inactiveBackgroundColor: LivitColors.mainBlack,
       inactiveTextColor: LivitColors.whiteInactive,
       activeShadowColor: LivitColors.red,
+      forceOnPressed: forceOnPressed,
     );
   }
 
@@ -183,6 +200,7 @@ class Button extends StatefulWidget {
     required bool isActive,
     required VoidCallback onPressed,
     bool bold = true,
+    bool? forceOnPressed,
   }) {
     return Button(
       //activeBackgroundColor: LivitColors.red,
@@ -195,6 +213,7 @@ class Button extends StatefulWidget {
       bold: bold,
       activeTextColor: LivitColors.red, //LivitColors.mainBlack,
       inactiveTextColor: LivitColors.whiteInactive,
+      forceOnPressed: forceOnPressed,
     );
   }
 
@@ -203,6 +222,7 @@ class Button extends StatefulWidget {
     required bool isActive,
     required VoidCallback onPressed,
     bool bold = true,
+    bool? forceOnPressed,
   }) {
     return Button(
       text: text,
@@ -214,6 +234,7 @@ class Button extends StatefulWidget {
       bold: bold,
       activeTextColor: LivitColors.whiteActive,
       inactiveTextColor: LivitColors.whiteInactive,
+      forceOnPressed: forceOnPressed,
     );
   }
 
@@ -222,6 +243,7 @@ class Button extends StatefulWidget {
     required bool isActive,
     required VoidCallback onPressed,
     bool bold = true,
+    bool? forceOnPressed,
   }) {
     return Button(
       text: text,
@@ -233,6 +255,7 @@ class Button extends StatefulWidget {
       bold: bold,
       activeTextColor: LivitColors.mainBlueActive,
       inactiveTextColor: LivitColors.whiteInactive,
+      forceOnPressed: forceOnPressed,
     );
   }
 
@@ -240,6 +263,7 @@ class Button extends StatefulWidget {
     required String text,
     required bool isActive,
     required VoidCallback onPressed,
+    bool? forceOnPressed,
   }) {
     return Button(
       text: text,
@@ -253,6 +277,7 @@ class Button extends StatefulWidget {
       activeTextColor: LivitColors.mainBlack,
       inactiveBackgroundColor: LivitColors.whiteInactive,
       inactiveTextColor: LivitColors.mainBlack,
+      forceOnPressed: forceOnPressed,
     );
   }
 
@@ -325,33 +350,38 @@ class _ButtonState extends State<Button> with SingleTickerProviderStateMixin {
                 ),
                 child: InkWell(
                   borderRadius: LivitButtonStyle.radius,
-                  onTap: (widget.isActive && !widget.isLoading) ? widget.onPressed : null,
+                  onTap: (widget.forceOnPressed ?? false)
+                      ? widget.onPressed
+                      : (widget.isActive && !widget.isLoading)
+                          ? widget.onPressed
+                          : null,
                   child: Padding(
                     padding: LivitButtonStyle.padding,
-                    child: Center(
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          LivitText(
-                            widget.text,
-                            textStyle: TextType.regular,
-                            color: textColor,
-                            fontWeight: widget.bold ? FontWeight.bold : null,
-                          ),
-                          if (widget.isLoading)
-                            AnimatedBuilder(
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      mainAxisAlignment: widget.isLoading ? MainAxisAlignment.start : MainAxisAlignment.center,
+                      children: [
+                        LivitText(
+                          widget.text,
+                          textType: TextType.regular,
+                          color: textColor,
+                          fontWeight: widget.bold ? FontWeight.bold : null,
+                        ),
+                        if (widget.isLoading)
+                          Expanded(
+                            child: AnimatedBuilder(
                               animation: _dotsAnimation,
                               builder: (context, child) {
                                 return LivitText(
                                   '.' * _dotsAnimation.value,
-                                  textStyle: TextType.regular,
+                                  textType: TextType.regular,
                                   color: textColor,
                                   fontWeight: widget.bold ? FontWeight.bold : null,
                                 );
                               },
                             ),
-                        ],
-                      ),
+                          ),
+                      ],
                     ),
                   ),
                 ),

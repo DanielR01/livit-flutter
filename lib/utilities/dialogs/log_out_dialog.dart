@@ -10,11 +10,11 @@ Future<bool> showLogOutDialog({required BuildContext context}) {
     optionBuilder: () => {
       'Cancelar': {
         'return': false,
-        'buttonType': ButtonType.secondary,
+        'buttonType': ButtonType.main,
       },
       'Cerrar sesión': {
         'return': true,
-        'buttonType': ButtonType.secondaryRed,
+        'buttonType': ButtonType.redText,
       },
     },
   ).then((value) => value ?? false);

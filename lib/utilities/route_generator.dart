@@ -10,6 +10,7 @@ import 'package:livit/views/auth/login/email_login.dart';
 import 'package:livit/views/auth/login/phone_login.dart';
 import 'package:livit/views/error_route.dart';
 import 'package:livit/views/main_pages/mainmenu.dart';
+import 'package:livit/views/auth/get_or_create_user/get_or_create_user.dart';
 
 class CustomCupertinoPageRoute<T> extends CupertinoPageRoute<T> {
   CustomCupertinoPageRoute({
@@ -130,6 +131,14 @@ class RouteGenerator {
         if (args is Map<String, dynamic> && args.containsKey('userType')) {
           final userType = args['userType'] as UserType;
           page = EmailLoginView(userType: userType);
+        } else {
+          page = const ErrorView(message: 'No se proporcionó el tipo de usuario.');
+        }
+        break;
+      case Routes.getOrCreateUserRoute:
+        if (args is Map<String, dynamic> && args.containsKey('userType')) {
+          final userType = args['userType'] as UserType;
+          page = GetOrCreateUserView(userType: userType);
         } else {
           page = const ErrorView(message: 'No se proporcionó el tipo de usuario.');
         }

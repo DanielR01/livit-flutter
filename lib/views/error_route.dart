@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:livit/constants/routes.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:livit/constants/styles/container_style.dart';
 import 'package:livit/constants/styles/livit_text.dart';
 import 'package:livit/constants/styles/spaces.dart';
-import 'package:livit/constants/enums.dart';
+import 'package:livit/services/auth/bloc/auth_bloc.dart';
+import 'package:livit/services/auth/bloc/auth_event.dart';
 import 'package:livit/utilities/buttons/button.dart';
 
 class ErrorView extends StatelessWidget {
@@ -25,7 +26,7 @@ class ErrorView extends StatelessWidget {
               children: [
                 const LivitText(
                   '¡Ups!',
-                  textStyle: TextType.bigTitle,
+                  textType: TextType.bigTitle,
                 ),
                 //LivitSpaces.s,
                 const LivitText(
@@ -47,13 +48,7 @@ class ErrorView extends StatelessWidget {
                     if (Navigator.canPop(context)) {
                       Navigator.of(context).pop();
                     } else {
-                      Navigator.of(context).pushNamedAndRemoveUntil(
-                        Routes.authRoute,
-                        arguments: {
-                          'userType': UserType.customer,
-                        },
-                        (route) => false,
-                      );
+                      context.read<AuthBloc>().add(const AuthEventLogOut());
                     }
                   },
                 ),

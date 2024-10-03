@@ -5,6 +5,8 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:livit/constants/colors.dart';
 import 'package:livit/services/auth/bloc/auth_bloc.dart';
 import 'package:livit/services/auth/firebase_auth_provider.dart';
+import 'package:livit/services/cloud/bloc/users/user_bloc.dart';
+import 'package:livit/services/cloud/firebase_cloud_storage.dart';
 import 'package:livit/utilities/transitions/rootwidget.dart';
 
 void main() async {
@@ -21,40 +23,46 @@ class StartPage extends StatelessWidget {
   Widget build(BuildContext context) {
     ScreenUtil.init(context, designSize: const Size(390, 844));
     return BlocProvider(
-      create: (context) => AuthBloc(provider: FirebaseAuthProvider()),
-      child: MaterialApp(
-        navigatorKey: _navKey,
-        debugShowCheckedModeBanner: false,
-        title: 'Livit',
-        theme: ThemeData(
-          textSelectionTheme: const TextSelectionThemeData(
-            selectionColor: LivitColors.whiteInactive,
-            selectionHandleColor: LivitColors.whiteActive,
-            cursorColor: LivitColors.whiteActive,
+      create: (context) => UserBloc(
+        cloudStorage: FirebaseCloudStorage(),
+        authProvider: FirebaseAuthProvider(),
+      ),
+      child: BlocProvider(
+        create: (context) => AuthBloc(provider: FirebaseAuthProvider()),
+        child: MaterialApp(
+          navigatorKey: _navKey,
+          debugShowCheckedModeBanner: false,
+          title: 'Livit',
+          theme: ThemeData(
+            textSelectionTheme: const TextSelectionThemeData(
+              selectionColor: LivitColors.whiteInactive,
+              selectionHandleColor: LivitColors.whiteActive,
+              cursorColor: LivitColors.whiteActive,
+            ),
+            scaffoldBackgroundColor: Colors.transparent,
+            appBarTheme: const AppBarTheme(
+              color: LivitColors.mainBlack,
+              titleTextStyle: TextStyle(
+                color: LivitColors.whiteActive,
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            textTheme: const TextTheme(
+              bodyLarge: TextStyle(
+                color: LivitColors.whiteActive,
+              ),
+              bodyMedium: TextStyle(
+                color: LivitColors.whiteActive,
+              ),
+              bodySmall: TextStyle(
+                color: LivitColors.whiteActive,
+              ),
+            ),
+            fontFamily: 'HelveticaNowDisplay',
           ),
-          scaffoldBackgroundColor: Colors.transparent,
-          appBarTheme: const AppBarTheme(
-            color: LivitColors.mainBlack,
-            titleTextStyle: TextStyle(
-              color: LivitColors.whiteActive,
-              fontSize: 22,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          textTheme: const TextTheme(
-            bodyLarge: TextStyle(
-              color: LivitColors.whiteActive,
-            ),
-            bodyMedium: TextStyle(
-              color: LivitColors.whiteActive,
-            ),
-            bodySmall: TextStyle(
-              color: LivitColors.whiteActive,
-            ),
-          ),
-          fontFamily: 'HelveticaNowDisplay',
+          home: RootWidgetBackground(),
         ),
-        home: RootWidgetBackground(),
       ),
     );
   }

@@ -29,7 +29,13 @@ class _GoogleLoginBarState extends State<GoogleLoginBar> {
     return BlocListener<AuthBloc, AuthState>(
       listener: (context, state) {
         if (state is AuthStateLoggedIn) {
-          Navigator.of(context).pushNamedAndRemoveUntil(Routes.mainViewRoute, (_) => false);
+          Navigator.of(context).pushNamedAndRemoveUntil(
+            Routes.getOrCreateUserRoute,
+            arguments: {
+              'userType': state.userType,
+            },
+            (_) => false,
+          );
         } else if (state is AuthStateLoggedOut && state.loginMethod == LoginMethod.google) {
           setState(() => _isSigningIn = true);
         } else {
@@ -38,7 +44,7 @@ class _GoogleLoginBarState extends State<GoogleLoginBar> {
       },
       child: GestureDetector(
         onTap: () {
-          context.read<AuthBloc>().add(const AuthEventLogInWithGoogle());
+          context.read<AuthBloc>().add(AuthEventLogInWithGoogle(userType: widget.userType));
         },
         child: Container(
           height: 54.sp,

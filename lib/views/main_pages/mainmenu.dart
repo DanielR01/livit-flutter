@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:livit/services/cloud/bloc/users/user_bloc.dart';
 import 'package:livit/utilities/bars_containers_fields/navigation_bar.dart';
 import 'package:livit/views/main_pages/explore.dart';
 import 'package:livit/views/main_pages/home.dart';
@@ -30,7 +32,7 @@ class _MainMenuState extends State<MainMenu> {
   @override
   void initState() {
     viewsList = const [
-      HomeView(),
+      //HomePage(),
       ExploreView(),
       TicketsView(),
       ProfileView(),
@@ -40,9 +42,7 @@ class _MainMenuState extends State<MainMenu> {
 
   @override
   Widget build(BuildContext context) {
-    
     return Scaffold(
-      
       key: scaffoldKey,
       body: Stack(
         children: [

@@ -6,12 +6,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:livit/constants/colors.dart';
 import 'package:livit/constants/styles/container_style.dart';
-import 'package:livit/services/cloud/cloud_event.dart';
+import 'package:livit/services/cloud/livit_event.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:path_provider/path_provider.dart';
 
 class ShareEventButton extends StatelessWidget {
-  final CloudEvent event;
+  final LivitEvent event;
   final bool isEnabled;
 
   const ShareEventButton({
@@ -44,11 +44,11 @@ class ShareEventButton extends StatelessWidget {
     textPainter.text = TextSpan(
       children: [
         TextSpan(
-          text: 'Event: ${event.title}\n',
+          text: 'Event: ${event.name}\n',
           style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.black),
         ),
         TextSpan(
-          text: 'Location: ${event.location}',
+          text: 'Location: ${event.locations.first.name}\n',
           style: const TextStyle(fontSize: 18, color: Colors.black),
         ),
       ],

@@ -15,7 +15,7 @@ class LivitShadows {
   );
 
   static BoxShadow activeWhiteShadow = const BoxShadow(
-    color: Color.fromARGB(77, 255, 255, 255),
+    color: Color.fromARGB(129, 255, 255, 255),
     blurRadius: 9,
     offset: Offset(0, 0),
   );

@@ -20,14 +20,13 @@ class GlassContainer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ClipRRect(
-      borderRadius: borderRadius ?? LivitContainerStyle.radius,
+      borderRadius: borderRadius ?? LivitContainerStyle.borderRadius,
       child: BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 6, sigmaY: 6),
         child: Container(
           decoration: BoxDecoration(
-            color: (backgroundColor ?? LivitColors.mainBlack)
-                .withOpacity(opacity ?? 0),
-            borderRadius: LivitContainerStyle.radius,
+            color: (backgroundColor ?? LivitColors.mainBlack).withOpacity(opacity ?? 0),
+            borderRadius: LivitContainerStyle.borderRadius,
           ),
           child: child,
         ),
