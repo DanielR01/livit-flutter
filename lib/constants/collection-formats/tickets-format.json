@@ -1,0 +1,34 @@
+{
+    "tickets": {
+        "ticketid_example": {
+            "ticketId": "auto-generated",
+            "eventId": "eventid_example",
+            "ownerId": "userid_example",
+            "ticketType": "tickettype_example",
+            "ticketStatus": "ticketstatus_example",
+            "ticketPrice": {
+                "amount": 50.00,
+                "currency": "USD"
+            },
+            "description": "description_example",
+            "entranceLocation": {
+                "name": "location_name_example",
+                "geopoint": {
+                    "latitude": 123.456,
+                    "longitude": 789.123
+                }
+            },
+            "eventDateName": "eventdatename_example",
+            "ownedAt": "timestamp_example",
+            "scannedBy": "promoterid_example",
+            "scannedAt": "timestamp_example",
+            "validFrom": "timestamp_example",
+            "validTo": "timestamp_example",
+            "minActivationTime": "timestamp_example",
+            "activatedAt": null,
+            "private": {
+                "randomString": "randomstring_example"
+            }
+        }
+    }
+}

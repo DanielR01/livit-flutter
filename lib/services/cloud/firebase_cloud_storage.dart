@@ -49,61 +49,12 @@ class FirebaseCloudStorage {
     }
   }
 
-  Future<void> createUser({required LivitUser user}) async {
-    try {
-      await usersCollection.doc(user.id).set(user);
-    } catch (_) {
-      throw CouldNotCreateUserException();
-    }
-  }
-
   Future<void> updateUser({required LivitUser user}) async {
+    print('updating user');
     try {
       await usersCollection.doc(user.id).update(user.toMap());
     } catch (_) {
       throw CouldNotUpdateUserException();
-    }
-  }
-
-  // **Username Methods**
-
-  /// Attempts to reserve a username and create a user in a single transaction.
-  /// Throws [UsernameAlreadyExistsException] if the username is taken.
-  Future<void> createUserWithUsername({
-    required String userId,
-    required String username,
-    required LivitUser user,
-  }) async {
-    final usernameDoc = usernamesCollection.doc(username.toLowerCase());
-
-    // Changed: Use untyped DocumentReference<Object?> for userDoc
-    final userDoc = _firestore.collection('users').doc(userId);
-
-    try {
-      await _firestore.runTransaction((transaction) async {
-        // Check if username already exists
-        final usernameSnapshot = await transaction.get(usernameDoc);
-        if (usernameSnapshot.exists) {
-          throw UsernameAlreadyExistsException();
-        }
-
-        // Check if user already exists
-        // Changed: Use untyped DocumentReference for fetching user
-        final userSnapshot = await transaction.get(userDoc);
-        if (userSnapshot.exists) {
-          throw UserAlreadyExistsException();
-        }
-
-        // Reserve the username
-        transaction.set(usernameDoc, {'userId': userId});
-
-        // Create the user
-        transaction.set(userDoc, user.toMap(), SetOptions(merge: true));
-      });
-    } on UsernameAlreadyExistsException {
-      rethrow;
-    } catch (e) {
-      throw CouldNotCreateUserException();
     }
   }
 

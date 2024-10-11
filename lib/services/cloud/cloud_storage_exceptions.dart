@@ -1,20 +1,40 @@
 // User Exceptions
 
-class CouldNotGetUserException implements Exception {}
+class CouldNotGetUserException implements Exception {
+  @override
+  String toString() {
+    return 'No se pudo obtener el usuario';
+  }
+}
 
-class CouldNotCreateUserException implements Exception {}
+class UserNotFoundException implements Exception {
+  @override
+  String toString() {
+    return 'No se pudo encontrar el usuario';
+  }
+}
 
-class UserNotFoundException implements Exception {}
+class CouldNotUpdateUserException implements Exception {
+  @override
+  String toString() {
+    return 'No se pudo actualizar el usuario';
+  }
+}
 
-class CouldNotUpdateUserException implements Exception {}
+class CouldNotGetAllUsersException implements Exception {
+  @override
+  String toString() {
+    return 'No se pudo obtener todos los usuarios';
+  }
+}
 
-class CouldNotGetAllUsersException implements Exception {}
 
-class UsernameAlreadyExistsException implements Exception {}
-
-class UserAlreadyExistsException implements Exception {}
-
-class NoCurrentUserException implements Exception {}
+class NoCurrentUserException implements Exception {
+  @override
+  String toString() {
+    return 'No hay un usuario actual';
+  }
+}
 
 // Event Exceptions
 
@@ -39,3 +59,7 @@ class CouldNotCreateTicketException implements Exception {}
 class CouldNotUpdateTicketException implements Exception {}
 
 class CouldNotDeleteTicketException implements Exception {}
+
+// Username Exceptions
+
+class CouldNotCreateUsernameException implements Exception {}

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:livit/constants/enums.dart';
 import 'package:livit/constants/routes.dart';
+import 'package:livit/services/cloud/cloud_functions/cloud_functions_exceptions.dart';
 import 'package:livit/services/cloud/cloud_storage_exceptions.dart';
 import 'package:livit/services/cloud/bloc/users/user_bloc.dart';
 import 'package:livit/services/cloud/bloc/users/user_event.dart';
@@ -65,10 +66,10 @@ class _GetOrCreateUserViewState extends State<GetOrCreateUserView> {
                 } else {
                   return const CreateUserView();
                 }
-              } else if (state.exception is UsernameAlreadyExistsException) {
+              } else if (state.exception is UsernameAlreadyTakenException) {
                 return const CreateUserView();
               } else {
-                return const ErrorReauthScreen();
+                return ErrorReauthScreen(exception: state.exception);
               }
 
             default:

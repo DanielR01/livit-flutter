@@ -10,7 +10,8 @@ import 'package:livit/utilities/buttons/button.dart';
 import 'package:livit/views/auth/login/welcome.dart';
 
 class ErrorReauthScreen extends StatefulWidget {
-  const ErrorReauthScreen({super.key});
+  final Exception? exception;
+  const ErrorReauthScreen({super.key, this.exception});
 
   @override
   State<ErrorReauthScreen> createState() => _ErrorReauthScreenState();
@@ -45,6 +46,10 @@ class _ErrorReauthScreenState extends State<ErrorReauthScreen> {
                     'Algo salió mal, intenta iniciar sesión de nuevo.',
                     textAlign: TextAlign.center,
                   ),
+                  if (widget.exception != null)
+                    LivitText(
+                      widget.exception.toString(),
+                    ),
                   LivitSpaces.m,
                   Button.main(
                     isActive: true,

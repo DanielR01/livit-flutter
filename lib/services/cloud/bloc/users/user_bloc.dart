@@ -1,4 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:livit/cloud_models/cloud_user.dart';
+import 'package:livit/services/cloud/cloud_functions/cloud_functions_exceptions.dart';
+import 'package:livit/services/cloud/cloud_functions/firestore_cloud_functions.dart';
 import 'package:livit/services/cloud/firebase_cloud_storage.dart';
 import 'package:livit/services/auth/auth_provider.dart';
 import 'package:livit/services/cloud/bloc/users/user_event.dart';
@@ -8,14 +11,17 @@ import 'package:livit/services/cloud/cloud_storage_exceptions.dart';
 
 class UserBloc extends Bloc<UserEvent, UserState> {
   final FirebaseCloudStorage _cloudStorage;
+  final FirestoreCloudFunctions _firestoreCloudFunctions;
   final AuthProvider _authProvider;
 
   LivitUser? _currentUser;
 
   UserBloc({
     required FirebaseCloudStorage cloudStorage,
+    required FirestoreCloudFunctions firestoreCloudFunctions,
     required AuthProvider authProvider,
   })  : _cloudStorage = cloudStorage,
+        _firestoreCloudFunctions = firestoreCloudFunctions,
         _authProvider = authProvider,
         super(NoCurrentUser(isInitialized: false)) {
     on<GetUser>(_onGetUser);
@@ -66,21 +72,18 @@ class UserBloc extends Bloc<UserEvent, UserState> {
         isProfileCompleted: false,
         interests: [],
       );
-      await _cloudStorage.createUserWithUsername(
-        userId: userId,
-        username: event.username,
-        user: newUser,
+      await _firestoreCloudFunctions.createUserAndUsername(
+        user: CloudUser(
+          id: userId,
+          username: event.username,
+          userType: event.userType.name,
+          name: event.name,
+        ),
       );
 
       _currentUser = newUser;
 
       emit(CurrentUser(user: newUser));
-    } on UsernameAlreadyExistsException {
-      emit(NoCurrentUser(
-        userType: event.userType,
-        exception: UsernameAlreadyExistsException(),
-        isLoading: false,
-      ));
     } catch (e) {
       emit(NoCurrentUser(
         userType: event.userType,

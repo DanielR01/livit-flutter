@@ -1,0 +1,32 @@
+{
+    "users": {
+        "userid_example": {
+            "name": "name_example",
+            "username": "username_example",
+            "description": "description_example",
+            "media": {
+                "profile": ["url_example1", "url_example2"]
+            },
+            "userType": "customer",
+            "createdAt": "timestamp_example",
+            "shared":{
+                "interests": ["interest1", "interest2"],
+                "interestedEvents": ["eventid_example3", "eventid_example4"]
+            },
+            "private": {
+                "email": "email_example",
+                "phoneNumber": "phoneNumber_example",
+                "privacySettings": {
+                },
+                "location": {
+                    "name": "location_name_example",
+                    "geopoint": {
+                        "latitude": 0.0,
+                        "longitude": 0.0
+                    }
+                },
+                "isProfileCompleted": false
+            }
+        }
+    }
+}

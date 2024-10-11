@@ -1,0 +1,12 @@
+{
+    "subscriptions": {
+        "subscriptionid_example": {
+            "customerId": "customerid_example",
+            "target" : {
+                "id": "targetid_example",
+                "type": "promoter"
+            },
+            "subscribedAt": "timestamp_example"
+        }
+    }
+}

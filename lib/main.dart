@@ -6,6 +6,7 @@ import 'package:livit/constants/colors.dart';
 import 'package:livit/services/auth/bloc/auth_bloc.dart';
 import 'package:livit/services/auth/firebase_auth_provider.dart';
 import 'package:livit/services/cloud/bloc/users/user_bloc.dart';
+import 'package:livit/services/cloud/cloud_functions/firestore_cloud_functions.dart';
 import 'package:livit/services/cloud/firebase_cloud_storage.dart';
 import 'package:livit/utilities/transitions/rootwidget.dart';
 
@@ -25,6 +26,7 @@ class StartPage extends StatelessWidget {
     return BlocProvider(
       create: (context) => UserBloc(
         cloudStorage: FirebaseCloudStorage(),
+        firestoreCloudFunctions: FirestoreCloudFunctions(),
         authProvider: FirebaseAuthProvider(),
       ),
       child: BlocProvider(

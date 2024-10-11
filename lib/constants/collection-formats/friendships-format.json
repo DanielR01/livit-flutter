@@ -1,0 +1,12 @@
+{
+    "friendships": {    
+        "friendshipId_example": {
+            "friendshipId": "auto-generated",
+            "requesterId": "userId_1",
+            "requestedId": "userId_2",
+            "status": "pending",
+            "createdAt": "timestamp_example",
+            "acceptedAt": "timestamp_example"
+        }
+    }
+}

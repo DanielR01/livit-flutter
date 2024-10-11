@@ -15,6 +15,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         await provider.initialize();
         try {
           final AuthUser user = provider.currentUser;
+          print(user);
           emit(AuthStateLoggedIn(user: user));
         } catch (e) {
           emit(

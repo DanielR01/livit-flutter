@@ -1,0 +1,42 @@
+{
+    "users": {
+        "userid_example": {
+            "name": "name_example",
+            "username": "username_example",
+            "email": "email_example",
+            "description": "description_example",
+            "media": {
+                "profile": ["url_example1", "url_example2"]
+            },
+            "location": {
+                "name": "location_name_example",
+                "geopoint": {
+                    "latitude": 0.0,
+                    "longitude": 0.0
+                }
+            },
+            "userType": "promoter",
+            "createdAt": "timestamp_example",
+            "private" :{
+                "isProfileCompleted": false,
+                "defaultScanners": ["user_id_example1", "user_id_example2"],
+                "defaultTickets": [
+                    {
+                        "ticketType": "ticketType_example", 
+                        "totalAmount": 10,
+                        "price": {
+                            "currency": "currency_example",
+                            "value": 100
+                        },
+                        "description": "description_example",
+                        "validFrom": "timestamp_example",
+                        "validTo": "timestamp_example",
+                        "isTransferable": true
+                    }
+                ]
+            },
+            "privacySettings": {},
+            "tagsOfInterest": ["tag1", "tag2"]
+        }
+    }
+}

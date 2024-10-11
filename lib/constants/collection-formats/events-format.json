@@ -1,0 +1,56 @@
+{
+    "events": {
+        "eventId_example": {
+            "special": false,
+            "eventId": "auto-generated",
+            "description": "Event description",
+            "dates": [
+                {
+                    "dateName": "Day 1",
+                    "startTime": "timestamp",
+                    "endTime": "timestamp"
+                }
+            ],
+            "artists": [
+                {
+                    "name": "Artist name",
+                    "dateName": "Day 1",
+                    "description": "Artist bio",
+                    "startTime": "timestamp",
+                    "endTime": "timestamp",
+                    "userReference": "optional user reference"
+                }
+            ],
+            "locations": [
+                {
+                    "name": "Location name",
+                    "geoPoint": "geoPoint",
+                    "dateName": "Day 1"
+                }
+            ],
+            "media": {
+                "thumbnail": ["URL1", "URL2"]
+            },
+            "promoters": ["promoterId1", "promoterId2"],
+            "ticketTypes": [
+                {
+                    "name": "General Admission",
+                    "availableQuantity": 100,
+                    "totalQuantity": 200,
+                    "dateName": "Day 1",
+                    "description": "Ticket details",
+                    "price": {
+                        "amount": 50.00,
+                        "currency": "USD"
+                    },
+                    "entranceLocation": {
+                        "name": "Entrance name",
+                        "geoPoint": "geoPoint"
+                    }
+                }
+            ],
+            "tagsOfInterest": ["tag1", "tag2"],
+            "state": "draft"
+        }
+    }
+}

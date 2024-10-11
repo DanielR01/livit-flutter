@@ -1,0 +1,10 @@
+{
+    "reactions": {
+        "reactionid_example": {
+            "userid": "userid_example",
+            "eventid": "eventid_example",
+            "reactionType": "like",
+            "reactionDate": "timestamp_example"
+        }
+    }
+}

@@ -7,8 +7,8 @@ import 'package:livit/constants/styles/livit_text.dart';
 import 'package:livit/constants/styles/spaces.dart';
 import 'package:livit/services/cloud/bloc/users/user_event.dart';
 import 'package:livit/services/cloud/bloc/users/user_state.dart';
-import 'package:livit/services/cloud/cloud_storage_exceptions.dart';
 import 'package:livit/services/cloud/bloc/users/user_bloc.dart';
+import 'package:livit/services/cloud/cloud_functions/cloud_functions_exceptions.dart';
 import 'package:livit/utilities/buttons/button.dart';
 import 'package:livit/utilities/bars_containers_fields/glass_container.dart';
 import 'package:livit/utilities/bars_containers_fields/title_bar.dart';
@@ -118,7 +118,7 @@ class _CreateUserViewState extends State<CreateUserView> with TickerProviderStat
     return BlocBuilder<UserBloc, UserState>(
       builder: (context, state) {
         if (state is NoCurrentUser) {
-          if (state.exception is UsernameAlreadyExistsException) {
+          if (state.exception is UsernameAlreadyTakenException) {
             _bottomCaptionText = 'El nombre de usuario ya esta en uso.';
           } else if (state.exception != null) {
             _bottomCaptionText = 'Algo salio mal, intentalo de nuevo mas tarde';

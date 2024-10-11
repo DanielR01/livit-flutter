@@ -23,6 +23,11 @@ class AuthUser {
       phoneNumber: user.phoneNumber,
     );
   }
+
+  @override
+  String toString() {
+    return 'AuthUser(id: $id, email: $email, phoneNumber: $phoneNumber, isEmailVerified: $isEmailVerified)';
+  }
 }
 
 
