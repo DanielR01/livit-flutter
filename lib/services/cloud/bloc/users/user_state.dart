@@ -1,5 +1,6 @@
+import 'package:livit/cloud_models/user/cloud_user.dart';
+import 'package:livit/cloud_models/user/private_data.dart';
 import 'package:livit/constants/enums.dart';
-import 'package:livit/services/cloud/livit_user.dart';
 
 abstract class UserState {}
 
@@ -14,8 +15,9 @@ class NoCurrentUser extends UserState {
 
 class CurrentUser extends UserState {
   final Exception? exception;
-  final LivitUser user;
+  final CloudUser user;
+  final PrivateData privateData;
   final bool isLoading;
 
-  CurrentUser({required this.user, this.exception, this.isLoading = false});
+  CurrentUser({required this.user, required this.privateData, this.exception, this.isLoading = false});
 }

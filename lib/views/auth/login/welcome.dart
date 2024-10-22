@@ -17,6 +17,7 @@ class WelcomeView extends StatefulWidget {
 class _WelcomeViewState extends State<WelcomeView> {
   bool displayContent = false;
   bool displayLivit = false;
+  bool animationsCompleted = false;
 
   @override
   void initState() {
@@ -29,6 +30,11 @@ class _WelcomeViewState extends State<WelcomeView> {
     Future.delayed(4.seconds, () {
       setState(() {
         displayContent = true;
+      });
+    });
+    Future.delayed(4.seconds, () {
+      setState(() {
+        animationsCompleted = true;
       });
     });
   }
@@ -62,7 +68,7 @@ class _WelcomeViewState extends State<WelcomeView> {
                     curve: Curves.easeOut,
                   ),
                 ],
-                child: const WelcomeMessage(),
+                child: WelcomeMessage(animationsCompleted: animationsCompleted),
               ),
           ],
         ),
@@ -72,7 +78,9 @@ class _WelcomeViewState extends State<WelcomeView> {
 }
 
 class WelcomeMessage extends StatelessWidget {
-  const WelcomeMessage({super.key});
+  final bool animationsCompleted;
+
+  const WelcomeMessage({super.key, required this.animationsCompleted});
 
   @override
   Widget build(BuildContext context) {
@@ -86,7 +94,7 @@ class WelcomeMessage extends StatelessWidget {
           LivitSpaces.m,
           Button.main(
             text: 'Comenzar',
-            isActive: true,
+            isActive: animationsCompleted,
             onPressed: () {
               Navigator.of(context).pushNamedAndRemoveUntil(
                 Routes.authRoute,

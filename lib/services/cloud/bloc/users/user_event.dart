@@ -2,7 +2,7 @@ import 'package:livit/constants/enums.dart';
 
 abstract class UserEvent {}
 
-class GetUser extends UserEvent {}
+class GetUserWithPrivateData extends UserEvent {}
 
 class SetUserType extends UserEvent {
   final UserType userType;
@@ -13,7 +13,9 @@ class CreateUser extends UserEvent {
   final String name;
   final String username;
   final UserType userType;
-  CreateUser({required this.name, required this.username, required this.userType});
+  final String? phoneNumber;
+  final String? email;
+  CreateUser({required this.name, required this.username, required this.userType, this.phoneNumber, this.email});
 }
 
 class SetUserInterests extends UserEvent {
@@ -21,3 +23,4 @@ class SetUserInterests extends UserEvent {
 
   SetUserInterests({required this.interests});
 }
+

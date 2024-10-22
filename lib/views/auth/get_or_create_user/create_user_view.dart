@@ -8,7 +8,7 @@ import 'package:livit/constants/styles/spaces.dart';
 import 'package:livit/services/cloud/bloc/users/user_event.dart';
 import 'package:livit/services/cloud/bloc/users/user_state.dart';
 import 'package:livit/services/cloud/bloc/users/user_bloc.dart';
-import 'package:livit/services/cloud/cloud_functions/cloud_functions_exceptions.dart';
+import 'package:livit/services/cloud/cloud_storage_exceptions.dart';
 import 'package:livit/utilities/buttons/button.dart';
 import 'package:livit/utilities/bars_containers_fields/glass_container.dart';
 import 'package:livit/utilities/bars_containers_fields/title_bar.dart';
@@ -165,13 +165,13 @@ class _CreateUserViewState extends State<CreateUserView> with TickerProviderStat
                                   children: [
                                     LivitTextField(
                                       controller: _nameController,
-                                      hint: 'Nombre',
+                                      hint: 'Nombre o apodo',
                                       onChanged: _onNameChange,
                                       regExp: RegExp(r'^[a-zA-Z_ ]{3,30}$'),
                                     ),
                                     LivitSpaces.m,
                                     const LivitText(
-                                      'Tu nombre sera visible para otros usuarios y debe tener entre 3 y 30 caracteres o espacios.',
+                                      'Como quieres que te llamen?, debe tener entre 3 y 30 caracteres o espacios.',
                                       textType: TextType.small,
                                       color: LivitColors.whiteInactive,
                                     ),
@@ -185,7 +185,7 @@ class _CreateUserViewState extends State<CreateUserView> with TickerProviderStat
                                     ),
                                     LivitSpaces.m,
                                     const LivitText(
-                                      'El nombre de usuario debe tener entre 6 y 15 caracteres y solo puede contener letras, números y guiones bajos.',
+                                      'El nombre de usuario debe tener entre 6 y 15 caracteres y solo puede contener letras, números y guiones bajos. Intenta que sea facil de recordar.',
                                       textType: TextType.small,
                                       color: LivitColors.whiteInactive,
                                     ),

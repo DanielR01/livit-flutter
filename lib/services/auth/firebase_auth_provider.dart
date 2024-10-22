@@ -1,3 +1,5 @@
+// import 'package:cloud_firestore/cloud_firestore.dart';
+// import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:livit/firebase_options.dart';
@@ -14,6 +16,14 @@ class FirebaseAuthProvider implements AuthProvider {
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
     );
+    // try {
+    //   FirebaseFirestore.instance.useFirestoreEmulator('localhost', 8080);
+    //   FirebaseFunctions.instance.useFunctionsEmulator('localhost', 5001);
+    //   await FirebaseAuth.instance.useAuthEmulator('localhost', 9099);
+    // } catch (e) {
+    //   // ignore: avoid_print
+    //   print(e);
+    // }
   }
 
   @override

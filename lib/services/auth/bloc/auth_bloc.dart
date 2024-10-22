@@ -9,13 +9,15 @@ import 'package:livit/services/auth/bloc/auth_event.dart';
 import 'package:livit/services/auth/bloc/auth_state.dart';
 
 class AuthBloc extends Bloc<AuthEvent, AuthState> {
-  AuthBloc({required AuthProvider provider}) : super(const AuthStateUninitialized()) {
+  AuthBloc({
+    required AuthProvider provider,
+  }) : super(const AuthStateUninitialized()) {
     on<AuthEventInitialize>(
       (event, emit) async {
         await provider.initialize();
         try {
           final AuthUser user = provider.currentUser;
-          print(user);
+
           emit(AuthStateLoggedIn(user: user));
         } catch (e) {
           emit(
@@ -35,6 +37,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         final password = event.password;
         try {
           final user = await provider.logInWithEmailAndPassword(email: email, password: password);
+
           emit(AuthStateLoggedIn(user: user, userType: event.userType));
         } catch (e) {
           _emitError(emit, e as Exception);
@@ -47,6 +50,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         emit(const AuthStateLoggingOut());
         try {
           await provider.logOut();
+
           emit(const AuthStateLoggedOut());
         } catch (e) {
           _emitError(emit, e as Exception);
@@ -64,6 +68,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
           await provider.sendOtpCode(
             onVerificationCompleted: (credential) {
               print('onVerificationCompleted but not implemented');
+
               completer.complete(const AuthStateLoggedOut());
             },
             onVerificationFailed: (error) {
@@ -110,6 +115,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         try {
           await provider.logInWithGoogle();
           final user = provider.currentUser;
+
           emit(AuthStateLoggedIn(user: user, userType: event.userType));
         } catch (e) {
           _emitError(emit, e as Exception);
@@ -130,6 +136,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
             verificationId: verificationId,
             otpCode: otpCode,
           );
+
           emit(AuthStateLoggedIn(user: user, userType: event.userType));
         } catch (e) {
           _emitError(emit, e as Exception);

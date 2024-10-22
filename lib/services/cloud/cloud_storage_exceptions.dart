@@ -63,3 +63,15 @@ class CouldNotDeleteTicketException implements Exception {}
 // Username Exceptions
 
 class CouldNotCreateUsernameException implements Exception {}
+
+class CouldNotCheckUsernameException implements Exception {}
+
+class UsernameAlreadyTakenException implements Exception {}
+
+// Private Data Exceptions
+
+class PrivateDataNotFoundException implements Exception {}
+
+class CouldNotGetPrivateDataException implements Exception {}
+
+class CouldNotUpdatePrivateDataException implements Exception {}

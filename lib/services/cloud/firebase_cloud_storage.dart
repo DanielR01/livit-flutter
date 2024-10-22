@@ -1,7 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:livit/cloud_models/user/cloud_user.dart';
+import 'package:livit/cloud_models/user/private_data.dart';
 import 'package:livit/services/cloud/livit_event.dart';
 import 'package:livit/services/cloud/livit_ticket.dart';
-import 'package:livit/services/cloud/livit_user.dart';
 import 'package:livit/services/cloud/cloud_storage_exceptions.dart';
 
 class FirebaseCloudStorage {
@@ -16,8 +17,8 @@ class FirebaseCloudStorage {
         toFirestore: (event, _) => event.toMap(),
       );
 
-  final CollectionReference<LivitUser> usersCollection = FirebaseFirestore.instance.collection('users').withConverter<LivitUser>(
-        fromFirestore: (snap, _) => LivitUser.fromDocument(snap),
+  final CollectionReference<CloudUser> usersCollection = FirebaseFirestore.instance.collection('users').withConverter<CloudUser>(
+        fromFirestore: (snap, _) => CloudUser.fromDocument(snap),
         toFirestore: (user, _) => user.toMap(),
       );
 
@@ -30,27 +31,34 @@ class FirebaseCloudStorage {
 
   // **User Methods**
 
-  Stream<LivitUser?> getUserStream({required String userId}) {
-    return usersCollection.doc(userId).snapshots().map((snap) => snap.data());
-  }
+  // Stream<CloudUser?> getUserStream({required String userId}) {
+  //   return usersCollection.doc(userId).snapshots().map((snap) => snap.data());
+  // }
 
-  Future<LivitUser> getUser({required String userId}) async {
+  Future<CloudUser> getUser({required String userId}) async {
     try {
       final doc = await usersCollection.doc(userId).get();
       if (doc.exists) {
-        return doc.data()!;
+        try {
+          return doc.data()!;
+        } catch (e) {
+          throw CouldNotGetUserException();
+        }
       } else {
         throw UserNotFoundException();
       }
-    } on UserNotFoundException {
-      rethrow;
+    } on FirebaseException catch (e) {
+      print('Error: $e');
+      throw CouldNotGetUserException();
     } catch (e) {
+      if (e is UserNotFoundException) {
+        rethrow;
+      }
       throw CouldNotGetUserException();
     }
   }
 
-  Future<void> updateUser({required LivitUser user}) async {
-    print('updating user');
+  Future<void> updateUser({required CloudUser user}) async {
     try {
       await usersCollection.doc(user.id).update(user.toMap());
     } catch (_) {
@@ -58,24 +66,62 @@ class FirebaseCloudStorage {
     }
   }
 
-  // **Pagination for Users**
-  Future<List<LivitUser>> getUsersPaginated({
-    required int limit,
-    DocumentSnapshot<LivitUser>? startAfterDoc,
-  }) async {
+  // // **Pagination for Users**
+  // Future<List<CloudUser>> getUsersPaginated({
+  //   required int limit,
+  //   DocumentSnapshot<CloudUser>? startAfterDoc,
+  // }) async {
+  //   try {
+  //     Query<CloudUser> query = usersCollection
+  //         .orderBy('username') // Ensure you have an index on 'username'
+  //         .limit(limit);
+
+  //     if (startAfterDoc != null) {
+  //       query = query.startAfterDocument(startAfterDoc);
+  //     }
+
+  //     final querySnapshot = await query.get();
+  //     return querySnapshot.docs.map((doc) => doc.data()).toList();
+  //   } catch (_) {
+  //     throw CouldNotGetAllUsersException();
+  //   }
+  // }
+
+  // **Username Methods**
+
+  Future<bool> isUsernameTaken(String username) async {
     try {
-      Query<LivitUser> query = usersCollection
-          .orderBy('username') // Ensure you have an index on 'username'
-          .limit(limit);
-
-      if (startAfterDoc != null) {
-        query = query.startAfterDocument(startAfterDoc);
-      }
-
-      final querySnapshot = await query.get();
-      return querySnapshot.docs.map((doc) => doc.data()).toList();
+      final doc = await usernamesCollection.doc(username).get();
+      return doc.exists;
     } catch (_) {
-      throw CouldNotGetAllUsersException();
+      throw CouldNotCheckUsernameException();
+    }
+  }
+
+  // **Private Data Methods**
+
+  Future<void> updateProfileCompleted({required bool isProfileCompleted, required String userId}) async {
+    try {
+      await usersCollection.doc(userId).collection('private').doc('privateData').update({'isProfileCompleted': isProfileCompleted});
+    } catch (_) {
+      throw CouldNotUpdatePrivateDataException();
+    }
+  }
+
+  Future<PrivateData> getPrivateData({required String userId}) async {
+    try {
+      final doc = await usersCollection.doc(userId).collection('private').doc('privateData').get();
+
+      if (doc.exists) {
+        return PrivateData.fromFirestore(doc);
+      } else {
+        throw PrivateDataNotFoundException();
+      }
+    } catch (e) {
+      if (e is PrivateDataNotFoundException) {
+        rethrow;
+      }
+      throw CouldNotGetPrivateDataException();
     }
   }
 

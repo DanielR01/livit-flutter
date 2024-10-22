@@ -30,7 +30,9 @@ class StartPage extends StatelessWidget {
         authProvider: FirebaseAuthProvider(),
       ),
       child: BlocProvider(
-        create: (context) => AuthBloc(provider: FirebaseAuthProvider()),
+        create: (context) => AuthBloc(
+          provider: FirebaseAuthProvider(),
+        ),
         child: MaterialApp(
           navigatorKey: _navKey,
           debugShowCheckedModeBanner: false,

@@ -38,7 +38,7 @@ class _WelcomeAndDataViewState extends State<WelcomeAndDataView> {
       builder: (context, state) {
         if (state is CurrentUser) {
           if (_isShowingWelcome) {
-            return _WelcomeView(name: state.user.username, onNext: _onNext);
+            return _WelcomeView(name: state.user.name, onNext: _onNext);
           } else {
             return const _GetUserInitialDataView();
           }
