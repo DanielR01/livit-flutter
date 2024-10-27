@@ -1,6 +1,5 @@
 enum UserType {
   customer,
-  artist,
   promoter,
 }
 

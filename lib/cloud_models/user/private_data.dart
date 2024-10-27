@@ -1,35 +1,42 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:livit/cloud_models/ticket/ticket.dart';
+import 'package:livit/constants/enums.dart';
 
-class PrivateData {
+class UserPrivateData {
   final String phoneNumber;
   final String email;
-  final bool isProfileCompleted;
+  final UserType userType;
+  final bool isFirstTime; 
 
-  PrivateData({
+  UserPrivateData({
     required this.phoneNumber,
     required this.email,
-    required this.isProfileCompleted,
+    required this.userType,
+    required this.isFirstTime,
   });
 
-  PrivateData copyWith({
+  UserPrivateData copyWith({
     String? phoneNumber,
     String? email,
-    bool? isProfileCompleted,
+    UserType? userType,
+    bool? isFirstTime,
   }) {
-    return PrivateData(
+    return UserPrivateData(
       phoneNumber: phoneNumber ?? this.phoneNumber,
       email: email ?? this.email,
-      isProfileCompleted: isProfileCompleted ?? this.isProfileCompleted,
+      userType: userType ?? this.userType,
+      isFirstTime: isFirstTime ?? this.isFirstTime,
     );
   }
 
-  factory PrivateData.fromFirestore(DocumentSnapshot doc) {
+  factory UserPrivateData.fromFirestore(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>;
 
-    return PrivateData(
+    return UserPrivateData(
       phoneNumber: data['phoneNumber'],
       email: data['email'],
-      isProfileCompleted: data['isProfileCompleted'],
+      userType: UserType.values.byName(data['userType']),
+      isFirstTime: data['isFirstTime'],
     );
   }
 
@@ -37,12 +44,26 @@ class PrivateData {
     return {
       'phoneNumber': phoneNumber,
       'email': email,
-      'isProfileCompleted': isProfileCompleted,
+      'userType': userType.name,
+      'isFirstTime': isFirstTime,
     };
   }
 
   @override
   String toString() {
-    return 'PrivateData(phoneNumber: $phoneNumber, email: $email, isProfileCompleted: $isProfileCompleted)';
+    return 'PrivateData(phoneNumber: $phoneNumber, email: $email, userType: $userType, isFirstTime: $isFirstTime)';
   }
+}
+
+class PrivatePromoterData extends UserPrivateData {
+  final List<String> defaultScanners;
+  final List<Ticket> defaultTickets;
+
+  PrivatePromoterData(
+      {required super.phoneNumber,
+      required super.email,
+      required super.userType,
+      required this.defaultScanners,
+      required this.defaultTickets,
+      required super.isFirstTime});
 }

@@ -13,7 +13,7 @@ import 'package:livit/services/auth/bloc/auth_bloc.dart';
 import 'package:livit/services/auth/bloc/auth_event.dart';
 import 'package:livit/services/auth/bloc/auth_state.dart';
 import 'package:livit/utilities/bars_containers_fields/glass_container.dart';
-import 'package:livit/utilities/bars_containers_fields/text_field.dart';
+import 'package:livit/utilities/bars_containers_fields/livit_text_field.dart';
 import 'package:livit/utilities/bars_containers_fields/title_bar.dart';
 import 'package:livit/utilities/buttons/button.dart';
 import 'package:livit/utilities/buttons/question_mark_button.dart';
@@ -80,7 +80,7 @@ class _EmailLogin extends State<EmailLoginView> {
                               isBackEnabled: true,
                             ),
                             Padding(
-                              padding: LivitContainerStyle.padding([0, null, null, null]),
+                              padding: LivitContainerStyle.padding(padding: [0, null, null, null]),
                               child: Column(
                                 children: [
                                   Row(
@@ -602,7 +602,7 @@ class _VerifyEmail extends State<VerifyEmail> {
                 minHeight: 54,
               ),
               decoration: LivitBarStyle.strongShadowDecoration,
-              padding: LivitContainerStyle.padding(null),
+              padding: LivitContainerStyle.padding(),
               child: Center(
                 child: Row(
                   children: [
@@ -791,7 +791,7 @@ class _ForgotPassword extends State<ForgotPassword> {
         }
         return GlassContainer(
           child: Padding(
-            padding: LivitContainerStyle.padding([null, null, 0, null]),
+            padding: LivitContainerStyle.padding(padding: [null, null, 0, null]),
             child: Column(
               children: [
                 const LivitText(

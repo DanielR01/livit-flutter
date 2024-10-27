@@ -7,7 +7,7 @@ import 'package:livit/constants/styles/spaces.dart';
 import 'package:livit/constants/enums.dart';
 import 'package:livit/services/auth/auth_exceptions.dart';
 import 'package:livit/utilities/bars_containers_fields/glass_container.dart';
-import 'package:livit/utilities/bars_containers_fields/text_field.dart';
+import 'package:livit/utilities/bars_containers_fields/livit_text_field.dart';
 import 'package:livit/utilities/bars_containers_fields/title_bar.dart';
 import 'package:livit/utilities/buttons/button.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -141,7 +141,7 @@ class _PhoneLoginViewState extends State<PhoneLoginView> {
                                     isBackEnabled: true,
                                   ),
                                   Padding(
-                                    padding: LivitContainerStyle.padding([0, null, null, null]),
+                                    padding: LivitContainerStyle.padding(padding: [0, null, null, null]),
                                     child: Column(
                                       children: [
                                         const LivitText('Ingresa tu número de teléfono, te llegará un código de verificación.'),

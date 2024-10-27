@@ -17,7 +17,7 @@ class Bar extends StatelessWidget {
           ? LivitBarStyle.shadowDecoration
           : LivitBarStyle.normalDecoration,
       child: Padding(
-        padding: LivitContainerStyle.padding(null),
+        padding: LivitContainerStyle.padding(),
         child: child,
       ),
     );

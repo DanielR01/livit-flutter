@@ -38,7 +38,7 @@ class _UserTypeInputState extends State<UserTypeInput> {
                   isBackEnabled: false,
                 ),
                 Padding(
-                  padding: LivitContainerStyle.padding([0, null, null, null]),
+                  padding: LivitContainerStyle.padding(padding: [0, null, null, null]),
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     mainAxisAlignment: MainAxisAlignment.center,

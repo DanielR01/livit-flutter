@@ -89,8 +89,8 @@ class WelcomeMessage extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const LivitText('Encuentra mas de lo que te gusta,'),
-          const LivitText('mas eventos, mas lugares, mas personas.'),
+          const LivitText('Encuentra más de lo que te gusta,'),
+          const LivitText('más eventos, más lugares, más personas.'),
           LivitSpaces.m,
           Button.main(
             text: 'Comenzar',

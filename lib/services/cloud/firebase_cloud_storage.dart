@@ -47,8 +47,7 @@ class FirebaseCloudStorage {
       } else {
         throw UserNotFoundException();
       }
-    } on FirebaseException catch (e) {
-      print('Error: $e');
+    } on FirebaseException {
       throw CouldNotGetUserException();
     } catch (e) {
       if (e is UserNotFoundException) {
@@ -100,20 +99,11 @@ class FirebaseCloudStorage {
 
   // **Private Data Methods**
 
-  Future<void> updateProfileCompleted({required bool isProfileCompleted, required String userId}) async {
-    try {
-      await usersCollection.doc(userId).collection('private').doc('privateData').update({'isProfileCompleted': isProfileCompleted});
-    } catch (_) {
-      throw CouldNotUpdatePrivateDataException();
-    }
-  }
-
-  Future<PrivateData> getPrivateData({required String userId}) async {
+  Future<UserPrivateData> getPrivateData({required String userId}) async {
     try {
       final doc = await usersCollection.doc(userId).collection('private').doc('privateData').get();
-
       if (doc.exists) {
-        return PrivateData.fromFirestore(doc);
+        return UserPrivateData.fromFirestore(doc);
       } else {
         throw PrivateDataNotFoundException();
       }

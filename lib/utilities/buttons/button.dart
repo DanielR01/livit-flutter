@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:livit/constants/colors.dart';
 import 'package:livit/constants/styles/button_style.dart';
 import 'package:livit/constants/styles/shadows.dart';
 import 'package:livit/constants/styles/livit_text.dart';
+import 'package:livit/constants/styles/spaces.dart';
 
 enum ButtonType {
   main,
@@ -12,6 +14,7 @@ enum ButtonType {
   redText,
   blueText,
   mainRed,
+  grayText,
 }
 
 class Button extends StatefulWidget {
@@ -31,6 +34,8 @@ class Button extends StatefulWidget {
   final Color? inactiveBackgroundColor;
   final Color? inactiveTextColor;
   final Color? inactiveShadowColor;
+  final IconData? leftIcon; // New property for the left icon
+  final IconData? rightIcon; // New property for the right icon
 
   const Button({
     super.key,
@@ -50,6 +55,8 @@ class Button extends StatefulWidget {
     this.inactiveTextColor,
     this.inactiveShadowColor,
     this.forceOnPressed,
+    this.leftIcon, // Add left icon to the constructor
+    this.rightIcon, // Add right icon to the constructor
   });
 
   factory Button.fromType({
@@ -60,6 +67,8 @@ class Button extends StatefulWidget {
     bool? bold,
     bool? blueStyle,
     bool? forceOnPressed,
+    IconData? leftIcon, // Add left icon parameter
+    IconData? rightIcon, // Add right icon parameter
   }) {
     switch (type) {
       case ButtonType.main:
@@ -69,6 +78,8 @@ class Button extends StatefulWidget {
           isActive: isActive,
           blueStyle: blueStyle ?? false,
           forceOnPressed: forceOnPressed,
+          leftIcon: leftIcon, // Pass left icon
+          rightIcon: rightIcon, // Pass right icon
         );
 
       case ButtonType.secondary:
@@ -78,6 +89,8 @@ class Button extends StatefulWidget {
           isActive: isActive,
           blueStyle: blueStyle ?? false,
           forceOnPressed: forceOnPressed,
+          leftIcon: leftIcon, // Pass left icon
+          rightIcon: rightIcon, // Pass right icon
         );
       case ButtonType.whiteText:
         return Button.whiteText(
@@ -86,6 +99,8 @@ class Button extends StatefulWidget {
           isActive: isActive,
           bold: bold ?? true,
           forceOnPressed: forceOnPressed,
+          leftIcon: leftIcon, // Pass left icon
+          rightIcon: rightIcon, // Pass right icon
         );
       case ButtonType.redText:
         return Button.redText(
@@ -94,6 +109,8 @@ class Button extends StatefulWidget {
           isActive: isActive,
           bold: bold ?? true,
           forceOnPressed: forceOnPressed,
+          leftIcon: leftIcon, // Pass left icon
+          rightIcon: rightIcon, // Pass right icon
         );
       case ButtonType.blueText:
         return Button.blueText(
@@ -102,6 +119,8 @@ class Button extends StatefulWidget {
           isActive: isActive,
           bold: bold ?? false,
           forceOnPressed: forceOnPressed,
+          leftIcon: leftIcon, // Pass left icon
+          rightIcon: rightIcon, // Pass right icon
         );
       case ButtonType.mainRed:
         return Button.mainRed(
@@ -109,6 +128,8 @@ class Button extends StatefulWidget {
           isActive: isActive,
           onPressed: onPressed,
           forceOnPressed: forceOnPressed,
+          leftIcon: leftIcon, // Pass left icon
+          rightIcon: rightIcon, // Pass right icon
         );
       case ButtonType.secondaryRed:
         return Button.secondaryRed(
@@ -116,6 +137,18 @@ class Button extends StatefulWidget {
           isActive: isActive,
           onPressed: onPressed,
           forceOnPressed: forceOnPressed,
+          leftIcon: leftIcon, // Pass left icon
+          rightIcon: rightIcon, // Pass right icon
+        );
+      case ButtonType.grayText:
+        return Button.grayText(
+          text: text,
+          onPressed: onPressed,
+          isActive: isActive,
+          bold: bold ?? false,
+          forceOnPressed: forceOnPressed,
+          leftIcon: leftIcon, // Pass left icon
+          rightIcon: rightIcon, // Pass right icon
         );
     }
   }
@@ -127,6 +160,8 @@ class Button extends StatefulWidget {
     bool blueStyle = false,
     bool isLoading = false,
     bool? forceOnPressed,
+    IconData? leftIcon, // Add left icon parameter
+    IconData? rightIcon, // Add right icon parameter
   }) {
     Color activeBackgroundColor = blueStyle ? LivitColors.mainBlueActive : LivitColors.whiteActive;
     return Button(
@@ -143,6 +178,8 @@ class Button extends StatefulWidget {
       inactiveBackgroundColor: LivitColors.whiteInactive,
       inactiveTextColor: LivitColors.mainBlack,
       forceOnPressed: forceOnPressed,
+      leftIcon: leftIcon, // Pass left icon
+      rightIcon: rightIcon, // Pass right icon
     );
   }
 
@@ -153,6 +190,8 @@ class Button extends StatefulWidget {
     bool isLoading = false,
     bool blueStyle = false,
     bool? forceOnPressed,
+    IconData? leftIcon, // Add left icon parameter
+    IconData? rightIcon, // Add right icon parameter
   }) {
     return Button(
       text: text,
@@ -168,6 +207,8 @@ class Button extends StatefulWidget {
       inactiveTextColor: LivitColors.whiteInactive,
       isLoading: isLoading,
       forceOnPressed: forceOnPressed,
+      leftIcon: leftIcon, // Pass left icon
+      rightIcon: rightIcon, // Pass right icon
     );
   }
 
@@ -177,6 +218,8 @@ class Button extends StatefulWidget {
     required VoidCallback onPressed,
     bool blueStyle = false,
     bool? forceOnPressed,
+    IconData? leftIcon, // Add left icon parameter
+    IconData? rightIcon, // Add right icon parameter
   }) {
     return Button(
       text: text,
@@ -192,6 +235,8 @@ class Button extends StatefulWidget {
       inactiveTextColor: LivitColors.whiteInactive,
       activeShadowColor: LivitColors.red,
       forceOnPressed: forceOnPressed,
+      leftIcon: leftIcon, // Pass left icon
+      rightIcon: rightIcon, // Pass right icon
     );
   }
 
@@ -201,6 +246,8 @@ class Button extends StatefulWidget {
     required VoidCallback onPressed,
     bool bold = true,
     bool? forceOnPressed,
+    IconData? leftIcon, // Add left icon parameter
+    IconData? rightIcon, // Add right icon parameter
   }) {
     return Button(
       //activeBackgroundColor: LivitColors.red,
@@ -214,6 +261,8 @@ class Button extends StatefulWidget {
       activeTextColor: LivitColors.red, //LivitColors.mainBlack,
       inactiveTextColor: LivitColors.whiteInactive,
       forceOnPressed: forceOnPressed,
+      leftIcon: leftIcon, // Pass left icon
+      rightIcon: rightIcon, // Pass right icon
     );
   }
 
@@ -223,6 +272,8 @@ class Button extends StatefulWidget {
     required VoidCallback onPressed,
     bool bold = true,
     bool? forceOnPressed,
+    IconData? leftIcon, // Add left icon parameter
+    IconData? rightIcon, // Add right icon parameter
   }) {
     return Button(
       text: text,
@@ -235,6 +286,8 @@ class Button extends StatefulWidget {
       activeTextColor: LivitColors.whiteActive,
       inactiveTextColor: LivitColors.whiteInactive,
       forceOnPressed: forceOnPressed,
+      leftIcon: leftIcon, // Pass left icon
+      rightIcon: rightIcon, // Pass right icon
     );
   }
 
@@ -244,6 +297,8 @@ class Button extends StatefulWidget {
     required VoidCallback onPressed,
     bool bold = true,
     bool? forceOnPressed,
+    IconData? leftIcon, // Add left icon parameter
+    IconData? rightIcon, // Add right icon parameter
   }) {
     return Button(
       text: text,
@@ -256,6 +311,8 @@ class Button extends StatefulWidget {
       activeTextColor: LivitColors.mainBlueActive,
       inactiveTextColor: LivitColors.whiteInactive,
       forceOnPressed: forceOnPressed,
+      leftIcon: leftIcon, // Pass left icon
+      rightIcon: rightIcon, // Pass right icon
     );
   }
 
@@ -264,6 +321,8 @@ class Button extends StatefulWidget {
     required bool isActive,
     required VoidCallback onPressed,
     bool? forceOnPressed,
+    IconData? leftIcon, // Add left icon parameter
+    IconData? rightIcon, // Add right icon parameter
   }) {
     return Button(
       text: text,
@@ -278,6 +337,35 @@ class Button extends StatefulWidget {
       inactiveBackgroundColor: LivitColors.whiteInactive,
       inactiveTextColor: LivitColors.mainBlack,
       forceOnPressed: forceOnPressed,
+      leftIcon: leftIcon, // Pass left icon
+      rightIcon: rightIcon, // Pass right icon
+    );
+  }
+
+  factory Button.grayText({
+    required String text,
+    required bool isActive,
+    required VoidCallback onPressed,
+    bool isLoading = false,
+    bool bold = false,
+    bool? forceOnPressed,
+    IconData? leftIcon, // Add left icon parameter
+    IconData? rightIcon, // Add right icon parameter
+  }) {
+    return Button(
+      text: text,
+      onPressed: onPressed,
+      isActive: isActive,
+      blueStyle: false,
+      isShadowActive: false,
+      transparent: true,
+      bold: bold,
+      activeTextColor: LivitColors.whiteInactive,
+      inactiveTextColor: LivitColors.whiteInactive,
+      forceOnPressed: forceOnPressed,
+      isLoading: isLoading,
+      leftIcon: leftIcon, // Pass left icon
+      rightIcon: rightIcon, // Pass right icon
     );
   }
 
@@ -361,6 +449,11 @@ class _ButtonState extends State<Button> with SingleTickerProviderStateMixin {
                       mainAxisSize: MainAxisSize.min,
                       mainAxisAlignment: widget.isLoading ? MainAxisAlignment.start : MainAxisAlignment.center,
                       children: [
+                        if (widget.leftIcon != null)
+                          Padding(
+                            padding: EdgeInsets.only(right: 4.sp),
+                            child: Icon(widget.leftIcon, color: textColor, size: 16.sp),
+                          ),
                         LivitText(
                           widget.text,
                           textType: TextType.regular,
@@ -381,6 +474,14 @@ class _ButtonState extends State<Button> with SingleTickerProviderStateMixin {
                               },
                             ),
                           ),
+                        if (widget.rightIcon != null)
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              LivitSpaces.xs,
+                              Icon(widget.rightIcon, color: textColor, size: 16.sp),
+                            ],
+                          ),
                       ],
                     ),
                   ),
@@ -396,7 +497,7 @@ class _ButtonState extends State<Button> with SingleTickerProviderStateMixin {
   double _calculateMinWidth(BuildContext context, Color textColor) {
     final TextPainter textPainter = TextPainter(
       text: TextSpan(
-        text: widget.text + '...',
+        text: '${widget.text}...',
         style: TextStyle(
           fontSize: LivitTextStyle.regularFontSize,
           fontWeight: widget.bold ? FontWeight.bold : FontWeight.normal,
@@ -407,6 +508,9 @@ class _ButtonState extends State<Button> with SingleTickerProviderStateMixin {
       textDirection: TextDirection.ltr,
     )..layout(minWidth: 0, maxWidth: double.infinity);
 
-    return textPainter.width + LivitButtonStyle.paddingValue * 2;
+    return textPainter.width +
+        LivitButtonStyle.paddingValue * 2 +
+        (widget.leftIcon != null ? 16 + LivitSpaces.xsDouble : 0) +
+        (widget.rightIcon != null ? 16 + LivitSpaces.xsDouble : 0);
   }
 }

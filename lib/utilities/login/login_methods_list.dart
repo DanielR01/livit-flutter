@@ -46,7 +46,7 @@ class _LoginMethodsListState extends State<LoginMethodsList> {
                       isBackEnabled: widget.userType == UserType.promoter,
                     ),
                     Padding(
-                      padding: LivitContainerStyle.padding([0, null, null, null]),
+                      padding: LivitContainerStyle.padding(padding: [0, null, null, null]),
                       child: Column(
                         children: [
                           widget.userType == UserType.promoter
@@ -92,7 +92,7 @@ class _LoginMethodsListState extends State<LoginMethodsList> {
               widget.userType == UserType.customer
                   ? GlassContainer(
                       child: Padding(
-                        padding: LivitContainerStyle.padding(null),
+                        padding: LivitContainerStyle.padding(),
                         child: Column(
                           children: [
                             const LivitText(

@@ -10,12 +10,12 @@ class FirestoreCloudFunctions {
 
   Future<Timestamp> createUserAndUsername({
     required CloudUser user,
-    required PrivateData privateData,
+    required UserPrivateData privateData,
   }) async {
     try {
       final HttpsCallable callable = _functions.httpsCallable('createUserAndUsername');
       final name = user.name;
-      final userType = user.userType;
+      final userType = user.userType.name;
       final username = user.username;
       final userId = user.id;
       final phoneNumber = privateData.phoneNumber;

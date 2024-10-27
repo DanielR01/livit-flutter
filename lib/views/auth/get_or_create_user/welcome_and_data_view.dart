@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:livit/constants/enums.dart';
 import 'package:livit/constants/styles/container_style.dart';
 import 'package:livit/constants/styles/livit_text.dart';
 import 'package:livit/constants/styles/spaces.dart';
@@ -38,9 +39,9 @@ class _WelcomeAndDataViewState extends State<WelcomeAndDataView> {
       builder: (context, state) {
         if (state is CurrentUser) {
           if (_isShowingWelcome) {
-            return _WelcomeView(name: state.user.name, onNext: _onNext);
+            return _WelcomeView(name: state.user.name, onNext: _onNext, userType: state.user.userType);
           } else {
-            return const _GetUserInitialDataView();
+            return const InterestsView();
           }
         } else {
           return const ErrorReauthScreen();
@@ -53,7 +54,8 @@ class _WelcomeAndDataViewState extends State<WelcomeAndDataView> {
 class _WelcomeView extends StatefulWidget {
   final String name;
   final VoidCallback onNext;
-  const _WelcomeView({required this.name, required this.onNext});
+  final UserType userType;
+  const _WelcomeView({required this.name, required this.onNext, required this.userType});
 
   @override
   State<_WelcomeView> createState() => __WelcomeViewState();
@@ -69,6 +71,8 @@ class __WelcomeViewState extends State<_WelcomeView> with TickerProviderStateMix
   late Animation<double> _descriptionAnimation;
   late Animation<double> _secondDescriptionAnimation;
   late Animation<double> _buttonAnimation;
+
+  bool _isAnimationFinished = false;
 
   @override
   void initState() {
@@ -125,6 +129,11 @@ class __WelcomeViewState extends State<_WelcomeView> with TickerProviderStateMix
                             Future.delayed(const Duration(milliseconds: 1600)).then(
                               (_) {
                                 _buttonAnimationController.forward();
+                                setState(
+                                  () {
+                                    _isAnimationFinished = true;
+                                  },
+                                );
                               },
                             );
                           },
@@ -170,22 +179,24 @@ class __WelcomeViewState extends State<_WelcomeView> with TickerProviderStateMix
               LivitSpaces.s,
               FadeTransition(
                 opacity: _descriptionAnimation,
-                child: const LivitText(
-                    'LIVIT te permite encontrar nuevos eventos y lugares en tu ciudad que se adapten a tus gustos. Queremos que compartas nuevas experiencias con tus amigos y conozcas nuevas personas.'),
+                child: LivitText(
+                  'Con LIVIT podras encontrar nuevos eventos y lugares en tu ciudad que se adapten a tus gustos. Queremos que compartas nuevas experiencias con tus amigos y conozcas nuevas personas.',
+                ),
               ),
               LivitSpaces.s,
               FadeTransition(
                 opacity: _secondDescriptionAnimation,
-                child: const LivitText(
-                    'Estás usando una versión inicial de LIVIT, por el momento solo podrás comprar entradas para tus discotecas favoritas.',
-                    fontWeight: FontWeight.bold),
+                child: LivitText(
+                  'Estás usando una versión inicial de LIVIT, por el momento solo podrás comprar entradas para tus eventos favoritos.',
+                  fontWeight: FontWeight.bold,
+                ),
               ),
               LivitSpaces.m,
               FadeTransition(
                 opacity: _buttonAnimation,
                 child: Button.main(
                   text: 'Continuar',
-                  isActive: true,
+                  isActive: _isAnimationFinished,
                   onPressed: widget.onNext,
                 ),
               ),
@@ -197,14 +208,14 @@ class __WelcomeViewState extends State<_WelcomeView> with TickerProviderStateMix
   }
 }
 
-class _GetUserInitialDataView extends StatefulWidget {
-  const _GetUserInitialDataView();
+class InterestsView extends StatefulWidget {
+  const InterestsView({super.key});
 
   @override
-  State<_GetUserInitialDataView> createState() => __GetUserInitialDataViewState();
+  State<InterestsView> createState() => _InterestsViewState();
 }
 
-class __GetUserInitialDataViewState extends State<_GetUserInitialDataView> {
+class _InterestsViewState extends State<InterestsView> {
   final List<String> topics = [
     'Rumba',
     'Espiritualidad',
@@ -243,6 +254,8 @@ class __GetUserInitialDataViewState extends State<_GetUserInitialDataView> {
   Widget build(BuildContext context) {
     return BlocBuilder<UserBloc, UserState>(
       builder: (context, state) {
+        String title = 'Personaliza tus preferencias';
+        String description = 'Escoge los temas que más te interesan para que podamos recomendarte nuevos eventos y lugares.';
         if (state is CurrentUser) {
           _isLoading = state.isLoading;
         }
@@ -255,13 +268,13 @@ class __GetUserInitialDataViewState extends State<_GetUserInitialDataView> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const LivitText(
-                      'Personaliza tus preferencias',
+                    LivitText(
+                      title,
                       textType: TextType.bigTitle,
                     ),
                     LivitSpaces.m,
-                    const LivitText(
-                      'Selecciona los temas que más te interesan para que podamos conocerte mejor',
+                    LivitText(
+                      description,
                       textAlign: TextAlign.center,
                     ),
                     LivitSpaces.l,

@@ -12,7 +12,7 @@ import 'package:livit/services/cloud/cloud_storage_exceptions.dart';
 import 'package:livit/utilities/buttons/button.dart';
 import 'package:livit/utilities/bars_containers_fields/glass_container.dart';
 import 'package:livit/utilities/bars_containers_fields/title_bar.dart';
-import 'package:livit/utilities/bars_containers_fields/text_field.dart';
+import 'package:livit/utilities/bars_containers_fields/livit_text_field.dart';
 
 class CreateUserView extends StatefulWidget {
   const CreateUserView({super.key});
@@ -39,6 +39,9 @@ class _CreateUserViewState extends State<CreateUserView> with TickerProviderStat
   late UserType _userType;
 
   String? _bottomCaptionText;
+
+  String _nameHint = 'Nombre o apodo';
+  String _nameDescription = 'Como quieres que te llamen?, debe tener entre 3 y 30 caracteres o espacios.';
 
   @override
   void initState() {
@@ -127,6 +130,10 @@ class _CreateUserViewState extends State<CreateUserView> with TickerProviderStat
           }
           _isLoading = state.isCreating;
           _userType = state.userType!;
+          if (state.userType == UserType.promoter) {
+            _nameHint = 'Nombre de tu negocio';
+            _nameDescription = 'Como se llama tu negocio?, debe tener entre 3 y 30 caracteres o espacios.';
+          }
         }
 
         return Scaffold(
@@ -158,20 +165,20 @@ class _CreateUserViewState extends State<CreateUserView> with TickerProviderStat
                             children: [
                               const TitleBar(title: 'Define tu nombre y usuario'),
                               Padding(
-                                padding: LivitContainerStyle.padding([0, null, null, null]),
+                                padding: LivitContainerStyle.padding(padding: [0, null, null, null]),
                                 child: Column(
                                   mainAxisSize: MainAxisSize.min,
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
                                     LivitTextField(
                                       controller: _nameController,
-                                      hint: 'Nombre o apodo',
+                                      hint: _nameHint,
                                       onChanged: _onNameChange,
                                       regExp: RegExp(r'^[a-zA-Z_ ]{3,30}$'),
                                     ),
                                     LivitSpaces.m,
-                                    const LivitText(
-                                      'Como quieres que te llamen?, debe tener entre 3 y 30 caracteres o espacios.',
+                                    LivitText(
+                                      _nameDescription,
                                       textType: TextType.small,
                                       color: LivitColors.whiteInactive,
                                     ),
@@ -180,12 +187,13 @@ class _CreateUserViewState extends State<CreateUserView> with TickerProviderStat
                                       controller: _usernameController,
                                       hint: 'Nombre de usuario',
                                       onChanged: _onUsernameChange,
-                                      regExp: RegExp(r'^[a-zA-Z0-9_]{6,15}$'),
+                                      regExp: RegExp(r'^[a-z0-9_]{6,15}$'),
+                                      notCapitalize: true,
                                       bottomCaptionText: _bottomCaptionText,
                                     ),
                                     LivitSpaces.m,
                                     const LivitText(
-                                      'El nombre de usuario debe tener entre 6 y 15 caracteres y solo puede contener letras, números y guiones bajos. Intenta que sea facil de recordar.',
+                                      'El nombre de usuario debe tener entre 6 y 15 caracteres y solo puede contener minusculas, números y guiones bajos. Intenta que sea facil de recordar.',
                                       textType: TextType.small,
                                       color: LivitColors.whiteInactive,
                                     ),

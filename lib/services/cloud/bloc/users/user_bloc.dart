@@ -1,7 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:livit/cloud_models/cloud_models_exceptions.dart';
 import 'package:livit/cloud_models/user/cloud_user.dart';
 import 'package:livit/cloud_models/user/private_data.dart';
+import 'package:livit/constants/enums.dart';
 import 'package:livit/services/cloud/cloud_functions/firestore_cloud_functions.dart';
 import 'package:livit/services/cloud/firebase_cloud_storage.dart';
 import 'package:livit/services/auth/auth_provider.dart';
@@ -15,7 +17,7 @@ class UserBloc extends Bloc<UserEvent, UserState> {
   final AuthProvider _authProvider;
 
   CloudUser? _currentUser;
-  PrivateData? _currentPrivateData;
+  UserPrivateData? _currentPrivateData;
 
   UserBloc({
     required FirebaseCloudStorage cloudStorage,
@@ -29,16 +31,25 @@ class UserBloc extends Bloc<UserEvent, UserState> {
     on<SetUserType>(_onSetUserType);
     on<CreateUser>(_onCreateUser);
     on<SetUserInterests>(_onSetUserInterests);
+    on<SetPromoterUserDescription>(_onSetPromoterUserDescription);
+    on<SetPromoterUserLocation>(_onSetPromoterUserLocation);
   }
 
   Future<void> _onGetUserWithPrivateData(GetUserWithPrivateData event, Emitter<UserState> emit) async {
     emit(NoCurrentUser(isLoading: true));
     try {
       final userId = _authProvider.currentUser.id;
+
       final user = await _cloudStorage.getUser(userId: userId);
+
       final privateData = await _cloudStorage.getPrivateData(userId: userId);
 
-      _currentUser = user;
+      if (user.userType != privateData.userType) {
+        emit(NoCurrentUser(exception: UserTypeMismatchException()));
+        return;
+      }
+
+      _currentUser = user; // This will be either CloudCustomer or CloudPromoter
       _currentPrivateData = privateData;
 
       emit(CurrentUser(user: user, privateData: privateData));
@@ -60,18 +71,30 @@ class UserBloc extends Bloc<UserEvent, UserState> {
         return;
       }
       final userId = _authProvider.currentUser.id;
-      final newUser = CloudUser(
-        id: userId,
-        username: event.username,
-        userType: event.userType.name,
-        name: event.name,
-        interests: [""],
-        createdAt: Timestamp.now(),
-      );
-      final newPrivateData = PrivateData(
+      final newUser = event.userType == UserType.promoter
+          ? CloudPromoter(
+              id: userId,
+              username: event.username,
+              userType: event.userType,
+              name: event.name,
+              interests: [""],
+              createdAt: Timestamp.now(),
+              description: null,
+              location: null,
+            )
+          : CloudCustomer(
+              id: userId,
+              username: event.username,
+              userType: event.userType,
+              name: event.name,
+              interests: [""],
+              createdAt: Timestamp.now(),
+            );
+      final newPrivateData = UserPrivateData(
         phoneNumber: _authProvider.currentUser.phoneNumber ?? '',
         email: _authProvider.currentUser.email ?? '',
-        isProfileCompleted: false,
+        userType: event.userType,
+        isFirstTime: true,
       );
 
       final createdAt = await _firestoreCloudFunctions.createUserAndUsername(
@@ -104,23 +127,66 @@ class UserBloc extends Bloc<UserEvent, UserState> {
       );
 
       await _cloudStorage.updateUser(user: updatedUser);
+
       _currentUser = updatedUser;
-      // Update isProfileCompleted in PrivateData
-      final updatedPrivateData = _currentPrivateData!.copyWith(
-        isProfileCompleted: true,
-      );
-      await _cloudStorage.updateProfileCompleted(
-        isProfileCompleted: true,
-        userId: _authProvider.currentUser.id,
-      );
 
-      _currentPrivateData = updatedPrivateData;
-
-      emit(CurrentUser(user: updatedUser, privateData: updatedPrivateData));
+      emit(CurrentUser(user: updatedUser, privateData: _currentPrivateData!));
     } catch (e) {
       emit(CurrentUser(user: _currentUser!, privateData: _currentPrivateData!, exception: e as Exception));
     }
   }
+
+  Future<void> _onSetPromoterUserDescription(SetPromoterUserDescription event, Emitter<UserState> emit) async {
+    if (_currentUser == null) {
+      emit(NoCurrentUser(exception: NoCurrentUserException()));
+      return;
+    }
+    if (_currentUser is! CloudPromoter) {
+      emit(NoCurrentUser(exception: InvalidUserTypeException()));
+      return;
+    }
+
+    emit(CurrentUser(user: _currentUser!, privateData: _currentPrivateData!, isLoading: true));
+    try {
+      final updatedUser = (_currentUser as CloudPromoter).copyWith(
+        description: event.description,
+      );
+
+      await _cloudStorage.updateUser(user: updatedUser);
+      _currentUser = updatedUser;
+
+      emit(CurrentUser(user: updatedUser, privateData: _currentPrivateData!));
+    } catch (e) {
+      emit(CurrentUser(user: _currentUser!, privateData: _currentPrivateData!, exception: e as Exception));
+    }
+  }
+
+
+  Future<void> _onSetPromoterUserLocation(SetPromoterUserLocation event, Emitter<UserState> emit) async {
+    if (_currentUser == null) {
+      emit(NoCurrentUser(exception: NoCurrentUserException()));
+      return;
+    }
+    if (_currentUser is! CloudPromoter) {
+      emit(NoCurrentUser(exception: InvalidUserTypeException()));
+      return;
+    }
+
+    emit(CurrentUser(user: _currentUser!, privateData: _currentPrivateData!, isLoading: true));
+    try {
+      final location = GeoPoint(event.latitude, event.longitude);
+      final updatedUser = (_currentUser as CloudPromoter).copyWith(
+        location: location,
+      );
+
+      await _cloudStorage.updateUser(user: updatedUser);
+      _currentUser = updatedUser;
+
+      emit(CurrentUser(user: updatedUser, privateData: _currentPrivateData!));
+    } catch (e) {
+      emit(CurrentUser(user: _currentUser!, privateData: _currentPrivateData!, exception: e as Exception));
+    }
+  } 
 
   CloudUser? getCurrentUser() {
     return _currentUser;

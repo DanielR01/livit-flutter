@@ -25,6 +25,10 @@ class LivitTextField extends StatefulWidget {
   final bool? externalIsValid;
   final bool isPasswordField;
   final Widget? bottomCaptionWidget;
+  final bool notCapitalize;
+  final bool? isMultiline;
+  final int? lines;
+  final bool disableCheckValidity;
 
   const LivitTextField({
     super.key,
@@ -44,6 +48,10 @@ class LivitTextField extends StatefulWidget {
     this.externalIsValid,
     this.isPasswordField = false,
     this.bottomCaptionWidget,
+    this.notCapitalize = false,
+    this.isMultiline,
+    this.lines,
+    this.disableCheckValidity = false,
   });
 
   @override
@@ -92,15 +100,22 @@ class _LivitTextFieldState extends State<LivitTextField> {
             },
             child: Container(
               decoration: isFocused ? LivitBarStyle.strongShadowDecoration : LivitBarStyle.shadowDecoration,
-              height: LivitBarStyle.height,
+              //height: LivitBarStyle.height,
+              constraints: BoxConstraints(minHeight: widget.isMultiline == true ? LivitBarStyle.height * 2 : LivitBarStyle.height),
               child: TextFormField(
                 textAlignVertical: TextAlignVertical.center,
                 controller: widget.controller,
                 keyboardType: widget.inputType ?? (widget.phoneNumberField ? TextInputType.number : null),
+                maxLines: widget.isMultiline == true ? widget.lines : 1,
                 onChanged: (value) {
-                  setState(() {
-                    isValid = regExp.hasMatch(widget.controller.text);
-                  });
+                  setState(
+                    () {
+                      if (widget.notCapitalize) {
+                        widget.controller.text = widget.controller.text.toLowerCase();
+                      }
+                      isValid = regExp.hasMatch(widget.controller.text);
+                    },
+                  );
                   widget.onChanged?.call(isValid);
                 },
                 decoration: InputDecoration(
@@ -114,7 +129,7 @@ class _LivitTextFieldState extends State<LivitTextField> {
                       : widget.isPasswordField
                           ? _buildPasswordIcon()
                           : null,
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+                  contentPadding: EdgeInsets.symmetric(horizontal: 16.sp, vertical: 16.sp),
                   isCollapsed: true,
                 ),
                 style: LivitTextStyle.regularWhiteActiveText,
@@ -172,7 +187,7 @@ class _LivitTextFieldState extends State<LivitTextField> {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          if (widget.controller.text.isNotEmpty)
+          if (widget.controller.text.isNotEmpty && !widget.disableCheckValidity)
             Padding(
               padding: EdgeInsets.only(right: LivitContainerStyle.horizontalPadding / 2),
               child: widget.icon ??

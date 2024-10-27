@@ -24,7 +24,7 @@ Future<void> showDialog2b({
           child: GlassContainer(
             opacity: 1,
             child: Padding(
-              padding: LivitContainerStyle.padding(null),
+              padding: LivitContainerStyle.padding(),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [

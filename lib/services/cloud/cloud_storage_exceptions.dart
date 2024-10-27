@@ -36,6 +36,13 @@ class NoCurrentUserException implements Exception {
   }
 }
 
+class UserTypeNotFoundException implements Exception {
+  @override
+  String toString() {
+    return 'No se pudo encontrar el tipo de usuario';
+  }
+}
+
 // Event Exceptions
 
 class CouldNotGetEventException implements Exception {}

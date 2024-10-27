@@ -24,3 +24,15 @@ class SetUserInterests extends UserEvent {
   SetUserInterests({required this.interests});
 }
 
+class SetPromoterUserDescription extends UserEvent {
+  final String description;
+
+  SetPromoterUserDescription({required this.description});
+}
+
+class SetPromoterUserLocation extends UserEvent {
+  final double latitude;
+  final double longitude;
+
+  SetPromoterUserLocation({required this.latitude, required this.longitude});
+}

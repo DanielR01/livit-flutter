@@ -176,7 +176,7 @@ class _ConfirmOTPCodeViewState extends State<ConfirmOTPCodeView> {
                                         isBackEnabled: true,
                                       ),
                                       Padding(
-                                        padding: LivitContainerStyle.padding([0, null, null, null]),
+                                        padding: LivitContainerStyle.padding(padding: [0, null, null, null]),
                                         child: Column(
                                           children: [
                                             LivitText(

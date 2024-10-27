@@ -17,7 +17,7 @@ class LivitContainerStyle {
     horizontal: 10.sp,
   );
 
-  static EdgeInsets padding(List<double?>? padding) {
+  static EdgeInsets padding({List<double?>? padding}) {
     if (padding == null) {
       return EdgeInsets.all(verticalPadding);
     } else {
