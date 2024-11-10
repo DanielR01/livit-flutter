@@ -10,6 +10,12 @@ class LivitContainerStyle {
     offset: Offset(0, 0),
   );
 
+  static BoxShadow inactiveWhiteShadow = const BoxShadow(
+    color: Color.fromARGB(54, 255, 255, 255),
+    blurRadius: 9,
+    offset: Offset(0, 0),
+  );
+
   static double verticalPadding = 16.sp;
   static double horizontalPadding = 16.sp;
 
@@ -33,5 +39,11 @@ class LivitContainerStyle {
   static BoxDecoration decoration = BoxDecoration(
     borderRadius: LivitContainerStyle.borderRadius,
     color: LivitColors.mainBlack,
+  );
+
+  static BoxDecoration decorationWithActiveShadow = BoxDecoration(
+    borderRadius: LivitContainerStyle.borderRadius,
+    color: LivitColors.mainBlack,
+    boxShadow: [LivitContainerStyle.activeWhiteShadow],
   );
 }

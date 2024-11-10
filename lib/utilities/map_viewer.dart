@@ -5,16 +5,24 @@ import 'package:flutter/services.dart';
 
 const livitAppleMapView = "LivitAppleMapView";
 
-class LivitAppleMapView extends StatefulWidget {
+class LivitMapView extends StatefulWidget {
   final Function(Map<dynamic, dynamic>) onLocationSelected;
+  final double latitude;
+  final double longitude;
 
-  const LivitAppleMapView({super.key, required this.onLocationSelected});
+  const LivitMapView({
+    super.key,
+    required this.onLocationSelected,
+    required this.latitude,
+    required this.longitude,
+  });
 
   @override
-  State<LivitAppleMapView> createState() => _LivitAppleMapViewState();
+  State<LivitMapView> createState() => LivitMapViewState();
 }
 
-class _LivitAppleMapViewState extends State<LivitAppleMapView> {
+class LivitMapViewState extends State<LivitMapView> {
+  MethodChannel? _channel;
 
   Future<dynamic> _onLocationSelected(MethodCall call) async {
     if (call.method == 'locationSelected') {
@@ -25,22 +33,34 @@ class _LivitAppleMapViewState extends State<LivitAppleMapView> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    final Map<String, dynamic> creationParams = <String, dynamic>{};
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _setInitialLocation();
+    });
+  }
 
+  Future<void> _setInitialLocation() async {
+    if (_channel != null) {
+      await _channel!.invokeMethod('setLocation', {
+        'latitude': widget.latitude,
+        'longitude': widget.longitude,
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     if (Platform.isAndroid) {
-      // TODO: Implement Android map view
       return const Center(child: Text('Android map coming soon'));
     }
 
     return UiKitView(
       viewType: livitAppleMapView,
-      layoutDirection: TextDirection.ltr,
-      creationParams: creationParams,
-      creationParamsCodec: const StandardMessageCodec(),
       onPlatformViewCreated: (int id) {
-        final channel = MethodChannel('${livitAppleMapView}_$id');
-        channel.setMethodCallHandler(_onLocationSelected);
+        _channel = MethodChannel('${livitAppleMapView}_$id');
+        _channel?.setMethodCallHandler(_onLocationSelected);
+        _setInitialLocation();
       },
     );
   }

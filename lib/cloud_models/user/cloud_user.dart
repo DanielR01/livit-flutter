@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:livit/cloud_models/cloud_models_exceptions.dart';
+import 'package:livit/cloud_models/location.dart';
 import 'package:livit/constants/enums.dart';
 
 class CloudUser {
@@ -120,7 +121,7 @@ class CloudCustomer extends CloudUser {
 
 class CloudPromoter extends CloudUser {
   final String? description;
-  final GeoPoint? location;
+  final Location? location;
 
   CloudPromoter({
     required super.id,
@@ -142,7 +143,7 @@ class CloudPromoter extends CloudUser {
     List<String?>? interests,
     Timestamp? createdAt,
     String? description,
-    GeoPoint? location,
+    Location? location,
   }) {
     return CloudPromoter(
       id: id ?? this.id,
@@ -172,7 +173,7 @@ class CloudPromoter extends CloudUser {
       interests: (data['interests'] as List<dynamic>?)?.cast<String>(),
       createdAt: data['createdAt'] as Timestamp,
       description: data['description'] as String?,
-      location: data['location'] as GeoPoint?,
+      location: data['location'] as Location?,
     );
   }
 

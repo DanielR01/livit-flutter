@@ -97,7 +97,8 @@ class _DescriptionPromptState extends State<DescriptionPrompt> {
                       child: Column(
                         children: [
                           const LivitText(
-                              'Describe tu lugar o evento para que tus clientes puedan conocerte mejor y encontrarte fácilmente.'),
+                            'Describe tu lugar o evento para que tus clientes puedan conocerte mejor y encontrarte fácilmente.',
+                          ),
                           LivitSpaces.m,
                           LivitTextField(
                             controller: _descriptionController,

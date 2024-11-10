@@ -9,23 +9,24 @@ class LivitAppleMapView: NSObject, FlutterPlatformView, CLLocationManagerDelegat
     private let locationManager = CLLocationManager()
     private var channel: FlutterMethodChannel
     private var selectedAnnotation: MKPointAnnotation?
+    private let geocoder = CLGeocoder()
     
     init(frame: CGRect, viewIdentifier viewId: Int64, arguments args: Any?, binaryMessenger messenger: FlutterBinaryMessenger?) {
         _view = UIView(frame: frame)
-        // Initialize method channel
+        
         channel = FlutterMethodChannel(name: "LivitAppleMapView_\(viewId)", binaryMessenger: messenger!)
         
         super.init()
         
-        // Setup location manager
         locationManager.delegate = self
         locationManager.desiredAccuracy = kCLLocationAccuracyBest
         locationManager.requestWhenInUseAuthorization()
         
         createNativeView()
         setupGestureRecognizer()
+        setupMethodChannel()
     }
-
+    
     func view() -> UIView {
         return _view
     }
@@ -112,5 +113,61 @@ class LivitAppleMapView: NSObject, FlutterPlatformView, CLLocationManagerDelegat
         }
         
         return annotationView
+    }
+    
+    private func setupMethodChannel() {
+        print("iOS: Setting up method channel")
+        channel.setMethodCallHandler { [weak self] call, result in
+            guard let self = self else { return }
+            print("iOS: Received method call: \(call.method)")
+            
+            switch call.method {
+            case "setLocation":
+                if let args = call.arguments as? [String: Any],
+                   let latitude = args["latitude"] as? Double,
+                   let longitude = args["longitude"] as? Double {
+                    self.setLocation(latitude: latitude, longitude: longitude)
+                    result(nil)
+                } else {
+                    result(FlutterError(code: "INVALID_ARGUMENTS",
+                                      message: "Invalid location arguments",
+                                      details: nil))
+                }
+            default:
+                result(FlutterMethodNotImplemented)
+            }
+        }
+    }
+    
+    private func setLocation(latitude: Double, longitude: Double) {
+        // Remove previous annotation if it exists
+        if let existingAnnotation = selectedAnnotation {
+            mapView.removeAnnotation(existingAnnotation)
+        }
+        
+        let coordinate = CLLocationCoordinate2D(latitude: latitude, longitude: longitude)
+        
+        // Create new annotation
+        let annotation = MKPointAnnotation()
+        annotation.coordinate = coordinate
+        annotation.title = "Ubicación seleccionada"
+        selectedAnnotation = annotation
+        
+        // Add annotation and center map with animation
+        mapView.addAnnotation(annotation)
+        
+        // Set a slightly larger region to show context around the pin
+        let span = MKCoordinateSpan(latitudeDelta: 0.02, longitudeDelta: 0.02)
+        let region = MKCoordinateRegion(center: coordinate, span: span)
+        
+        // Animate to the new region
+        mapView.setRegion(region, animated: true)
+        
+        // After a short delay, zoom in closer to the pin
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+            let closeSpan = MKCoordinateSpan(latitudeDelta: 0.01, longitudeDelta: 0.01)
+            let closeRegion = MKCoordinateRegion(center: coordinate, span: closeSpan)
+            self.mapView.setRegion(closeRegion, animated: true)
+        }
     }
 }

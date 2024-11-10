@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:livit/constants/enums.dart';
 
 abstract class UserEvent {}
@@ -31,8 +32,8 @@ class SetPromoterUserDescription extends UserEvent {
 }
 
 class SetPromoterUserLocation extends UserEvent {
-  final double latitude;
-  final double longitude;
+  final String name;
+  final GeoPoint? geopoint;
 
-  SetPromoterUserLocation({required this.latitude, required this.longitude});
+  SetPromoterUserLocation({required this.name, required this.geopoint});
 }

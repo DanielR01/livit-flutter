@@ -2,7 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 class Location {
   final String name;
-  final GeoPoint geopoint;
+  final GeoPoint? geopoint;
 
   Location({required this.name, required this.geopoint});
 }

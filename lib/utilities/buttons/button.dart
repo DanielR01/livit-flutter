@@ -157,6 +157,7 @@ class Button extends StatefulWidget {
     required String text,
     required bool isActive,
     required VoidCallback onPressed,
+    double? width,
     bool blueStyle = false,
     bool isLoading = false,
     bool? forceOnPressed,
@@ -172,6 +173,7 @@ class Button extends StatefulWidget {
       isShadowActive: false,
       transparent: false,
       bold: false,
+      width: width,
       isLoading: isLoading,
       activeBackgroundColor: activeBackgroundColor,
       activeTextColor: LivitColors.mainBlack,
@@ -188,6 +190,7 @@ class Button extends StatefulWidget {
     required bool isActive,
     required VoidCallback onPressed,
     bool isLoading = false,
+    double? width,
     bool blueStyle = false,
     bool? forceOnPressed,
     IconData? leftIcon, // Add left icon parameter
@@ -207,6 +210,7 @@ class Button extends StatefulWidget {
       inactiveTextColor: LivitColors.whiteInactive,
       isLoading: isLoading,
       forceOnPressed: forceOnPressed,
+      width: width,
       leftIcon: leftIcon, // Pass left icon
       rightIcon: rightIcon, // Pass right icon
     );
@@ -454,25 +458,38 @@ class _ButtonState extends State<Button> with SingleTickerProviderStateMixin {
                             padding: EdgeInsets.only(right: 4.sp),
                             child: Icon(widget.leftIcon, color: textColor, size: 16.sp),
                           ),
-                        LivitText(
-                          widget.text,
-                          textType: TextType.regular,
-                          color: textColor,
-                          fontWeight: widget.bold ? FontWeight.bold : null,
-                        ),
-                        if (widget.isLoading)
-                          Expanded(
-                            child: AnimatedBuilder(
-                              animation: _dotsAnimation,
-                              builder: (context, child) {
-                                return LivitText(
-                                  '.' * _dotsAnimation.value,
-                                  textType: TextType.regular,
-                                  color: textColor,
-                                  fontWeight: widget.bold ? FontWeight.bold : null,
-                                );
-                              },
+                        if (!widget.isLoading)
+                          Flexible(
+                            child: LivitText(
+                              widget.text,
+                              textType: TextType.regular,
+                              color: textColor,
+                              fontWeight: widget.bold ? FontWeight.bold : null,
+                              overflow: TextOverflow.ellipsis,
                             ),
+                          )
+                        else
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              LivitText(
+                                widget.text,
+                                textType: TextType.regular,
+                                color: textColor,
+                                fontWeight: widget.bold ? FontWeight.bold : null,
+                              ),
+                              AnimatedBuilder(
+                                animation: _dotsAnimation,
+                                builder: (context, child) {
+                                  return LivitText(
+                                    '.' * _dotsAnimation.value,
+                                    textType: TextType.regular,
+                                    color: textColor,
+                                    fontWeight: widget.bold ? FontWeight.bold : null,
+                                  );
+                                },
+                              ),
+                            ],
                           ),
                         if (widget.rightIcon != null)
                           Row(

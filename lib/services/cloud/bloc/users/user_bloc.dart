@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:livit/cloud_models/cloud_models_exceptions.dart';
+import 'package:livit/cloud_models/location.dart';
 import 'package:livit/cloud_models/user/cloud_user.dart';
 import 'package:livit/cloud_models/user/private_data.dart';
 import 'package:livit/constants/enums.dart';
@@ -174,7 +175,7 @@ class UserBloc extends Bloc<UserEvent, UserState> {
 
     emit(CurrentUser(user: _currentUser!, privateData: _currentPrivateData!, isLoading: true));
     try {
-      final location = GeoPoint(event.latitude, event.longitude);
+      final location = Location(name: event.name, geopoint: event.geopoint);
       final updatedUser = (_currentUser as CloudPromoter).copyWith(
         location: location,
       );

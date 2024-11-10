@@ -65,8 +65,10 @@
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>We need your location to show you on the map</string>
+	<string>We need your location to show you on the map and search for addresses</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-	<string>We need your location to show you on the map</string>
+	<string>We need your location to show you on the map and search for addresses</string>
+	<key>NSLocationAlwaysUsageDescription</key>
+	<string>We need your location to show you on the map and search for addresses</string>
 </dict>
 </plist>
