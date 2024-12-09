@@ -14,7 +14,15 @@ class LivitBarStyle {
     color: LivitColors.mainBlack,
   );
 
-  static BoxDecoration shadowDecoration = BoxDecoration(
+  static BoxDecoration weakShadowDecoration = BoxDecoration(
+    borderRadius: LivitContainerStyle.borderRadius,
+    color: LivitColors.mainBlack,
+    boxShadow: [
+      LivitShadows.inactiveWhiteShadow,
+    ],
+  );
+
+  static BoxDecoration normalShadowDecoration = BoxDecoration(
     borderRadius: LivitContainerStyle.borderRadius,
     color: LivitColors.mainBlack,
     boxShadow: [
@@ -27,6 +35,14 @@ class LivitBarStyle {
     color: LivitColors.mainBlack,
     boxShadow: [
       LivitShadows.strongActiveWhiteShadow,
+    ],
+  );
+
+  static BoxDecoration disabledShadowDecoration = BoxDecoration(
+    borderRadius: LivitContainerStyle.borderRadius,
+    color: LivitColors.mainBlack,
+    boxShadow: [
+      LivitShadows.inactiveWhiteShadow,
     ],
   );
 }

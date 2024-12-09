@@ -7,14 +7,12 @@ const livitAppleMapView = "LivitAppleMapView";
 
 class LivitMapView extends StatefulWidget {
   final Function(Map<dynamic, dynamic>) onLocationSelected;
-  final double latitude;
-  final double longitude;
+  final String initialAddress;
 
   const LivitMapView({
     super.key,
     required this.onLocationSelected,
-    required this.latitude,
-    required this.longitude,
+    required this.initialAddress,
   });
 
   @override
@@ -43,8 +41,7 @@ class LivitMapViewState extends State<LivitMapView> {
   Future<void> _setInitialLocation() async {
     if (_channel != null) {
       await _channel!.invokeMethod('setLocation', {
-        'latitude': widget.latitude,
-        'longitude': widget.longitude,
+        'address': widget.initialAddress,
       });
     }
   }

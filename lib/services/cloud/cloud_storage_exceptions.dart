@@ -43,6 +43,13 @@ class UserTypeNotFoundException implements Exception {
   }
 }
 
+class UserInformationCorruptedException implements Exception {
+  @override
+  String toString() {
+    return 'La información del usuario está corrupta';
+  }
+}
+
 // Event Exceptions
 
 class CouldNotGetEventException implements Exception {}

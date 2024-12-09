@@ -64,6 +64,9 @@ class StartPage extends StatelessWidget {
               ),
             ),
             fontFamily: 'HelveticaNowDisplay',
+            scrollbarTheme: ScrollbarThemeData(
+              thumbColor: WidgetStateProperty.all(LivitColors.whiteActive),
+            ),
           ),
           home: RootWidgetBackground(),
         ),

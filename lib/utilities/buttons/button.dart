@@ -9,6 +9,7 @@ import 'package:livit/constants/styles/spaces.dart';
 enum ButtonType {
   main,
   secondary,
+  secondaryIcon,
   secondaryRed,
   whiteText,
   redText,
@@ -18,7 +19,7 @@ enum ButtonType {
 }
 
 class Button extends StatefulWidget {
-  final String text;
+  final String? text;
   final VoidCallback onPressed;
   final bool isActive;
   final bool? forceOnPressed;
@@ -36,6 +37,7 @@ class Button extends StatefulWidget {
   final Color? inactiveShadowColor;
   final IconData? leftIcon; // New property for the left icon
   final IconData? rightIcon; // New property for the right icon
+  final List<BoxShadow>? boxShadow;
 
   const Button({
     super.key,
@@ -57,6 +59,7 @@ class Button extends StatefulWidget {
     this.forceOnPressed,
     this.leftIcon, // Add left icon to the constructor
     this.rightIcon, // Add right icon to the constructor
+    this.boxShadow,
   });
 
   factory Button.fromType({
@@ -69,6 +72,7 @@ class Button extends StatefulWidget {
     bool? forceOnPressed,
     IconData? leftIcon, // Add left icon parameter
     IconData? rightIcon, // Add right icon parameter
+    List<BoxShadow>? boxShadow,
   }) {
     switch (type) {
       case ButtonType.main:
@@ -80,6 +84,7 @@ class Button extends StatefulWidget {
           forceOnPressed: forceOnPressed,
           leftIcon: leftIcon, // Pass left icon
           rightIcon: rightIcon, // Pass right icon
+          boxShadow: boxShadow,
         );
 
       case ButtonType.secondary:
@@ -91,6 +96,16 @@ class Button extends StatefulWidget {
           forceOnPressed: forceOnPressed,
           leftIcon: leftIcon, // Pass left icon
           rightIcon: rightIcon, // Pass right icon
+          boxShadow: boxShadow,
+        );
+      case ButtonType.secondaryIcon:
+        return Button.secondaryIcon(
+          onPressed: onPressed,
+          isActive: isActive,
+          forceOnPressed: forceOnPressed,
+          leftIcon: leftIcon, // Pass left icon
+          rightIcon: rightIcon, // Pass right icon
+          boxShadow: boxShadow,
         );
       case ButtonType.whiteText:
         return Button.whiteText(
@@ -101,6 +116,7 @@ class Button extends StatefulWidget {
           forceOnPressed: forceOnPressed,
           leftIcon: leftIcon, // Pass left icon
           rightIcon: rightIcon, // Pass right icon
+          boxShadow: boxShadow,
         );
       case ButtonType.redText:
         return Button.redText(
@@ -111,6 +127,7 @@ class Button extends StatefulWidget {
           forceOnPressed: forceOnPressed,
           leftIcon: leftIcon, // Pass left icon
           rightIcon: rightIcon, // Pass right icon
+          boxShadow: boxShadow,
         );
       case ButtonType.blueText:
         return Button.blueText(
@@ -121,6 +138,7 @@ class Button extends StatefulWidget {
           forceOnPressed: forceOnPressed,
           leftIcon: leftIcon, // Pass left icon
           rightIcon: rightIcon, // Pass right icon
+          boxShadow: boxShadow,
         );
       case ButtonType.mainRed:
         return Button.mainRed(
@@ -130,6 +148,7 @@ class Button extends StatefulWidget {
           forceOnPressed: forceOnPressed,
           leftIcon: leftIcon, // Pass left icon
           rightIcon: rightIcon, // Pass right icon
+          boxShadow: boxShadow,
         );
       case ButtonType.secondaryRed:
         return Button.secondaryRed(
@@ -139,6 +158,7 @@ class Button extends StatefulWidget {
           forceOnPressed: forceOnPressed,
           leftIcon: leftIcon, // Pass left icon
           rightIcon: rightIcon, // Pass right icon
+          boxShadow: boxShadow,
         );
       case ButtonType.grayText:
         return Button.grayText(
@@ -149,6 +169,7 @@ class Button extends StatefulWidget {
           forceOnPressed: forceOnPressed,
           leftIcon: leftIcon, // Pass left icon
           rightIcon: rightIcon, // Pass right icon
+          boxShadow: boxShadow,
         );
     }
   }
@@ -163,6 +184,7 @@ class Button extends StatefulWidget {
     bool? forceOnPressed,
     IconData? leftIcon, // Add left icon parameter
     IconData? rightIcon, // Add right icon parameter
+    List<BoxShadow>? boxShadow,
   }) {
     Color activeBackgroundColor = blueStyle ? LivitColors.mainBlueActive : LivitColors.whiteActive;
     return Button(
@@ -182,6 +204,7 @@ class Button extends StatefulWidget {
       forceOnPressed: forceOnPressed,
       leftIcon: leftIcon, // Pass left icon
       rightIcon: rightIcon, // Pass right icon
+      boxShadow: boxShadow,
     );
   }
 
@@ -195,6 +218,7 @@ class Button extends StatefulWidget {
     bool? forceOnPressed,
     IconData? leftIcon, // Add left icon parameter
     IconData? rightIcon, // Add right icon parameter
+    List<BoxShadow>? boxShadow,
   }) {
     return Button(
       text: text,
@@ -213,6 +237,32 @@ class Button extends StatefulWidget {
       width: width,
       leftIcon: leftIcon, // Pass left icon
       rightIcon: rightIcon, // Pass right icon
+      boxShadow: boxShadow,
+    );
+  }
+
+  factory Button.secondaryIcon({
+    required bool isActive,
+    required VoidCallback onPressed,
+    bool? forceOnPressed,
+    IconData? leftIcon, // Add left icon parameter
+    IconData? rightIcon, // Add right icon parameter
+    List<BoxShadow>? boxShadow,
+    double? width,
+  }) {
+    return Button(
+      text: null,
+      onPressed: onPressed,
+      isActive: isActive,
+      blueStyle: false,
+      isShadowActive: true,
+      transparent: false,
+      bold: false,
+      forceOnPressed: forceOnPressed,
+      leftIcon: leftIcon, // Pass left icon
+      rightIcon: rightIcon, // Pass right icon
+      boxShadow: boxShadow,
+      width: width,
     );
   }
 
@@ -224,6 +274,7 @@ class Button extends StatefulWidget {
     bool? forceOnPressed,
     IconData? leftIcon, // Add left icon parameter
     IconData? rightIcon, // Add right icon parameter
+    List<BoxShadow>? boxShadow,
   }) {
     return Button(
       text: text,
@@ -241,6 +292,7 @@ class Button extends StatefulWidget {
       forceOnPressed: forceOnPressed,
       leftIcon: leftIcon, // Pass left icon
       rightIcon: rightIcon, // Pass right icon
+      boxShadow: boxShadow,
     );
   }
 
@@ -252,6 +304,8 @@ class Button extends StatefulWidget {
     bool? forceOnPressed,
     IconData? leftIcon, // Add left icon parameter
     IconData? rightIcon, // Add right icon parameter
+    List<BoxShadow>? boxShadow,
+    double? width,
   }) {
     return Button(
       //activeBackgroundColor: LivitColors.red,
@@ -267,6 +321,8 @@ class Button extends StatefulWidget {
       forceOnPressed: forceOnPressed,
       leftIcon: leftIcon, // Pass left icon
       rightIcon: rightIcon, // Pass right icon
+      boxShadow: boxShadow,
+      width: width,
     );
   }
 
@@ -278,6 +334,8 @@ class Button extends StatefulWidget {
     bool? forceOnPressed,
     IconData? leftIcon, // Add left icon parameter
     IconData? rightIcon, // Add right icon parameter
+    List<BoxShadow>? boxShadow,
+    double? width,
   }) {
     return Button(
       text: text,
@@ -292,6 +350,8 @@ class Button extends StatefulWidget {
       forceOnPressed: forceOnPressed,
       leftIcon: leftIcon, // Pass left icon
       rightIcon: rightIcon, // Pass right icon
+      boxShadow: boxShadow,
+      width: width,
     );
   }
 
@@ -303,6 +363,7 @@ class Button extends StatefulWidget {
     bool? forceOnPressed,
     IconData? leftIcon, // Add left icon parameter
     IconData? rightIcon, // Add right icon parameter
+    List<BoxShadow>? boxShadow,
   }) {
     return Button(
       text: text,
@@ -317,6 +378,7 @@ class Button extends StatefulWidget {
       forceOnPressed: forceOnPressed,
       leftIcon: leftIcon, // Pass left icon
       rightIcon: rightIcon, // Pass right icon
+      boxShadow: boxShadow,
     );
   }
 
@@ -327,6 +389,7 @@ class Button extends StatefulWidget {
     bool? forceOnPressed,
     IconData? leftIcon, // Add left icon parameter
     IconData? rightIcon, // Add right icon parameter
+    List<BoxShadow>? boxShadow,
   }) {
     return Button(
       text: text,
@@ -343,6 +406,7 @@ class Button extends StatefulWidget {
       forceOnPressed: forceOnPressed,
       leftIcon: leftIcon, // Pass left icon
       rightIcon: rightIcon, // Pass right icon
+      boxShadow: boxShadow,
     );
   }
 
@@ -355,6 +419,7 @@ class Button extends StatefulWidget {
     bool? forceOnPressed,
     IconData? leftIcon, // Add left icon parameter
     IconData? rightIcon, // Add right icon parameter
+    List<BoxShadow>? boxShadow,
   }) {
     return Button(
       text: text,
@@ -370,6 +435,7 @@ class Button extends StatefulWidget {
       isLoading: isLoading,
       leftIcon: leftIcon, // Pass left icon
       rightIcon: rightIcon, // Pass right icon
+      boxShadow: boxShadow,
     );
   }
 
@@ -410,15 +476,16 @@ class _ButtonState extends State<Button> with SingleTickerProviderStateMixin {
         ? (widget.activeTextColor ?? (widget.blueStyle ? LivitColors.mainBlueActive : LivitColors.whiteActive))
         : (widget.inactiveTextColor ?? (widget.blueStyle ? LivitColors.mainBlueInactive : LivitColors.whiteInactive));
 
-    final List<BoxShadow> boxShadow = widget.isActive && widget.isShadowActive
-        ? [
-            widget.blueStyle
-                ? LivitShadows.activeBlueShadow
-                : (widget.activeShadowColor != null)
-                    ? LivitShadows.shadow(widget.activeShadowColor!)
-                    : LivitShadows.activeWhiteShadow
-          ]
-        : (widget.isShadowActive ? [widget.blueStyle ? LivitShadows.inactiveBlueShadow : LivitShadows.inactiveWhiteShadow] : []);
+    final List<BoxShadow> boxShadow = widget.boxShadow ??
+        (widget.isActive && widget.isShadowActive
+            ? [
+                widget.blueStyle
+                    ? LivitShadows.activeBlueShadow
+                    : (widget.activeShadowColor != null)
+                        ? LivitShadows.shadow(widget.activeShadowColor!)
+                        : LivitShadows.activeWhiteShadow
+              ]
+            : (widget.isShadowActive ? [widget.blueStyle ? LivitShadows.inactiveBlueShadow : LivitShadows.inactiveWhiteShadow] : []));
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -433,7 +500,7 @@ class _ButtonState extends State<Button> with SingleTickerProviderStateMixin {
           child: IntrinsicWidth(
             child: ConstrainedBox(
               constraints: BoxConstraints(
-                minWidth: _calculateMinWidth(context, textColor),
+                minWidth: widget.text != null ? _calculateMinWidth(context, textColor) : 0,
               ),
               child: Material(
                 color: backgroundColor,
@@ -458,44 +525,45 @@ class _ButtonState extends State<Button> with SingleTickerProviderStateMixin {
                             padding: EdgeInsets.only(right: 4.sp),
                             child: Icon(widget.leftIcon, color: textColor, size: 16.sp),
                           ),
-                        if (!widget.isLoading)
-                          Flexible(
-                            child: LivitText(
-                              widget.text,
-                              textType: TextType.regular,
-                              color: textColor,
-                              fontWeight: widget.bold ? FontWeight.bold : null,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          )
-                        else
-                          Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              LivitText(
-                                widget.text,
+                        if (widget.text != null)
+                          if (!widget.isLoading)
+                            Flexible(
+                              child: LivitText(
+                                widget.text!,
                                 textType: TextType.regular,
                                 color: textColor,
                                 fontWeight: widget.bold ? FontWeight.bold : null,
+                                overflow: TextOverflow.ellipsis,
                               ),
-                              AnimatedBuilder(
-                                animation: _dotsAnimation,
-                                builder: (context, child) {
-                                  return LivitText(
-                                    '.' * _dotsAnimation.value,
-                                    textType: TextType.regular,
-                                    color: textColor,
-                                    fontWeight: widget.bold ? FontWeight.bold : null,
-                                  );
-                                },
-                              ),
-                            ],
-                          ),
+                            )
+                          else
+                            Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                LivitText(
+                                  widget.text!,
+                                  textType: TextType.regular,
+                                  color: textColor,
+                                  fontWeight: widget.bold ? FontWeight.bold : null,
+                                ),
+                                AnimatedBuilder(
+                                  animation: _dotsAnimation,
+                                  builder: (context, child) {
+                                    return LivitText(
+                                      '.' * _dotsAnimation.value,
+                                      textType: TextType.regular,
+                                      color: textColor,
+                                      fontWeight: widget.bold ? FontWeight.bold : null,
+                                    );
+                                  },
+                                ),
+                              ],
+                            ),
                         if (widget.rightIcon != null)
                           Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              LivitSpaces.xs,
+                              if (widget.text != null) LivitSpaces.xs,
                               Icon(widget.rightIcon, color: textColor, size: 16.sp),
                             ],
                           ),

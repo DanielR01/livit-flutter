@@ -9,7 +9,9 @@
                 "profile": ["url_example1", "url_example2"]
             },
             "location": {
+                "undefined": false,
                 "name": "location_name_example",
+                "address": "location_address_example",
                 "geopoint": {
                     "latitude": 0.0,
                     "longitude": 0.0

@@ -12,7 +12,8 @@ import 'package:livit/utilities/loading_screen.dart';
 import 'package:livit/views/auth/get_or_create_user/create_user_view.dart';
 import 'package:livit/views/auth/get_or_create_user/final_welcome_message.dart';
 import 'package:livit/views/auth/get_or_create_user/promoter/description_prompt.dart';
-import 'package:livit/views/auth/get_or_create_user/promoter/location_prompt.dart';
+import 'package:livit/views/auth/get_or_create_user/promoter/location/address_prompt.dart';
+import 'package:livit/views/auth/get_or_create_user/promoter/location/map_location_prompt.dart';
 import 'package:livit/views/auth/get_or_create_user/user_type_input.dart';
 import 'package:livit/views/auth/get_or_create_user/welcome_and_data_view.dart';
 
@@ -30,19 +31,24 @@ class _GetOrCreateUserViewState extends State<GetOrCreateUserView> {
   @override
   void initState() {
     super.initState();
-    BlocProvider.of<UserBloc>(context).add(GetUserWithPrivateData());
+    BlocProvider.of<UserBloc>(context).add(const GetUserWithPrivateData());
+    //BlocProvider.of<AuthBloc>(context).add(const AuthEventLogOut());
   }
 
-  bool checkIfProfileIsComplete(UserState state) {
-    if (state is CurrentUser) {
-      if (state.user is CloudPromoter) {
-        final promoter = state.user as CloudPromoter;
-        return promoter.description != null && promoter.interests != null && promoter.location != null;
-      } else if (state.user is CloudCustomer) {
-        return state.user.interests != null;
+  bool checkIfUserIsCompleted(CloudUser user) {
+    if (user.userType == UserType.customer && user.interests == null) {
+      return false;
+    }
+    if (user.userType == UserType.promoter) {
+      final promoter = user as CloudPromoter;
+      if (promoter.interests == null ||
+          promoter.description == null ||
+          promoter.locations == null ||
+          promoter.locations?.isCompleted == false) {
+        return false;
       }
     }
-    return false;
+    return true;
   }
 
   @override
@@ -50,7 +56,7 @@ class _GetOrCreateUserViewState extends State<GetOrCreateUserView> {
     return BlocConsumer<UserBloc, UserState>(
       listener: (context, state) {
         if (state is CurrentUser) {
-          if (!state.privateData.isFirstTime && !_isFirstTime) {
+          if (state.privateData.isProfileCompleted && !_isFirstTime && checkIfUserIsCompleted(state.user)) {
             Navigator.of(context).pushNamedAndRemoveUntil(
               Routes.mainViewRoute,
               (route) => false,
@@ -63,44 +69,54 @@ class _GetOrCreateUserViewState extends State<GetOrCreateUserView> {
         if (state is NoCurrentUser && state.userType == null && !state.isLoading && state.isInitialized && state.exception == null) {
           return const UserTypeInput();
         }
+
         switch (state) {
           case CurrentUser():
-            if (state.user.userType == UserType.customer) {
-              if (!state.privateData.isFirstTime) {
-                _isFirstTime = true;
-                return const WelcomeAndDataView();
-              } else if (_isFirstTime) {
+            if (state.privateData.isProfileCompleted) {
+              if (_isFirstTime) {
+                if (state.user.userType == UserType.customer && state.user.interests == null) {
+                  return ErrorReauthScreen(exception: UserInformationCorruptedException());
+                }
                 return FinalWelcomeMessage(
                   onPressed: () {
-                    setState(
-                      () {
-                        Navigator.of(context).pushNamedAndRemoveUntil(
-                          Routes.mainViewRoute,
-                          (route) => false,
-                          arguments: state.user,
-                        );
-                      },
-                    );
+                    setState(() {
+                      _isFirstTime = false;
+                    });
+                    BlocProvider.of<UserBloc>(context).add(const UpdateState());
                   },
                 );
-              }
-              return const LoadingScreen();
-            } else if (state.user is CloudPromoter) {
-              final promoter = state.user as CloudPromoter;
-              if (promoter.description == null) {
-                _isFirstTime = true;
-                return const DescriptionPrompt();
-              } else if (promoter.interests == null) {
-                _isFirstTime = true;
-                return const InterestsView();
-              } else if (promoter.location == null) {
-                _isFirstTime = true;
-                return const LocationPromptView();
               } else {
                 return const LoadingScreen();
               }
-            } else {
-              return ErrorReauthScreen(exception: UserTypeNotFoundException());
+            }
+            switch (state.user.userType) {
+              case UserType.customer:
+                if (state.user.interests == null) {
+                  _isFirstTime = true;
+                  return const WelcomeAndInterestsView();
+                } else {
+                  return ErrorReauthScreen(exception: UserInformationCorruptedException());
+                }
+              case UserType.promoter:
+                final promoter = state.user as CloudPromoter;
+                if (promoter.interests == null) {
+                  _isFirstTime = true;
+                  return const WelcomeAndInterestsView();
+                } else if (promoter.description == null) {
+                  _isFirstTime = true;
+                  return const DescriptionPrompt();
+                } else if (promoter.locations == null || promoter.locations?.isCompleted == false) {
+                  _isFirstTime = true;
+                  return const AddressPrompt();
+                } else if (promoter.locations != null &&
+                    promoter.locations?.locations.isNotEmpty == true &&
+                    promoter.locations?.isCompleted == true &&
+                    promoter.locations?.locations.any((location) => location.geopoint == null) == true) {
+                  _isFirstTime = true;
+                  return MapLocationPrompt(locations: promoter.locations!.locations);
+                } else {
+                  return const LoadingScreen();
+                }
             }
           case NoCurrentUser():
             if (!state.isInitialized) {

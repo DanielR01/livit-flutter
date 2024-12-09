@@ -7,17 +7,18 @@ import 'package:livit/constants/styles/spaces.dart';
 import 'package:livit/services/cloud/bloc/users/user_bloc.dart';
 import 'package:livit/services/cloud/bloc/users/user_event.dart';
 import 'package:livit/services/cloud/bloc/users/user_state.dart';
+import 'package:livit/utilities/bars_containers_fields/glass_container.dart';
 import 'package:livit/utilities/buttons/button.dart';
 import 'package:livit/utilities/error_screens/error_reauth_screen.dart';
 
-class WelcomeAndDataView extends StatefulWidget {
-  const WelcomeAndDataView({super.key});
+class WelcomeAndInterestsView extends StatefulWidget {
+  const WelcomeAndInterestsView({super.key});
 
   @override
-  State<WelcomeAndDataView> createState() => _WelcomeAndDataViewState();
+  State<WelcomeAndInterestsView> createState() => _WelcomeAndInterestsViewState();
 }
 
-class _WelcomeAndDataViewState extends State<WelcomeAndDataView> {
+class _WelcomeAndInterestsViewState extends State<WelcomeAndInterestsView> {
   bool _isShowingWelcome = true;
 
   void _onNext() {
@@ -41,7 +42,7 @@ class _WelcomeAndDataViewState extends State<WelcomeAndDataView> {
           if (_isShowingWelcome) {
             return _WelcomeView(name: state.user.name, onNext: _onNext, userType: state.user.userType);
           } else {
-            return const InterestsView();
+            return const _InterestsView();
           }
         } else {
           return const ErrorReauthScreen();
@@ -64,12 +65,10 @@ class _WelcomeView extends StatefulWidget {
 class __WelcomeViewState extends State<_WelcomeView> with TickerProviderStateMixin {
   late AnimationController _titleAnimationController;
   late AnimationController _descriptionAnimationController;
-  late AnimationController _secondDescriptionAnimationController;
   late AnimationController _buttonAnimationController;
 
   late Animation<double> _titleAnimation;
   late Animation<double> _descriptionAnimation;
-  late Animation<double> _secondDescriptionAnimation;
   late Animation<double> _buttonAnimation;
 
   bool _isAnimationFinished = false;
@@ -86,10 +85,6 @@ class __WelcomeViewState extends State<_WelcomeView> with TickerProviderStateMix
       vsync: this,
       duration: const Duration(milliseconds: 300),
     );
-    _secondDescriptionAnimationController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 300),
-    );
     _buttonAnimationController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 300),
@@ -101,10 +96,6 @@ class __WelcomeViewState extends State<_WelcomeView> with TickerProviderStateMix
     );
     _descriptionAnimation = CurvedAnimation(
       parent: _descriptionAnimationController,
-      curve: Curves.easeOut,
-    );
-    _secondDescriptionAnimation = CurvedAnimation(
-      parent: _secondDescriptionAnimationController,
       curve: Curves.easeOut,
     );
     _buttonAnimation = CurvedAnimation(
@@ -124,20 +115,10 @@ class __WelcomeViewState extends State<_WelcomeView> with TickerProviderStateMix
                   (_) {
                     Future.delayed(const Duration(milliseconds: 1600)).then(
                       (_) {
-                        _secondDescriptionAnimationController.forward().then(
-                          (_) {
-                            Future.delayed(const Duration(milliseconds: 1600)).then(
-                              (_) {
-                                _buttonAnimationController.forward();
-                                setState(
-                                  () {
-                                    _isAnimationFinished = true;
-                                  },
-                                );
-                              },
-                            );
-                          },
-                        );
+                        _buttonAnimationController.forward();
+                        setState(() {
+                          _isAnimationFinished = true;
+                        });
                       },
                     );
                   },
@@ -156,6 +137,17 @@ class __WelcomeViewState extends State<_WelcomeView> with TickerProviderStateMix
     _descriptionAnimationController.dispose();
     _buttonAnimationController.dispose();
     super.dispose();
+  }
+
+  String get _welcomeDescription {
+    switch (widget.userType) {
+      case UserType.customer:
+        return 'Con LIVIT podrás encontrar nuevos eventos y lugares en tu ciudad que se adapten a tus gustos.\nQueremos que compartas nuevas experiencias con tus amigos en tus eventos favoritos.';
+      case UserType.promoter:
+        return 'Con LIVIT podrás promocionar tus eventos y lugares de una manera más efectiva.\nLlega a más personas y haz crecer tu negocio con nuestra plataforma.';
+      default:
+        return '';
+    }
   }
 
   @override
@@ -180,15 +172,7 @@ class __WelcomeViewState extends State<_WelcomeView> with TickerProviderStateMix
               FadeTransition(
                 opacity: _descriptionAnimation,
                 child: LivitText(
-                  'Con LIVIT podras encontrar nuevos eventos y lugares en tu ciudad que se adapten a tus gustos. Queremos que compartas nuevas experiencias con tus amigos y conozcas nuevas personas.',
-                ),
-              ),
-              LivitSpaces.s,
-              FadeTransition(
-                opacity: _secondDescriptionAnimation,
-                child: LivitText(
-                  'Estás usando una versión inicial de LIVIT, por el momento solo podrás comprar entradas para tus eventos favoritos.',
-                  fontWeight: FontWeight.bold,
+                  _welcomeDescription,
                 ),
               ),
               LivitSpaces.m,
@@ -208,14 +192,14 @@ class __WelcomeViewState extends State<_WelcomeView> with TickerProviderStateMix
   }
 }
 
-class InterestsView extends StatefulWidget {
-  const InterestsView({super.key});
+class _InterestsView extends StatefulWidget {
+  const _InterestsView();
 
   @override
-  State<InterestsView> createState() => _InterestsViewState();
+  State<_InterestsView> createState() => _InterestsViewState();
 }
 
-class _InterestsViewState extends State<InterestsView> {
+class _InterestsViewState extends State<_InterestsView> {
   final List<String> topics = [
     'Rumba',
     'Espiritualidad',
@@ -254,25 +238,28 @@ class _InterestsViewState extends State<InterestsView> {
   Widget build(BuildContext context) {
     return BlocBuilder<UserBloc, UserState>(
       builder: (context, state) {
-        String title = 'Personaliza tus preferencias';
-        String description = 'Escoge los temas que más te interesan para que podamos recomendarte nuevos eventos y lugares.';
+        String title = '';
+        String description = '';
         if (state is CurrentUser) {
+          title = state.user.userType == UserType.customer ? 'Personaliza tus preferencias' : 'Personaliza tu perfil';
+          description = state.user.userType == UserType.customer
+              ? 'Escoge los temas que más te interesan para que podamos recomendarte nuevos eventos y lugares.'
+              : 'Escoge los temas que más se relacionen con tu negocio para que tus clientes puedan encontrarte fácilmente.';
           _isLoading = state.isLoading;
+        } else {
+          return const ErrorReauthScreen();
         }
         return Scaffold(
           backgroundColor: Colors.transparent,
           body: Center(
             child: Padding(
               padding: LivitContainerStyle.paddingFromScreen,
-              child: SingleChildScrollView(
+              child: GlassContainer(
+                titleBarText: title,
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    LivitText(
-                      title,
-                      textType: TextType.bigTitle,
-                    ),
-                    LivitSpaces.m,
                     LivitText(
                       description,
                       textAlign: TextAlign.center,

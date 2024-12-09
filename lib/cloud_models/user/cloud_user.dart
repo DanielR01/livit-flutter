@@ -56,7 +56,6 @@ class CloudUser {
     } else if (data['userType'] == UserType.promoter.name) {
       return CloudPromoter.fromDocument(doc);
     }
-
     throw InvalidUserTypeException();
   }
 }
@@ -121,7 +120,7 @@ class CloudCustomer extends CloudUser {
 
 class CloudPromoter extends CloudUser {
   final String? description;
-  final Location? location;
+  final Locations? locations;
 
   CloudPromoter({
     required super.id,
@@ -131,7 +130,7 @@ class CloudPromoter extends CloudUser {
     required super.createdAt,
     required super.interests,
     required this.description,
-    required this.location,
+    required this.locations,
   });
 
   @override
@@ -143,7 +142,7 @@ class CloudPromoter extends CloudUser {
     List<String?>? interests,
     Timestamp? createdAt,
     String? description,
-    Location? location,
+    Locations? locations,
   }) {
     return CloudPromoter(
       id: id ?? this.id,
@@ -153,27 +152,37 @@ class CloudPromoter extends CloudUser {
       interests: interests ?? this.interests,
       createdAt: createdAt ?? this.createdAt,
       description: description ?? this.description,
-      location: location ?? this.location,
+      locations: locations ?? this.locations,
     );
   }
 
   @override
   String toString() {
-    return 'CloudPromoter(id: $id, username: $username, userType: $userType, name: $name, interests: $interests, createdAt: $createdAt, description: $description, location: $location)';
+    return 'CloudPromoter(id: $id, username: $username, userType: $userType, name: $name, interests: $interests, createdAt: $createdAt, description: $description, locations: $locations)';
   }
 
   factory CloudPromoter.fromDocument(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>;
 
+    final id = doc.id;
+    final username = data['username'] as String;
+    final userType = UserType.values.firstWhere((e) => e.name == data['userType'] as String);
+    final name = data['name'] as String;
+    final interests = (data['interests'] as List<dynamic>?)?.cast<String>();
+    final createdAt = data['createdAt'] as Timestamp;
+    final description = data['description'] as String?;
+    final locationsData = data['locations'] as Map<String, dynamic>?;
+    final locations = locationsData != null ? Locations.fromMap(locationsData) : null;
+
     return CloudPromoter(
-      id: doc.id,
-      username: data['username'] as String,
-      userType: UserType.values.firstWhere((e) => e.name == data['userType'] as String),
-      name: data['name'] as String,
-      interests: (data['interests'] as List<dynamic>?)?.cast<String>(),
-      createdAt: data['createdAt'] as Timestamp,
-      description: data['description'] as String?,
-      location: data['location'] as Location?,
+      id: id,
+      username: username,
+      userType: userType,
+      name: name,
+      interests: interests,
+      createdAt: createdAt,
+      description: description,
+      locations: locations,
     );
   }
 
@@ -186,7 +195,7 @@ class CloudPromoter extends CloudUser {
       'interests': interests,
       'createdAt': createdAt,
       'description': description,
-      'location': location,
+      'locations': locations?.toMap(),
     };
   }
 }

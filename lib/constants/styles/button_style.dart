@@ -8,5 +8,9 @@ class LivitButtonStyle {
 
   static EdgeInsets padding = EdgeInsets.symmetric(horizontal: paddingValue);
 
+  static double iconPaddingValue = 16.sp;
+
+  static EdgeInsets iconPadding = EdgeInsets.symmetric(horizontal: iconPaddingValue);
+
   static double height = 36.sp;
 }

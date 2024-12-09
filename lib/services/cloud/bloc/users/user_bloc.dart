@@ -34,6 +34,17 @@ class UserBloc extends Bloc<UserEvent, UserState> {
     on<SetUserInterests>(_onSetUserInterests);
     on<SetPromoterUserDescription>(_onSetPromoterUserDescription);
     on<SetPromoterUserLocation>(_onSetPromoterUserLocation);
+    on<UpdateState>((event, emit) {
+      if (state is CurrentUser) {
+        // Create a new state object with the same data
+        emit(CurrentUser(
+          user: (state as CurrentUser).user,
+          privateData: (state as CurrentUser).privateData,
+        ));
+      } else {
+        emit(NoCurrentUser());
+      }
+    });
   }
 
   Future<void> _onGetUserWithPrivateData(GetUserWithPrivateData event, Emitter<UserState> emit) async {
@@ -78,24 +89,24 @@ class UserBloc extends Bloc<UserEvent, UserState> {
               username: event.username,
               userType: event.userType,
               name: event.name,
-              interests: [""],
+              interests: null,
               createdAt: Timestamp.now(),
               description: null,
-              location: null,
+              locations: null,
             )
           : CloudCustomer(
               id: userId,
               username: event.username,
               userType: event.userType,
               name: event.name,
-              interests: [""],
+              interests: null,
               createdAt: Timestamp.now(),
             );
       final newPrivateData = UserPrivateData(
         phoneNumber: _authProvider.currentUser.phoneNumber ?? '',
         email: _authProvider.currentUser.email ?? '',
         userType: event.userType,
-        isFirstTime: true,
+        isProfileCompleted: false,
       );
 
       final createdAt = await _firestoreCloudFunctions.createUserAndUsername(
@@ -127,11 +138,20 @@ class UserBloc extends Bloc<UserEvent, UserState> {
         interests: event.interests,
       );
 
-      await _cloudStorage.updateUser(user: updatedUser);
+      if (_currentUser is CloudPromoter) {
+        await _cloudStorage.updateUser(user: updatedUser);
+        _currentUser = updatedUser;
+      } else {
+        final updatedPrivateData = _currentPrivateData!.copyWith(isProfileCompleted: true);
+        await _cloudStorage.updateUserAndPrivateDataInTransaction(
+          user: updatedUser,
+          privateData: updatedPrivateData,
+        );
+        _currentUser = updatedUser;
+        _currentPrivateData = updatedPrivateData;
+      }
 
-      _currentUser = updatedUser;
-
-      emit(CurrentUser(user: updatedUser, privateData: _currentPrivateData!));
+      emit(CurrentUser(user: _currentUser!, privateData: _currentPrivateData!));
     } catch (e) {
       emit(CurrentUser(user: _currentUser!, privateData: _currentPrivateData!, exception: e as Exception));
     }
@@ -162,7 +182,6 @@ class UserBloc extends Bloc<UserEvent, UserState> {
     }
   }
 
-
   Future<void> _onSetPromoterUserLocation(SetPromoterUserLocation event, Emitter<UserState> emit) async {
     if (_currentUser == null) {
       emit(NoCurrentUser(exception: NoCurrentUserException()));
@@ -175,19 +194,19 @@ class UserBloc extends Bloc<UserEvent, UserState> {
 
     emit(CurrentUser(user: _currentUser!, privateData: _currentPrivateData!, isLoading: true));
     try {
-      final location = Location(name: event.name, geopoint: event.geopoint);
+      final location =
+          Location(name: event.name, address: event.address, geopoint: event.geopoint, department: event.department, city: event.city);
+      final currentLocations = (_currentUser as CloudPromoter).locations?.locations ?? [];
       final updatedUser = (_currentUser as CloudPromoter).copyWith(
-        location: location,
+        locations: Locations(locations: [...currentLocations, location], isCompleted: false),
       );
-
       await _cloudStorage.updateUser(user: updatedUser);
       _currentUser = updatedUser;
-
       emit(CurrentUser(user: updatedUser, privateData: _currentPrivateData!));
     } catch (e) {
       emit(CurrentUser(user: _currentUser!, privateData: _currentPrivateData!, exception: e as Exception));
     }
-  } 
+  }
 
   CloudUser? getCurrentUser() {
     return _currentUser;

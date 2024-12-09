@@ -1,9 +1,14 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:livit/cloud_models/location.dart';
 import 'package:livit/constants/enums.dart';
 
-abstract class UserEvent {}
+abstract class UserEvent {
+  const UserEvent();
+}
 
-class GetUserWithPrivateData extends UserEvent {}
+class GetUserWithPrivateData extends UserEvent {
+  const GetUserWithPrivateData();
+}
 
 class SetUserType extends UserEvent {
   final UserType userType;
@@ -31,9 +36,17 @@ class SetPromoterUserDescription extends UserEvent {
   SetPromoterUserDescription({required this.description});
 }
 
-class SetPromoterUserLocation extends UserEvent {
-  final String name;
-  final GeoPoint? geopoint;
+class SetPromoterUserLocationWithoutGeopoint extends UserEvent {
+  final Location location;
 
-  SetPromoterUserLocation({required this.name, required this.geopoint});
+  SetPromoterUserLocationWithoutGeopoint({required this.location});
+}
+
+class UpdateState extends UserEvent {
+  const UpdateState();
+}
+
+class SetPromoterUserLocation extends UserEvent {
+  final Location location;
+  SetPromoterUserLocation({required this.location});
 }

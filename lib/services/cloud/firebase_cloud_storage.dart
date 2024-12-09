@@ -50,6 +50,7 @@ class FirebaseCloudStorage {
     } on FirebaseException {
       throw CouldNotGetUserException();
     } catch (e) {
+      print(e);
       if (e is UserNotFoundException) {
         rethrow;
       }
@@ -94,6 +95,25 @@ class FirebaseCloudStorage {
       return doc.exists;
     } catch (_) {
       throw CouldNotCheckUsernameException();
+    }
+  }
+
+  Future<void> updateUserAndPrivateDataInTransaction({
+    required CloudUser user,
+    required UserPrivateData privateData,
+  }) async {
+    try {
+      await _firestore.runTransaction((transaction) async {
+        // Update user document
+        final userRef = usersCollection.doc(user.id);
+        transaction.update(userRef, user.toMap());
+
+        // Update private data document
+        final privateDataRef = userRef.collection('private').doc('privateData');
+        transaction.update(privateDataRef, privateData.toMap());
+      });
+    } catch (e) {
+      throw CouldNotUpdateUserException();
     }
   }
 

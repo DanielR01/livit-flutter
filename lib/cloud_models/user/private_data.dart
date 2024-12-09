@@ -6,37 +6,36 @@ class UserPrivateData {
   final String phoneNumber;
   final String email;
   final UserType userType;
-  final bool isFirstTime; 
+  final bool isProfileCompleted;
 
   UserPrivateData({
     required this.phoneNumber,
     required this.email,
     required this.userType,
-    required this.isFirstTime,
+    required this.isProfileCompleted,
   });
 
   UserPrivateData copyWith({
     String? phoneNumber,
     String? email,
     UserType? userType,
-    bool? isFirstTime,
+    bool? isProfileCompleted,
   }) {
     return UserPrivateData(
       phoneNumber: phoneNumber ?? this.phoneNumber,
       email: email ?? this.email,
       userType: userType ?? this.userType,
-      isFirstTime: isFirstTime ?? this.isFirstTime,
+      isProfileCompleted: isProfileCompleted ?? this.isProfileCompleted,
     );
   }
 
   factory UserPrivateData.fromFirestore(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>;
-
     return UserPrivateData(
       phoneNumber: data['phoneNumber'],
       email: data['email'],
       userType: UserType.values.byName(data['userType']),
-      isFirstTime: data['isFirstTime'],
+      isProfileCompleted: data['isProfileCompleted'],
     );
   }
 
@@ -45,13 +44,13 @@ class UserPrivateData {
       'phoneNumber': phoneNumber,
       'email': email,
       'userType': userType.name,
-      'isFirstTime': isFirstTime,
+      'isProfileCompleted': isProfileCompleted,
     };
   }
 
   @override
   String toString() {
-    return 'PrivateData(phoneNumber: $phoneNumber, email: $email, userType: $userType, isFirstTime: $isFirstTime)';
+    return 'PrivateData(phoneNumber: $phoneNumber, email: $email, userType: $userType, isProfileCompleted: $isProfileCompleted)';
   }
 }
 
@@ -65,5 +64,5 @@ class PrivatePromoterData extends UserPrivateData {
       required super.userType,
       required this.defaultScanners,
       required this.defaultTickets,
-      required super.isFirstTime});
+      required super.isProfileCompleted});
 }

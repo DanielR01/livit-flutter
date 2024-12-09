@@ -8,6 +8,13 @@ import 'package:livit/constants/styles/container_style.dart';
 import 'package:livit/constants/styles/spaces.dart';
 import 'package:livit/constants/styles/livit_text.dart';
 
+enum LivitTextFieldShadow {
+  strong,
+  normal,
+  weak,
+  none,
+}
+
 class LivitTextField extends StatefulWidget {
   final TextEditingController controller;
   final String? hint;
@@ -29,6 +36,11 @@ class LivitTextField extends StatefulWidget {
   final bool? isMultiline;
   final int? lines;
   final bool disableCheckValidity;
+  final bool isEnabled;
+  final IconData? prefixIcon;
+  final LivitTextFieldShadow? focusedShadow;
+  final LivitTextFieldShadow? unfocusedShadow;
+  final bool? alwaysShowValidity;
 
   const LivitTextField({
     super.key,
@@ -52,6 +64,11 @@ class LivitTextField extends StatefulWidget {
     this.isMultiline,
     this.lines,
     this.disableCheckValidity = false,
+    this.isEnabled = true,
+    this.prefixIcon,
+    this.focusedShadow = LivitTextFieldShadow.strong,
+    this.unfocusedShadow = LivitTextFieldShadow.weak,
+    this.alwaysShowValidity = false,
   });
 
   @override
@@ -99,10 +116,31 @@ class _LivitTextFieldState extends State<LivitTextField> {
               setState(() => isFocused = value);
             },
             child: Container(
-              decoration: isFocused ? LivitBarStyle.strongShadowDecoration : LivitBarStyle.shadowDecoration,
+              decoration: widget.isEnabled
+                  ? (isFocused
+                      ? widget.focusedShadow == LivitTextFieldShadow.strong
+                          ? LivitBarStyle.strongShadowDecoration
+                          : widget.focusedShadow == LivitTextFieldShadow.normal
+                              ? LivitBarStyle.normalShadowDecoration
+                              : widget.focusedShadow == LivitTextFieldShadow.weak
+                                  ? LivitBarStyle.weakShadowDecoration
+                                  : widget.focusedShadow == LivitTextFieldShadow.none
+                                      ? LivitBarStyle.normalDecoration
+                                      : LivitBarStyle.normalShadowDecoration
+                      : widget.unfocusedShadow == LivitTextFieldShadow.strong
+                          ? LivitBarStyle.strongShadowDecoration
+                          : widget.unfocusedShadow == LivitTextFieldShadow.normal
+                              ? LivitBarStyle.normalShadowDecoration
+                              : widget.unfocusedShadow == LivitTextFieldShadow.weak
+                                  ? LivitBarStyle.weakShadowDecoration
+                                  : widget.unfocusedShadow == LivitTextFieldShadow.none
+                                      ? LivitBarStyle.normalDecoration
+                                      : LivitBarStyle.normalShadowDecoration)
+                  : LivitBarStyle.disabledShadowDecoration,
               //height: LivitBarStyle.height,
               constraints: BoxConstraints(minHeight: widget.isMultiline == true ? LivitBarStyle.height * 2 : LivitBarStyle.height),
               child: TextFormField(
+                enabled: widget.isEnabled,
                 textAlignVertical: TextAlignVertical.center,
                 controller: widget.controller,
                 keyboardType: widget.inputType ?? (widget.phoneNumberField ? TextInputType.number : null),
@@ -124,15 +162,17 @@ class _LivitTextFieldState extends State<LivitTextField> {
                   enabledBorder: const OutlineInputBorder(borderSide: BorderSide.none),
                   focusedBorder: const OutlineInputBorder(borderSide: BorderSide.none),
                   suffixIcon: _buildSuffixIcon(),
-                  prefixIcon: widget.phoneNumberField
-                      ? _buildCountryCodePicker()
-                      : widget.isPasswordField
-                          ? _buildPasswordIcon()
-                          : null,
+                  prefixIcon: widget.prefixIcon != null
+                      ? Icon(widget.prefixIcon, color: LivitColors.whiteInactive, size: 16.sp)
+                      : (widget.phoneNumberField
+                          ? _buildCountryCodePicker()
+                          : widget.isPasswordField
+                              ? _buildPasswordIcon()
+                              : null),
                   contentPadding: EdgeInsets.symmetric(horizontal: 16.sp, vertical: 16.sp),
                   isCollapsed: true,
                 ),
-                style: LivitTextStyle.regularWhiteActiveText,
+                style: widget.isEnabled ? LivitTextStyle.regularWhiteActiveText : LivitTextStyle.regularWhiteInactiveText,
                 obscureText: widget.isPasswordField ? _obscureText : (widget.blurInput ?? false),
                 enableSuggestions: !(widget.blurInput ?? true),
                 autocorrect: !(widget.blurInput ?? true),
@@ -187,7 +227,7 @@ class _LivitTextFieldState extends State<LivitTextField> {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          if (widget.controller.text.isNotEmpty && !widget.disableCheckValidity)
+          if (widget.controller.text.isNotEmpty && !widget.disableCheckValidity && widget.isEnabled || widget.alwaysShowValidity == true)
             Padding(
               padding: EdgeInsets.only(right: LivitContainerStyle.horizontalPadding / 2),
               child: widget.icon ??

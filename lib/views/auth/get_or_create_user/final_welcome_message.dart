@@ -102,10 +102,11 @@ class _FinalWelcomeMessageState extends State<FinalWelcomeMessage> with TickerPr
 
   @override
   void dispose() {
+    super.dispose();
     _titleAnimationController.dispose();
     _descriptionAnimationController.dispose();
+    _secondDescriptionAnimationController.dispose();
     _buttonAnimationController.dispose();
-    super.dispose();
   }
 
   @override
@@ -129,8 +130,7 @@ class _FinalWelcomeMessageState extends State<FinalWelcomeMessage> with TickerPr
               LivitSpaces.s,
               FadeTransition(
                 opacity: _descriptionAnimation,
-                child: const LivitText(
-                    'Disfruta de una nueva experiencia en LIVIT. Estamos trabajando para mejorar constantemente.'),
+                child: const LivitText('Disfruta de una nueva experiencia en LIVIT. Estamos trabajando para mejorar constantemente.'),
               ),
               LivitSpaces.s,
               FadeTransition(
