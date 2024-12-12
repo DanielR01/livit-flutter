@@ -133,6 +133,29 @@ class LivitAppleMapView: NSObject, FlutterPlatformView, CLLocationManagerDelegat
                                       message: "Invalid location arguments",
                                       details: nil))
                 }
+            case "hoverLocation":
+                if let args = call.arguments as? [String: Any],
+                   let latitude = args["latitude"] as? Double,
+                   let longitude = args["longitude"] as? Double {
+                    self.hoverLocation(latitude: latitude, longitude: longitude)
+                    result(nil)
+                } else {
+                    result(FlutterError(code: "INVALID_ARGUMENTS",
+                                      message: "Invalid location arguments",
+                                      details: nil))
+                }
+            case "removeAnnotation":
+                self.removeAnnotation()
+                result(nil)
+            case "useUserLocation":
+                if let userLocation = self.mapView.userLocation.location {
+                    let region = MKCoordinateRegion(
+                        center: userLocation.coordinate,
+                        span: MKCoordinateSpan(latitudeDelta: 0.02, longitudeDelta: 0.02)
+                    )
+                    self.mapView.setRegion(region, animated: true)
+                }
+                result(nil)
             default:
                 result(FlutterMethodNotImplemented)
             }
@@ -168,6 +191,27 @@ class LivitAppleMapView: NSObject, FlutterPlatformView, CLLocationManagerDelegat
             let closeSpan = MKCoordinateSpan(latitudeDelta: 0.01, longitudeDelta: 0.01)
             let closeRegion = MKCoordinateRegion(center: coordinate, span: closeSpan)
             self.mapView.setRegion(closeRegion, animated: true)
+        }
+    }
+
+    private func hoverLocation(latitude: Double, longitude: Double) {
+        let coordinate = CLLocationCoordinate2D(latitude: latitude, longitude: longitude)
+
+        if let existingAnnotation = selectedAnnotation {
+            mapView.removeAnnotation(existingAnnotation)
+        }
+
+        // Set a slightly larger region to show context around the pin
+        let span = MKCoordinateSpan(latitudeDelta: 0.02, longitudeDelta: 0.02)
+        let region = MKCoordinateRegion(center: coordinate, span: span)
+        
+        // Animate to the new region
+        mapView.setRegion(region, animated: true)
+    }
+
+    private func removeAnnotation() {
+        if let existingAnnotation = selectedAnnotation {
+            mapView.removeAnnotation(existingAnnotation)
         }
     }
 }

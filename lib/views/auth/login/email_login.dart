@@ -796,7 +796,7 @@ class _ForgotPassword extends State<ForgotPassword> {
               children: [
                 const LivitText(
                   '¿Olvidaste tu contraseña?',
-                  textType: TextType.smallTitle,
+                  textType: LivitTextType.smallTitle,
                 ),
                 LivitSpaces.s,
                 const LivitText(

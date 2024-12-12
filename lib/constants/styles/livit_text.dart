@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:livit/constants/colors.dart';
 
-enum TextType {
+enum LivitTextType {
   small,
   regular,
   smallTitle,
@@ -18,7 +18,7 @@ class LivitText extends StatelessWidget {
   final double? height;
   final double? fontSize;
   final FontWeight? fontWeight;
-  final TextType textType;
+  final LivitTextType textType;
   final String text;
   final TextAlign textAlign;
   final bool isLineThrough;
@@ -31,7 +31,7 @@ class LivitText extends StatelessWidget {
     this.height,
     this.fontSize,
     this.fontWeight,
-    this.textType = TextType.regular,
+    this.textType = LivitTextType.regular,
     this.textAlign = TextAlign.center,
     this.isLineThrough = false,
     this.overflow,
@@ -45,27 +45,27 @@ class LivitText extends StatelessWidget {
     late double? _height;
 
     switch (textType) {
-      case TextType.small:
+      case LivitTextType.small:
         _fontSize = fontSize ?? LivitTextStyle.smallFontSize;
         _fontWeight = fontWeight ?? FontWeight.w500;
         _height = null;
         break;
-      case TextType.regular:
+      case LivitTextType.regular:
         _fontSize = fontSize ?? LivitTextStyle.regularFontSize;
         _fontWeight = fontWeight ?? FontWeight.w500;
         _height = 1.2;
         break;
-      case TextType.smallTitle:
+      case LivitTextType.smallTitle:
         _fontSize = fontSize ?? LivitTextStyle.smallTitleFontSize;
         _fontWeight = fontWeight ?? FontWeight.bold;
         _height = 1.2;
         break;
-      case TextType.normalTitle:
+      case LivitTextType.normalTitle:
         _fontSize = fontSize ?? LivitTextStyle.normalTitleFontSize;
         _fontWeight = fontWeight ?? FontWeight.bold;
         _height = 1.2;
         break;
-      case TextType.bigTitle:
+      case LivitTextType.bigTitle:
         _fontSize = fontSize ?? LivitTextStyle.bigTitleFontSize;
         _fontWeight = fontWeight ?? FontWeight.bold;
         _height = 1.2;

@@ -124,7 +124,7 @@ class _FinalWelcomeMessageState extends State<FinalWelcomeMessage> with TickerPr
                 opacity: _titleAnimation,
                 child: LivitText(
                   '¡Todo listo!',
-                  textType: TextType.bigTitle,
+                  textType: LivitTextType.bigTitle,
                 ),
               ),
               LivitSpaces.s,

@@ -17,6 +17,7 @@ import 'package:livit/services/auth/bloc/auth_event.dart';
 import 'package:livit/services/cloud/bloc/users/user_bloc.dart';
 import 'package:livit/services/cloud/bloc/users/user_event.dart';
 import 'package:livit/services/cloud/bloc/users/user_state.dart';
+import 'package:livit/services/cloud/cloud_storage_exceptions.dart';
 import 'package:livit/services/location/location_search_service.dart';
 import 'package:livit/utilities/bars_containers_fields/bar.dart';
 import 'package:livit/utilities/bars_containers_fields/glass_container.dart';
@@ -26,7 +27,8 @@ import 'package:livit/utilities/buttons/livit_dropdown_button.dart';
 import 'package:livit/utilities/livit_scrollbar.dart';
 
 class AddressPrompt extends StatefulWidget {
-  const AddressPrompt({super.key});
+  final List<Location?>? locations;
+  const AddressPrompt({super.key, this.locations});
 
   @override
   State<AddressPrompt> createState() => _AddressPromptState();
@@ -59,6 +61,20 @@ class _AddressPromptState extends State<AddressPrompt> {
   final GlobalKey textKey = GlobalKey();
   final GlobalKey bottomRowKey = GlobalKey();
 
+  final ScrollController _scrollController = ScrollController();
+
+  void _scrollToBottom() {
+    Future.delayed(const Duration(milliseconds: 100), () {
+      if (_scrollController.hasClients) {
+        _scrollController.animateTo(
+          _scrollController.position.maxScrollExtent,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeOut,
+        );
+      }
+    });
+  }
+
   @override
   void initState() {
     super.initState();
@@ -71,6 +87,17 @@ class _AddressPromptState extends State<AddressPrompt> {
         height = controller.text.length * 10;
       });
     });
+    if (widget.locations != null) {
+      locations = [];
+      currentLocationIndex = -1;
+      for (Location? location in widget.locations!) {
+        locations.add({
+          'index': locations.length,
+          'location': location,
+          'valid': location != null && location.address != '' && location.name != '' && location.department != '' && location.city != '',
+        });
+      }
+    }
     _loadLocationData();
   }
 
@@ -79,6 +106,7 @@ class _AddressPromptState extends State<AddressPrompt> {
     _addressController.removeListener(_addressListener);
     _addressController.dispose();
     _addressNameController.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
 
@@ -144,43 +172,6 @@ class _AddressPromptState extends State<AddressPrompt> {
   bool _validateDirection(String direction) {
     return direction.length >= 5 && RegExp(r'[a-zA-Z]').hasMatch(direction);
   }
-
-  // Future<void> _searchLocation() async {
-  //   try {
-  //     final fullAddress = '${_addressController.text}, $selectedCity, $selectedState';
-  //     final coordinates = await LocationSearchService.searchLocation(fullAddress);
-
-  //     setState(
-  //       () {
-  //         selectedLatitude = coordinates['latitude'];
-  //         selectedLongitude = coordinates['longitude'];
-  //       },
-  //     );
-  //   } catch (e) {
-  //     try {
-  //       final cityCoordinates = await LocationSearchService.searchLocation('$selectedCity, $selectedState');
-  //       setState(() {
-  //         selectedLatitude = cityCoordinates['latitude'];
-  //         selectedLongitude = cityCoordinates['longitude'];
-  //       });
-  //     } catch (_) {}
-  //   } finally {
-  //     if (selectedLatitude != null && selectedLongitude != null) {
-  //       BlocProvider.of<UserBloc>(context).add(
-  //         SetPromoterUserLocation(
-  //           name: _addressNameController.text,
-  //           address: _addressController.text,
-  //           geopoint: GeoPoint(
-  //             selectedLatitude!,
-  //             selectedLongitude!,
-  //           ),
-  //           department: selectedState!,
-  //           city: selectedCity!,
-  //         ),
-  //       );
-  //     }
-  //   }
-  // }
 
   Future<void> _loadLocationData() async {
     final data = await rootBundle.loadString('assets/data/departments_cities.csv');
@@ -248,48 +239,87 @@ class _AddressPromptState extends State<AddressPrompt> {
   }
 
   Widget _locationInput() {
+    String? errorMessage;
+
     return BlocBuilder<UserBloc, UserState>(
       builder: (context, state) {
-        if (state is CurrentUser && state.isLoading) {
-          _isSearching = true;
-        } else {
-          _isSearching = false;
+        if (state is CurrentUser) {
+          if (state.isLoading) {
+            _isSearching = true;
+          } else {
+            _isSearching = false;
+          }
+          if (state.exception is CouldNotUpdateUserException) {
+            errorMessage = 'No se pudo actualizar las ubicaciones, verifica tu conexión e intenta nuevamente mas tarde';
+          } else if (state.exception == null) {
+            errorMessage = null;
+          }
         }
         return Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             Flexible(
               child: LivitScrollbar(
-                child: _locationsScroller(),
+                controller: _scrollController,
+                child: _locationsScroller(scrollController: _scrollController),
               ),
             ),
             Padding(
               padding: LivitContainerStyle.padding(padding: [LivitContainerStyle.verticalPadding / 2, null, null, null]),
-              child: Row(
-                key: bottomRowKey,
-                mainAxisSize: MainAxisSize.max,
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  Button.secondary(
-                    text: locations.isNotEmpty ? 'Añadir otra ubicación' : 'Añadir ubicación',
-                    onPressed: () {
-                      setState(() {
-                        locations.add({
-                          'index': locations.length,
-                          'location': null,
-                          'valid': false,
-                        });
-                      });
-                    },
-                    isActive: true,
-                    rightIcon: CupertinoIcons.plus_circle,
+                  Row(
+                    key: bottomRowKey,
+                    mainAxisSize: MainAxisSize.max,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Button.secondary(
+                        text: locations.isNotEmpty ? 'Añadir otra ubicación' : 'Añadir ubicación',
+                        onPressed: () {
+                          setState(() {
+                            locations.add({
+                              'index': locations.length,
+                              'location': null,
+                              'valid': false,
+                            });
+                          });
+                          WidgetsBinding.instance.addPostFrameCallback((_) {
+                            _scrollController.animateTo(
+                              _scrollController.position.maxScrollExtent,
+                              duration: const Duration(milliseconds: 300),
+                              curve: Curves.easeOut,
+                            );
+                          });
+                        },
+                        isActive: true,
+                        rightIcon: CupertinoIcons.plus_circle,
+                      ),
+                      Button.main(
+                        text: errorMessage != null
+                            ? 'Error'
+                            : _isSearching
+                                ? 'Continuando'
+                                : 'Continuar',
+                        onPressed: () {
+                          BlocProvider.of<UserBloc>(context).add(
+                            SetPromoterUserLocations(
+                              locations: locations.map((location) => location['location'] as Location?).toList(),
+                            ),
+                          );
+                        },
+                        isActive: !locations.any((location) => location['valid'] == false),
+                        isLoading: _isSearching,
+                      ),
+                    ],
                   ),
-                  Button.main(
-                    text: _isSearching ? 'Continuando' : 'Continuar',
-                    onPressed: BlocProvider.of<UserBloc>(context).add(SetPromoterUserLocationWithoutGeopoint(location: locations.first['location'] as Location)),
-                    isActive: !locations.any((location) => location['valid'] == false),
-                    isLoading: _isSearching,
-                  ),
+                  if (errorMessage != null) ...[
+                    LivitSpaces.s,
+                    LivitText(
+                      errorMessage!,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ]
                 ],
               ),
             ),
@@ -299,8 +329,9 @@ class _AddressPromptState extends State<AddressPrompt> {
     );
   }
 
-  Widget _locationsScroller() {
+  Widget _locationsScroller({required ScrollController scrollController}) {
     return ListView.builder(
+      controller: scrollController,
       shrinkWrap: true,
       physics: const AlwaysScrollableScrollPhysics(),
       itemCount: locations.length,
@@ -407,7 +438,6 @@ class _AddressPromptState extends State<AddressPrompt> {
         ),
         LivitSpaces.s,
         Button.whiteText(
-          width: double.infinity,
           text: 'Eliminar ubicación',
           rightIcon: CupertinoIcons.delete_solid,
           isActive: true,
@@ -433,60 +463,64 @@ class _AddressPromptState extends State<AddressPrompt> {
       children: [
         LivitBar(
           noPadding: true,
-          shadowType: !valid ? ShadowType.weak : ShadowType.normal,
+          shadowType: valid ? ShadowType.weak : ShadowType.normal,
           child: Padding(
-            padding: valid
-                ? LivitContainerStyle.padding()
-                : EdgeInsets.only(
-                    top: LivitContainerStyle.verticalPadding,
-                    bottom: LivitContainerStyle.verticalPadding,
-                    left: LivitContainerStyle.horizontalPadding - 9.sp,
-                    right: LivitContainerStyle.horizontalPadding,
-                  ),
+            padding: EdgeInsets.only(
+              top: LivitContainerStyle.verticalPadding,
+              bottom: LivitContainerStyle.verticalPadding,
+              left: LivitContainerStyle.horizontalPadding - 9.sp,
+              right: LivitContainerStyle.horizontalPadding,
+            ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              mainAxisSize: MainAxisSize.min,
               children: [
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    if (!valid) ...[
+                Flexible(
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
                       Icon(
                         Icons.circle,
-                        color: LivitColors.red,
+                        color: valid ? LivitColors.mainBlueActive : LivitColors.red,
                         size: 6.sp,
                       ),
                       SizedBox(width: 6.sp),
+                      Flexible(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            LivitText(
+                              locationData == null || locationData.name == '' ? 'Sin nombre' : locationData.name,
+                              color: LivitColors.whiteActive,
+                              textAlign: TextAlign.left,
+                              textType: LivitTextType.smallTitle,
+                            ),
+                            LivitSpaces.xs,
+                            LivitText(
+                              locationData == null || locationData.address == '' ? 'Sin dirección' : locationData.address,
+                              color: LivitColors.whiteInactive,
+                              textAlign: TextAlign.left,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            LivitText(
+                              '${locationData == null || locationData.city == '' ? 'Sin ciudad' : locationData.city}, ${locationData == null || locationData.department == '' ? 'sin departamento' : locationData.department}',
+                              color: LivitColors.whiteInactive,
+                              textAlign: TextAlign.left,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ],
+                        ),
+                      ),
                     ],
-                    Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        LivitText(
-                          locationData == null || locationData.name == '' ? 'Sin nombre' : locationData.name,
-                          color: LivitColors.whiteActive,
-                          textAlign: TextAlign.left,
-                          textType: TextType.smallTitle,
-                        ),
-                        LivitSpaces.xs,
-                        LivitText(
-                          locationData == null || locationData.address == '' ? 'Sin dirección' : locationData.address,
-                          color: LivitColors.whiteInactive,
-                          textAlign: TextAlign.left,
-                        ),
-                        LivitText(
-                          '${locationData == null || locationData.city == '' ? 'Sin ciudad' : locationData.city}, ${locationData == null || locationData.department == '' ? 'sin departamento' : locationData.department}',
-                          color: LivitColors.whiteInactive,
-                          textAlign: TextAlign.left,
-                        ),
-                      ],
-                    ),
-                  ],
+                  ),
                 ),
                 Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Button.whiteText(
-                      bold: false,
+                    Button.fromType(
+                      type: ButtonType.whiteText,
+                      bold: !valid,
                       text: 'Editar',
                       isActive: true,
                       onPressed: () {
@@ -497,6 +531,7 @@ class _AddressPromptState extends State<AddressPrompt> {
                           },
                         );
                       },
+                      leftIcon: valid ? null : CupertinoIcons.exclamationmark_circle,
                     ),
                     Row(
                       children: [

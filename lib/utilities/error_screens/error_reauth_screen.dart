@@ -39,7 +39,7 @@ class _ErrorReauthScreenState extends State<ErrorReauthScreen> {
                 children: [
                   const LivitText(
                     '¡Ups!',
-                    textType: TextType.bigTitle,
+                    textType: LivitTextType.bigTitle,
                   ),
                   LivitSpaces.xs,
                   const LivitText(

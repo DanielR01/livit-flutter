@@ -172,7 +172,7 @@ class _LivitDropdownButtonState extends State<LivitDropdownButton> {
                                   color: isSelected ? LivitColors.whiteActive.withOpacity(0.1) : null,
                                   child: LivitText(
                                     entry.label,
-                                    textType: TextType.regular,
+                                    textType: LivitTextType.regular,
                                   ),
                                 ),
                               );

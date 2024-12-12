@@ -11,6 +11,11 @@ class NoCurrentUser extends UserState {
   final bool isCreating;
   final bool isInitialized;
   NoCurrentUser({this.exception, this.userType, this.isLoading = false, this.isCreating = false, this.isInitialized = true});
+
+  @override
+  String toString() {
+    return 'Exception: $exception, usertype: $userType, isLoading: $isLoading, isCreating: $isCreating, isInitialized: $isInitialized';
+  }
 }
 
 class CurrentUser extends UserState {

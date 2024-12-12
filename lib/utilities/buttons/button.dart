@@ -530,7 +530,7 @@ class _ButtonState extends State<Button> with SingleTickerProviderStateMixin {
                             Flexible(
                               child: LivitText(
                                 widget.text!,
-                                textType: TextType.regular,
+                                textType: LivitTextType.regular,
                                 color: textColor,
                                 fontWeight: widget.bold ? FontWeight.bold : null,
                                 overflow: TextOverflow.ellipsis,
@@ -542,7 +542,7 @@ class _ButtonState extends State<Button> with SingleTickerProviderStateMixin {
                               children: [
                                 LivitText(
                                   widget.text!,
-                                  textType: TextType.regular,
+                                  textType: LivitTextType.regular,
                                   color: textColor,
                                   fontWeight: widget.bold ? FontWeight.bold : null,
                                 ),
@@ -551,7 +551,7 @@ class _ButtonState extends State<Button> with SingleTickerProviderStateMixin {
                                   builder: (context, child) {
                                     return LivitText(
                                       '.' * _dotsAnimation.value,
-                                      textType: TextType.regular,
+                                      textType: LivitTextType.regular,
                                       color: textColor,
                                       fontWeight: widget.bold ? FontWeight.bold : null,
                                     );

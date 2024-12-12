@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:livit/cloud_models/location.dart';
 import 'package:livit/cloud_models/user/cloud_user.dart';
 import 'package:livit/constants/enums.dart';
 import 'package:livit/constants/routes.dart';
@@ -44,7 +45,7 @@ class _GetOrCreateUserViewState extends State<GetOrCreateUserView> {
       if (promoter.interests == null ||
           promoter.description == null ||
           promoter.locations == null ||
-          promoter.locations?.isCompleted == false) {
+          promoter.locations!.any((location) => location?.geopoint == null) == true) {
         return false;
       }
     }
@@ -69,7 +70,6 @@ class _GetOrCreateUserViewState extends State<GetOrCreateUserView> {
         if (state is NoCurrentUser && state.userType == null && !state.isLoading && state.isInitialized && state.exception == null) {
           return const UserTypeInput();
         }
-
         switch (state) {
           case CurrentUser():
             if (state.privateData.isProfileCompleted) {
@@ -105,15 +105,17 @@ class _GetOrCreateUserViewState extends State<GetOrCreateUserView> {
                 } else if (promoter.description == null) {
                   _isFirstTime = true;
                   return const DescriptionPrompt();
-                } else if (promoter.locations == null || promoter.locations?.isCompleted == false) {
+                } else if (promoter.locations == null ||
+                    promoter.locations!.any((location) => location == null) && promoter.locations!.any((location) => location != null)) {
                   _isFirstTime = true;
-                  return const AddressPrompt();
+                  return AddressPrompt(locations: promoter.locations);
                 } else if (promoter.locations != null &&
-                    promoter.locations?.locations.isNotEmpty == true &&
-                    promoter.locations?.isCompleted == true &&
-                    promoter.locations?.locations.any((location) => location.geopoint == null) == true) {
+                    promoter.locations!.any((location) => location?.geopoint == null) &&
+                    !promoter.locations!.any((location) => location == null)) {
                   _isFirstTime = true;
-                  return MapLocationPrompt(locations: promoter.locations!.locations);
+                  return MapLocationPrompt(
+                    locations: promoter.locations!.whereType<Location>().toList(),
+                  );
                 } else {
                   return const LoadingScreen();
                 }

@@ -1,7 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:livit/cloud_models/cloud_models_exceptions.dart';
-import 'package:livit/cloud_models/location.dart';
 import 'package:livit/cloud_models/user/cloud_user.dart';
 import 'package:livit/cloud_models/user/private_data.dart';
 import 'package:livit/constants/enums.dart';
@@ -33,7 +32,7 @@ class UserBloc extends Bloc<UserEvent, UserState> {
     on<CreateUser>(_onCreateUser);
     on<SetUserInterests>(_onSetUserInterests);
     on<SetPromoterUserDescription>(_onSetPromoterUserDescription);
-    on<SetPromoterUserLocation>(_onSetPromoterUserLocation);
+    on<SetPromoterUserLocations>(_onSetPromoterUserLocations);
     on<UpdateState>((event, emit) {
       if (state is CurrentUser) {
         // Create a new state object with the same data
@@ -90,7 +89,7 @@ class UserBloc extends Bloc<UserEvent, UserState> {
               userType: event.userType,
               name: event.name,
               interests: null,
-              createdAt: Timestamp.now(),
+              createdAt: Timestamp.now().toDate(),
               description: null,
               locations: null,
             )
@@ -100,7 +99,7 @@ class UserBloc extends Bloc<UserEvent, UserState> {
               userType: event.userType,
               name: event.name,
               interests: null,
-              createdAt: Timestamp.now(),
+              createdAt: Timestamp.now().toDate(),
             );
       final newPrivateData = UserPrivateData(
         phoneNumber: _authProvider.currentUser.phoneNumber ?? '',
@@ -113,7 +112,7 @@ class UserBloc extends Bloc<UserEvent, UserState> {
         user: newUser,
         privateData: newPrivateData,
       );
-      _currentUser = newUser.copyWith(createdAt: createdAt);
+      _currentUser = newUser.copyWith(createdAt: createdAt.toDate());
       _currentPrivateData = newPrivateData;
 
       emit(CurrentUser(user: _currentUser!, privateData: _currentPrivateData!));
@@ -182,7 +181,7 @@ class UserBloc extends Bloc<UserEvent, UserState> {
     }
   }
 
-  Future<void> _onSetPromoterUserLocation(SetPromoterUserLocation event, Emitter<UserState> emit) async {
+  Future<void> _onSetPromoterUserLocations(SetPromoterUserLocations event, Emitter<UserState> emit) async {
     if (_currentUser == null) {
       emit(NoCurrentUser(exception: NoCurrentUserException()));
       return;
@@ -194,15 +193,14 @@ class UserBloc extends Bloc<UserEvent, UserState> {
 
     emit(CurrentUser(user: _currentUser!, privateData: _currentPrivateData!, isLoading: true));
     try {
-      final location =
-          Location(name: event.name, address: event.address, geopoint: event.geopoint, department: event.department, city: event.city);
-      final currentLocations = (_currentUser as CloudPromoter).locations?.locations ?? [];
       final updatedUser = (_currentUser as CloudPromoter).copyWith(
-        locations: Locations(locations: [...currentLocations, location], isCompleted: false),
+        locations: event.locations,
       );
       await _cloudStorage.updateUser(user: updatedUser);
       _currentUser = updatedUser;
       emit(CurrentUser(user: updatedUser, privateData: _currentPrivateData!));
+    } on CouldNotUpdateUserException catch (e) {
+      emit(CurrentUser(user: _currentUser!, privateData: _currentPrivateData!, exception: e as Exception));
     } catch (e) {
       emit(CurrentUser(user: _currentUser!, privateData: _currentPrivateData!, exception: e as Exception));
     }

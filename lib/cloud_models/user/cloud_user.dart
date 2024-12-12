@@ -8,7 +8,7 @@ class CloudUser {
   final String username;
   final UserType userType;
   final String name;
-  final Timestamp createdAt;
+  final DateTime createdAt;
   final List<String?>? interests;
 
   CloudUser({
@@ -36,7 +36,7 @@ class CloudUser {
     UserType? userType,
     String? name,
     List<String?>? interests,
-    Timestamp? createdAt,
+    DateTime? createdAt,
   }) {
     return CloudUser(
       id: id ?? this.id,
@@ -78,7 +78,7 @@ class CloudCustomer extends CloudUser {
       userType: UserType.values.firstWhere((e) => e.name == data['userType'] as String),
       name: data['name'] as String,
       interests: (data['interests'] as List<dynamic>?)?.cast<String>(),
-      createdAt: data['createdAt'] as Timestamp,
+      createdAt: (data['createdAt'] as Timestamp).toDate(),
     );
   }
 
@@ -100,7 +100,7 @@ class CloudCustomer extends CloudUser {
     UserType? userType,
     String? name,
     List<String?>? interests,
-    Timestamp? createdAt,
+    DateTime? createdAt,
   }) {
     return CloudCustomer(
       id: id ?? this.id,
@@ -120,7 +120,7 @@ class CloudCustomer extends CloudUser {
 
 class CloudPromoter extends CloudUser {
   final String? description;
-  final Locations? locations;
+  final List<Location?>? locations;
 
   CloudPromoter({
     required super.id,
@@ -140,9 +140,9 @@ class CloudPromoter extends CloudUser {
     UserType? userType,
     String? name,
     List<String?>? interests,
-    Timestamp? createdAt,
+    DateTime? createdAt,
     String? description,
-    Locations? locations,
+    List<Location?>? locations,
   }) {
     return CloudPromoter(
       id: id ?? this.id,
@@ -169,10 +169,9 @@ class CloudPromoter extends CloudUser {
     final userType = UserType.values.firstWhere((e) => e.name == data['userType'] as String);
     final name = data['name'] as String;
     final interests = (data['interests'] as List<dynamic>?)?.cast<String>();
-    final createdAt = data['createdAt'] as Timestamp;
+    final createdAt = (data['createdAt'] as Timestamp).toDate();
     final description = data['description'] as String?;
-    final locationsData = data['locations'] as Map<String, dynamic>?;
-    final locations = locationsData != null ? Locations.fromMap(locationsData) : null;
+    final locations = (data['locations'] as List<dynamic>).map((location) => location == null ? null : Location.fromMap(location)).toList();
 
     return CloudPromoter(
       id: id,
@@ -195,7 +194,7 @@ class CloudPromoter extends CloudUser {
       'interests': interests,
       'createdAt': createdAt,
       'description': description,
-      'locations': locations?.toMap(),
+      'locations': locations?.map((location) => location?.toMap()).toList(),
     };
   }
 }

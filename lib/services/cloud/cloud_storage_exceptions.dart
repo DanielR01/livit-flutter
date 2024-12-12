@@ -15,6 +15,9 @@ class UserNotFoundException implements Exception {
 }
 
 class CouldNotUpdateUserException implements Exception {
+  final String? message;
+  CouldNotUpdateUserException({this.message});
+
   @override
   String toString() {
     return 'No se pudo actualizar el usuario';

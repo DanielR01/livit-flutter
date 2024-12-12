@@ -50,7 +50,6 @@ class FirebaseCloudStorage {
     } on FirebaseException {
       throw CouldNotGetUserException();
     } catch (e) {
-      print(e);
       if (e is UserNotFoundException) {
         rethrow;
       }
@@ -61,8 +60,8 @@ class FirebaseCloudStorage {
   Future<void> updateUser({required CloudUser user}) async {
     try {
       await usersCollection.doc(user.id).update(user.toMap());
-    } catch (_) {
-      throw CouldNotUpdateUserException();
+    } catch (e) {
+      throw CouldNotUpdateUserException(message: e.toString());
     }
   }
 

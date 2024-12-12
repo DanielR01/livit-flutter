@@ -57,7 +57,7 @@ class _DescriptionPromptState extends State<DescriptionPrompt> {
           mainAxisSize: MainAxisSize.max,
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
-            LivitText('$charCount/100 caracteres', textType: TextType.regular, color: LivitColors.whiteInactive),
+            LivitText('$charCount/100 caracteres', textType: LivitTextType.regular, color: LivitColors.whiteInactive),
           ],
         ),
       ],

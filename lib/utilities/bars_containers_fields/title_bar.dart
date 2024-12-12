@@ -29,7 +29,7 @@ class TitleBar extends StatelessWidget {
             ),
             child: LivitText(
               title,
-              textType: TextType.normalTitle,
+              textType: LivitTextType.normalTitle,
             ),
           ),
           isBackEnabled

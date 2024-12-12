@@ -165,7 +165,7 @@ class __WelcomeViewState extends State<_WelcomeView> with TickerProviderStateMix
                 opacity: _titleAnimation,
                 child: LivitText(
                   'Hola ${widget.name}',
-                  textType: TextType.bigTitle,
+                  textType: LivitTextType.bigTitle,
                 ),
               ),
               LivitSpaces.s,

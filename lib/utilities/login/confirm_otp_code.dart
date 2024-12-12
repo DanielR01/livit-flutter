@@ -213,7 +213,7 @@ class _ConfirmOTPCodeViewState extends State<ConfirmOTPCodeView> {
                                               LivitSpaces.s,
                                               LivitText(
                                                 invalidCode!,
-                                                textType: TextType.regular,
+                                                textType: LivitTextType.regular,
                                               ),
                                             ],
                                             LivitSpaces.m,

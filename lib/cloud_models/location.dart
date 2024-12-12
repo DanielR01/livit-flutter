@@ -29,41 +29,29 @@ class Location {
     );
   }
 
+  factory Location.fromDocument(DocumentSnapshot doc) {
+    final data = doc.data() as Map<String, dynamic>;
+    return Location(
+      name: data['name'] as String,
+      address: data['address'] as String,
+      geopoint: data['geopoint'] as GeoPoint?,
+      department: data['department'] as String,
+      city: data['city'] as String,
+    );
+  }
+
+  factory Location.fromMap(Map<String, dynamic> map) {
+    return Location(
+      name: map['name'] as String,
+      address: map['address'] as String,
+      geopoint: map['geopoint'] as GeoPoint?,
+      department: map['department'] as String,
+      city: map['city'] as String,
+    );
+  }
+
   @override
   String toString() {
     return 'Location(name: $name, address: $address, geopoint: $geopoint, department: $department, city: $city)';
-  }
-}
-
-class Locations {
-  final List<Location> locations;
-  final bool isCompleted;
-
-  Locations({required this.locations, required this.isCompleted});
-
-  @override
-  String toString() {
-    return 'Locations(locations: $locations, isCompleted: $isCompleted)';
-  }
-
-  Locations copyWith({List<Location>? locations, bool? isCompleted}) {
-    return Locations(
-      locations: locations ?? this.locations,
-      isCompleted: isCompleted ?? this.isCompleted,
-    );
-  }
-
-  Map<String, dynamic> toMap() {
-    return {
-      'locations': locations.map((location) => location.toMap()).toList(),
-      'isCompleted': isCompleted,
-    };
-  }
-
-  factory Locations.fromMap(Map<String, dynamic> data) {
-    return Locations(
-      locations: (data['locations'] as List<dynamic>).cast<Location>(),
-      isCompleted: data['isCompleted'] as bool,
-    );
   }
 }

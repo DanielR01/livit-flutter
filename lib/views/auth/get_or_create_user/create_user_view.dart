@@ -147,7 +147,7 @@ class _CreateUserViewState extends State<CreateUserView> with TickerProviderStat
                     opacity: _titleAnimation,
                     child: const LivitText(
                       'Bienvenido a\n LIVIT',
-                      textType: TextType.bigTitle,
+                      textType: LivitTextType.bigTitle,
                     ),
                   ),
                 if (_showContainer)
@@ -179,7 +179,7 @@ class _CreateUserViewState extends State<CreateUserView> with TickerProviderStat
                                     LivitSpaces.m,
                                     LivitText(
                                       _nameDescription,
-                                      textType: TextType.small,
+                                      textType: LivitTextType.small,
                                       color: LivitColors.whiteInactive,
                                     ),
                                     LivitSpaces.m,
@@ -194,7 +194,7 @@ class _CreateUserViewState extends State<CreateUserView> with TickerProviderStat
                                     LivitSpaces.m,
                                     const LivitText(
                                       'El nombre de usuario debe tener entre 6 y 15 caracteres y solo puede contener minusculas, números y guiones bajos. Intenta que sea facil de recordar.',
-                                      textType: TextType.small,
+                                      textType: LivitTextType.small,
                                       color: LivitColors.whiteInactive,
                                     ),
                                     LivitSpaces.m,

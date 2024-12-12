@@ -36,17 +36,11 @@ class SetPromoterUserDescription extends UserEvent {
   SetPromoterUserDescription({required this.description});
 }
 
-class SetPromoterUserLocationWithoutGeopoint extends UserEvent {
-  final Location location;
-
-  SetPromoterUserLocationWithoutGeopoint({required this.location});
-}
-
 class UpdateState extends UserEvent {
   const UpdateState();
 }
 
-class SetPromoterUserLocation extends UserEvent {
-  final Location location;
-  SetPromoterUserLocation({required this.location});
+class SetPromoterUserLocations extends UserEvent {
+  final List<Location?> locations;
+  SetPromoterUserLocations({required this.locations});
 }
