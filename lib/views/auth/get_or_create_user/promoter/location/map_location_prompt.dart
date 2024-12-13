@@ -1,20 +1,23 @@
-import 'dart:ui';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:livit/cloud_models/location.dart';
 import 'package:livit/constants/colors.dart';
 import 'package:livit/constants/styles/bar_style.dart';
 import 'package:livit/constants/styles/container_style.dart';
 import 'package:livit/constants/styles/livit_text.dart';
-import 'package:livit/constants/styles/shadows.dart';
 import 'package:livit/constants/styles/spaces.dart';
+import 'package:livit/services/cloud/bloc/users/user_bloc.dart';
+import 'package:livit/services/cloud/bloc/users/user_event.dart';
+import 'package:livit/services/cloud/bloc/users/user_state.dart';
+import 'package:livit/services/cloud/cloud_storage_exceptions.dart';
 import 'package:livit/services/location/location_search_service.dart';
 import 'package:livit/utilities/bars_containers_fields/bar.dart';
 import 'package:livit/utilities/bars_containers_fields/glass_container.dart';
 import 'package:livit/utilities/buttons/button.dart';
+import 'package:livit/utilities/livit_scrollbar.dart';
 import 'package:livit/utilities/map_viewer.dart';
 
 class MapLocationPrompt extends StatefulWidget {
@@ -92,9 +95,7 @@ class _MapLocationPromptState extends State<MapLocationPrompt> {
   int _index = 0;
 
   Future<void> _showLocationsDialog(BuildContext context) async {
-    FocusManager.instance.primaryFocus?.unfocus();
-
-    final previousIndex = _index;
+    bool interacted = false;
 
     await showDialog(
       context: context,
@@ -124,79 +125,91 @@ class _MapLocationPromptState extends State<MapLocationPrompt> {
                     constraints: BoxConstraints(
                       maxHeight: MediaQuery.of(context).size.height * 0.6,
                     ),
-                    child: Padding(
-                      padding: LivitContainerStyle.padding(padding: [0, null, null, null]),
+                    child: LivitScrollbar(
+                      thumbVisibility: true,
                       child: SingleChildScrollView(
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: _locations.asMap().entries.map((entry) {
-                            final index = entry.key;
-                            final location = entry.value;
-                            final isSelected = index == _index;
-                            return Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                InkWell(
-                                  onTap: () {
-                                    _index = index;
-                                    _shouldUpdate = true;
-                                    _shouldReinitialize = true;
-                                    Navigator.of(context).pop();
-                                    _pageController
-                                        .animateToPage(
-                                      index,
-                                      duration: const Duration(milliseconds: 300),
-                                      curve: Curves.easeInOut,
-                                    )
-                                        .then((_) {
-                                      setState(() {
-                                        _coordinates['latitude'] = null;
-                                        _coordinates['longitude'] = null;
+                        child: Padding(
+                          padding: LivitContainerStyle.padding(padding: null),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: _locations.asMap().entries.map((entry) {
+                              final index = entry.key;
+                              final location = entry.value;
+                              final isSelected = index == _index;
+                              return Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  InkWell(
+                                    onTap: () {
+                                      interacted = true;
+                                      if (index == _index) {
+                                        setState(() {
+                                          _shouldUpdate = true;
+                                          _shouldReinitialize = true;
+                                        });
+                                        Navigator.of(context).pop();
+                                      } else {
+                                        setState(() {
+                                          _index = index;
+                                          _shouldReinitialize = true;
+                                          _shouldUpdate = true;
+                                        });
+                                        Navigator.of(context).pop();
+                                        _pageController.animateToPage(
+                                          index,
+                                          duration: const Duration(milliseconds: 300),
+                                          curve: Curves.easeInOut,
+                                        );
+                                      }
+                                      WidgetsBinding.instance.addPostFrameCallback((_) {
+                                        Future.delayed(const Duration(milliseconds: 500), () {
+                                          _getCoordinates(_locations[index]);
+                                        });
                                       });
-                                    });
-                                  },
-                                  child: LivitBar(
-                                    shadowType: isSelected ? ShadowType.strong : ShadowType.none,
-                                    child: Stack(
-                                      alignment: Alignment.center,
-                                      children: [
-                                        Positioned(
-                                          left: 0,
-                                          child: Icon(
-                                            Icons.circle,
-                                            color: _locations[index].geopoint != null ? LivitColors.mainBlueActive : LivitColors.red,
-                                            size: 6.sp,
+                                    },
+                                    child: LivitBar(
+                                      shadowType: isSelected ? ShadowType.strong : ShadowType.none,
+                                      child: Stack(
+                                        alignment: Alignment.center,
+                                        children: [
+                                          Positioned(
+                                            left: 0,
+                                            child: Icon(
+                                              Icons.circle,
+                                              color: _locations[index].geopoint != null ? LivitColors.mainBlueActive : LivitColors.red,
+                                              size: 6.sp,
+                                            ),
                                           ),
-                                        ),
-                                        Padding(
-                                          padding: LivitContainerStyle.padding(padding: [0, null, 0, null]),
-                                          child: Column(
-                                            crossAxisAlignment: CrossAxisAlignment.center,
-                                            children: [
-                                              LivitText(
-                                                location.name,
-                                                textType: LivitTextType.smallTitle,
-                                              ),
-                                              LivitSpaces.xs,
-                                              LivitText(
-                                                location.address,
-                                                color: LivitColors.whiteInactive,
-                                              ),
-                                              LivitText(
-                                                '${location.city}, ${location.department}',
-                                                color: LivitColors.whiteInactive,
-                                              ),
-                                            ],
+                                          Padding(
+                                            padding: LivitContainerStyle.padding(padding: [0, null, 0, null]),
+                                            child: Column(
+                                              crossAxisAlignment: CrossAxisAlignment.center,
+                                              children: [
+                                                LivitText(
+                                                  location.name,
+                                                  textType: LivitTextType.smallTitle,
+                                                ),
+                                                LivitSpaces.xs,
+                                                LivitText(
+                                                  location.address,
+                                                  color: LivitColors.whiteInactive,
+                                                ),
+                                                LivitText(
+                                                  '${location.city}, ${location.department}',
+                                                  color: LivitColors.whiteInactive,
+                                                ),
+                                              ],
+                                            ),
                                           ),
-                                        ),
-                                      ],
+                                        ],
+                                      ),
                                     ),
                                   ),
-                                ),
-                                if (index != _locations.length - 1) LivitSpaces.s,
-                              ],
-                            );
-                          }).toList(),
+                                  if (index != _locations.length - 1) LivitSpaces.s,
+                                ],
+                              );
+                            }).toList(),
+                          ),
                         ),
                       ),
                     ),
@@ -216,237 +229,224 @@ class _MapLocationPromptState extends State<MapLocationPrompt> {
         );
       },
     );
-    if (mounted && previousIndex == _index) {
+    if (mounted && !interacted) {
       setState(() {
         _shouldUpdate = true;
         _shouldReinitialize = true;
       });
-      await _getCoordinates(_locations[_index]);
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        Future.delayed(const Duration(milliseconds: 300), () {
+          _getCoordinates(_locations[_index]);
+        });
+      });
     }
-  }
-
-  Future<bool> _showLocationsDialog2(BuildContext context) async {
-    return _locationDialog<bool>(context: context).then((value) => value ?? false);
-  }
-
-  Future<T?> _locationDialog<T>({required BuildContext context}) {
-    return showDialog<T>(
-      barrierColor: LivitColors.mainBlack.withOpacity(0.1),
-      context: context,
-      builder: (context) {
-        return BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 6, sigmaY: 6),
-          child: Dialog(
-            backgroundColor: LivitColors.mainBlack.withOpacity(0.1),
-            surfaceTintColor: LivitColors.mainBlack.withOpacity(0.1),
-            child: GlassContainer(
-              opacity: 1,
-              child: Button.main(
-                text: 'Cerrar',
-                onPressed: () => Navigator.of(context).pop(true),
-                isActive: true,
-              ),
-            ),
-          ),
-        );
-      },
-    );
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: SafeArea(
-        child: Center(
-          child: Padding(
-            padding: LivitContainerStyle.paddingFromScreen,
-            child: GlassContainer(
-              titleBarText: _locations.length == 1 ? 'Selecciona tu ubicación' : 'Selecciona tus ubicaciones',
-              hasPadding: false,
-              child: Flexible(
-                child: Padding(
-                  padding: LivitContainerStyle.padding(padding: [0, null, null, null]),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      LivitText(
-                        _locations.length == 1
-                            ? 'Selecciona tu ubicación dejando presionado en el mapa. Intenta ser lo más preciso posible, esta ubicación la usaran tus clientes para encontrar tu local.'
-                            : 'Selecciona tus ubicaciones dejando presionado en el mapa. Intenta ser lo más preciso posible, estas ubicaciones las usaran tus clientes para encontrar tus locales.',
-                        textType: LivitTextType.small,
-                      ),
-                      LivitSpaces.m,
-                      SizedBox(
-                        height: LivitBarStyle.height,
-                        child: PageView.builder(
-                          clipBehavior: Clip.none,
-                          itemCount: _locations.length,
-                          controller: _pageController,
-                          //controller: PageController(viewportFraction: 0.85),
-                          onPageChanged: (index) async {
-                            setState(() {
-                              _index = index;
-                              _coordinates['latitude'] = null;
-                              _coordinates['longitude'] = null;
-                            });
-                            await _getCoordinates(_locations[index]);
-                          },
-                          itemBuilder: (context, index) {
-                            return AnimatedPadding(
-                              duration: const Duration(milliseconds: 400),
-                              curve: Curves.fastOutSlowIn,
-                              padding: EdgeInsets.symmetric(
-                                  vertical: _index == index ? 0.0 : LivitContainerStyle.verticalPadding / 2,
-                                  horizontal: LivitContainerStyle.horizontalPadding / 2),
-                              child: LivitBar(
-                                noPadding: true,
-                                child: Padding(
-                                  padding: EdgeInsets.symmetric(horizontal: LivitContainerStyle.horizontalPadding),
-                                  child: Stack(
-                                    alignment: Alignment.center,
-                                    children: [
-                                      Positioned(
-                                        left: 0,
-                                        child: (_coordinates['latitude'] == null && _coordinates['longitude'] == null && _index == index)
-                                            ? SizedBox(
-                                                width: 8.sp,
-                                                height: 8.sp,
-                                                child: CircularProgressIndicator(
-                                                  strokeWidth: 2.sp,
-                                                  color: LivitColors.whiteActive,
+    String? errorMessage;
+    bool _isLoading = false;
+    return BlocBuilder<UserBloc, UserState>(
+      builder: (context, state) {
+        if (state is CurrentUser) {
+          if (state.exception is CouldNotUpdateUserException) {
+            errorMessage = 'No se pudo actualizar las ubicaciones, verifica tu conexión e intenta nuevamente mas tarde';
+          } else if (state.exception == null) {
+            errorMessage = null;
+          }
+          if (state.isLoading) {
+            _isLoading = true;
+          } else {
+            _isLoading = false;
+          }
+        }
+        return Scaffold(
+          body: SafeArea(
+            child: Center(
+              child: Padding(
+                padding: LivitContainerStyle.paddingFromScreen,
+                child: GlassContainer(
+                  titleBarText: _locations.length == 1 ? 'Selecciona tu ubicación' : 'Selecciona tus ubicaciones',
+                  hasPadding: false,
+                  child: Flexible(
+                    child: Padding(
+                        padding: LivitContainerStyle.padding(padding: [0, null, null, null]),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            LivitText(
+                              _locations.length == 1
+                                  ? 'Selecciona tu ubicación dejando presionado en el mapa. Intenta ser lo más preciso posible, esta ubicación la usaran tus clientes para encontrar tu local.'
+                                  : 'Selecciona tus ubicaciones dejando presionado en el mapa. Intenta ser lo más preciso posible, estas ubicaciones las usaran tus clientes para encontrar tus locales.',
+                              textType: LivitTextType.small,
+                            ),
+                            LivitSpaces.m,
+                            SizedBox(
+                              height: LivitBarStyle.height,
+                              child: PageView.builder(
+                                clipBehavior: Clip.none,
+                                itemCount: _locations.length,
+                                controller: _pageController,
+                                //controller: PageController(viewportFraction: 0.85),
+                                onPageChanged: (index) async {
+                                  if (index == _index) return;
+                                  setState(() {
+                                    _index = index;
+                                    _coordinates['latitude'] = null;
+                                    _coordinates['longitude'] = null;
+                                  });
+                                  await _getCoordinates(_locations[index]);
+                                },
+                                itemBuilder: (context, index) {
+                                  return AnimatedPadding(
+                                    duration: const Duration(milliseconds: 400),
+                                    curve: Curves.fastOutSlowIn,
+                                    padding: EdgeInsets.symmetric(
+                                        vertical: _index == index ? 0.0 : LivitContainerStyle.verticalPadding / 2,
+                                        horizontal: LivitContainerStyle.horizontalPadding / 2),
+                                    child: LivitBar(
+                                      noPadding: true,
+                                      child: Padding(
+                                        padding: EdgeInsets.symmetric(horizontal: LivitContainerStyle.horizontalPadding),
+                                        child: Stack(
+                                          alignment: Alignment.center,
+                                          children: [
+                                            Positioned(
+                                              left: 0,
+                                              child: (_coordinates['latitude'] == null &&
+                                                      _coordinates['longitude'] == null &&
+                                                      _index == index)
+                                                  ? SizedBox(
+                                                      width: 8.sp,
+                                                      height: 8.sp,
+                                                      child: CircularProgressIndicator(
+                                                        strokeWidth: 2.sp,
+                                                        color: LivitColors.whiteActive,
+                                                      ),
+                                                    )
+                                                  : Icon(
+                                                      Icons.circle,
+                                                      color:
+                                                          _locations[index].geopoint != null ? LivitColors.mainBlueActive : LivitColors.red,
+                                                      size: 6.sp,
+                                                    ),
+                                            ),
+                                            Column(
+                                              mainAxisAlignment: MainAxisAlignment.center,
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                LivitText(
+                                                  _locations[index].name,
+                                                  textType: LivitTextType.smallTitle,
                                                 ),
-                                              )
-                                            : Icon(
-                                                Icons.circle,
-                                                color: _locations[index].geopoint != null ? LivitColors.mainBlueActive : LivitColors.red,
-                                                size: 6.sp,
-                                              ),
-                                      ),
-                                      Column(
-                                        mainAxisAlignment: MainAxisAlignment.center,
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          LivitText(
-                                            _locations[index].name,
-                                            textType: LivitTextType.smallTitle,
-                                          ),
-                                          LivitText(
-                                            _locations[index].address,
-                                            textType: LivitTextType.small,
-                                            color: LivitColors.whiteInactive,
-                                          ),
-                                        ],
-                                      ),
-                                      if (_locations[index].geopoint != null)
-                                        Positioned(
-                                          right: 0,
-                                          child: GestureDetector(
-                                            onTap: () {
-                                              setState(() {
-                                                _locations[index] = Location(
-                                                  name: _locations[index].name,
-                                                  address: _locations[index].address,
-                                                  geopoint: null,
-                                                  department: _locations[index].department,
-                                                  city: _locations[index].city,
-                                                );
-                                                _shouldRemoveAnnotation = true;
-                                              });
-                                            },
-                                            child: Container(
-                                              color: Colors.transparent,
-                                              child: Padding(
-                                                padding: EdgeInsets.all(
-                                                  LivitContainerStyle.horizontalPadding / 2,
+                                                LivitText(
+                                                  _locations[index].address,
+                                                  textType: LivitTextType.small,
+                                                  color: LivitColors.whiteInactive,
                                                 ),
-                                                child: SizedBox(
-                                                  height: 16.sp,
-                                                  child: Icon(
-                                                    CupertinoIcons.map_pin_slash,
-                                                    color: LivitColors.whiteActive,
-                                                    size: 16.sp,
+                                              ],
+                                            ),
+                                            if (_locations[index].geopoint != null)
+                                              Positioned(
+                                                right: 0,
+                                                child: GestureDetector(
+                                                  onTap: () {
+                                                    setState(() {
+                                                      _locations[index] = Location(
+                                                        name: _locations[index].name,
+                                                        address: _locations[index].address,
+                                                        geopoint: null,
+                                                        department: _locations[index].department,
+                                                        city: _locations[index].city,
+                                                      );
+                                                      _shouldRemoveAnnotation = true;
+                                                    });
+                                                  },
+                                                  child: Container(
+                                                    color: Colors.transparent,
+                                                    child: Padding(
+                                                      padding: EdgeInsets.all(
+                                                        LivitContainerStyle.horizontalPadding / 2,
+                                                      ),
+                                                      child: SizedBox(
+                                                        height: 16.sp,
+                                                        child: Icon(
+                                                          CupertinoIcons.map_pin_slash,
+                                                          color: LivitColors.whiteActive,
+                                                          size: 16.sp,
+                                                        ),
+                                                      ),
+                                                    ),
                                                   ),
                                                 ),
                                               ),
-                                            ),
-                                          ),
+                                          ],
                                         ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            );
-                          },
-                        ),
-                      ),
-                      if (_locations.length > 1) ...[
-                        LivitSpaces.xs,
-                        Button.grayText(
-                          isActive: true,
-                          text: 'Ver todas las ubicaciones',
-                          onPressed: () async {
-                            //_showLocationsDialog(context);
-                            print(await _showLocationsDialog2(context));
-                          },
-                        ),
-                      ],
-                      LivitSpaces.xs,
-                      Flexible(
-                        child: Container(
-                          clipBehavior: Clip.hardEdge,
-                          decoration: LivitContainerStyle.decoration,
-                          child: LivitMapView(
-                            shouldUpdate: _shouldUpdate,
-                            shouldReinitialize: _shouldReinitialize,
-                            shouldRemoveAnnotation: _shouldRemoveAnnotation,
-                            hoverCoordinates: _coordinates,
-                            locationCoordinates: _locations[_index].geopoint,
-                            shouldUseUserLocation: _shouldUseUserLocation,
-                            onUpdate: () {
-                              setState(() {
-                                _shouldUpdate = false;
-                                _shouldReinitialize = false;
-                                _shouldRemoveAnnotation = false;
-                              });
-                            },
-                            onLocationSelected: (location) {
-                              setState(
-                                () {
-                                  _locations[_index] = _locations[_index].copyWith(
-                                    geopoint: GeoPoint(location['latitude'], location['longitude']),
+                                      ),
+                                    ),
                                   );
                                 },
-                              );
-                            },
-                          ),
-                        ),
-                      ),
-                      LivitSpaces.m,
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        mainAxisSize: MainAxisSize.max,
-                        children: [
-                          Button.grayText(
-                            text: 'Completar mas tarde',
-                            isActive: true,
-                            onPressed: () {},
-                            rightIcon: Icons.arrow_forward_ios,
-                          ),
-                          Button.main(
-                            text: 'Continuar',
-                            isActive: _locations.every((location) => location.geopoint != null),
-                            onPressed: () {},
-                          ),
-                        ],
-                      )
-                    ],
+                              ),
+                            ),
+                            if (_locations.length > 1) ...[
+                              LivitSpaces.xs,
+                              Button.grayText(
+                                isActive: true,
+                                text: 'Ver todas las ubicaciones',
+                                onPressed: () async {
+                                  _showLocationsDialog(context);
+                                },
+                              ),
+                            ],
+                            LivitSpaces.xs,
+                            Flexible(
+                              child: Container(
+                                clipBehavior: Clip.hardEdge,
+                                decoration: LivitContainerStyle.decoration,
+                                child: LivitMapView(
+                                  shouldUpdate: _shouldUpdate,
+                                  shouldReinitialize: _shouldReinitialize,
+                                  shouldRemoveAnnotation: _shouldRemoveAnnotation,
+                                  hoverCoordinates: _coordinates,
+                                  locationCoordinates: _locations[_index].geopoint,
+                                  shouldUseUserLocation: _shouldUseUserLocation,
+                                  onUpdate: () {
+                                    setState(() {
+                                      _shouldUpdate = false;
+                                      _shouldReinitialize = false;
+                                      _shouldRemoveAnnotation = false;
+                                    });
+                                  },
+                                  onLocationSelected: (location) {
+                                    setState(
+                                      () {
+                                        _locations[_index] = _locations[_index].copyWith(
+                                          geopoint: GeoPoint(location['latitude'], location['longitude']),
+                                        );
+                                      },
+                                    );
+                                  },
+                                ),
+                              ),
+                            ),
+                            LivitSpaces.m,
+                            Button.main(
+                              text: _isLoading ? 'Continuando' : 'Continuar',
+                              isLoading: _isLoading,
+                              isActive: _locations.every((location) => location.geopoint != null),
+                              onPressed: () {
+                                BlocProvider.of<UserBloc>(context).add(SetPromoterUserLocations(locations: _locations));
+                              },
+                            ),
+                          ],
+                        )),
                   ),
                 ),
               ),
             ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 }

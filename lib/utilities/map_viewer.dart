@@ -38,9 +38,6 @@ class LivitMapViewState extends State<LivitMapView> {
 
   @override
   void didUpdateWidget(LivitMapView oldWidget) {
-    print('didUpdateWidget');
-    print('shouldReinitialize: ${widget.shouldReinitialize}, shouldUpdate: ${widget.shouldUpdate}, shouldRemoveAnnotation: ${widget.shouldRemoveAnnotation}');
-    print('hoverCoordinates: ${widget.hoverCoordinates}');
     super.didUpdateWidget(oldWidget);
     if (widget.shouldReinitialize) {
       setState(() {
@@ -48,7 +45,6 @@ class LivitMapViewState extends State<LivitMapView> {
       });
       WidgetsBinding.instance.addPostFrameCallback((_) {
         widget.onUpdate.call();
-
       });
       if (widget.shouldUpdate) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -94,7 +90,6 @@ class LivitMapViewState extends State<LivitMapView> {
         'latitude': widget.hoverCoordinates['latitude'],
         'longitude': widget.hoverCoordinates['longitude'],
       });
-
     } else if (_channel != null && widget.shouldUseUserLocation) {
       await _channel!.invokeMethod('useUserLocation');
     }

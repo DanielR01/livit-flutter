@@ -40,7 +40,6 @@ class LivitAppleMapView: NSObject, FlutterPlatformView, CLLocationManagerDelegat
         
         _view.addSubview(mapView)
         
-        // Start updating location
         locationManager.startUpdatingLocation()
     }
     

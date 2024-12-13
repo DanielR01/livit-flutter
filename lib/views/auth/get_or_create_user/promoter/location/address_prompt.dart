@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -7,18 +6,13 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:livit/cloud_models/location.dart';
 import 'package:livit/constants/colors.dart';
-import 'package:livit/constants/styles/button_style.dart';
 import 'package:livit/constants/styles/container_style.dart';
 import 'package:livit/constants/styles/livit_text.dart';
-import 'package:livit/constants/styles/shadows.dart';
 import 'package:livit/constants/styles/spaces.dart';
-import 'package:livit/services/auth/bloc/auth_bloc.dart';
-import 'package:livit/services/auth/bloc/auth_event.dart';
 import 'package:livit/services/cloud/bloc/users/user_bloc.dart';
 import 'package:livit/services/cloud/bloc/users/user_event.dart';
 import 'package:livit/services/cloud/bloc/users/user_state.dart';
 import 'package:livit/services/cloud/cloud_storage_exceptions.dart';
-import 'package:livit/services/location/location_search_service.dart';
 import 'package:livit/utilities/bars_containers_fields/bar.dart';
 import 'package:livit/utilities/bars_containers_fields/glass_container.dart';
 import 'package:livit/utilities/bars_containers_fields/livit_text_field.dart';
@@ -62,18 +56,6 @@ class _AddressPromptState extends State<AddressPrompt> {
   final GlobalKey bottomRowKey = GlobalKey();
 
   final ScrollController _scrollController = ScrollController();
-
-  void _scrollToBottom() {
-    Future.delayed(const Duration(milliseconds: 100), () {
-      if (_scrollController.hasClients) {
-        _scrollController.animateTo(
-          _scrollController.position.maxScrollExtent,
-          duration: const Duration(milliseconds: 300),
-          curve: Curves.easeOut,
-        );
-      }
-    });
-  }
 
   @override
   void initState() {
@@ -260,6 +242,7 @@ class _AddressPromptState extends State<AddressPrompt> {
           children: [
             Flexible(
               child: LivitScrollbar(
+                thumbVisibility: true,
                 controller: _scrollController,
                 child: _locationsScroller(scrollController: _scrollController),
               ),
