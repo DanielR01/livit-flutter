@@ -4,15 +4,15 @@ import 'package:livit/cloud_models/cloud_models_exceptions.dart';
 import 'package:livit/cloud_models/user/cloud_user.dart';
 import 'package:livit/cloud_models/user/private_data.dart';
 import 'package:livit/constants/enums.dart';
-import 'package:livit/services/cloud/cloud_functions/firestore_cloud_functions.dart';
-import 'package:livit/services/cloud/firebase_cloud_storage.dart';
+import 'package:livit/services/firestore_storage/cloud_functions/firestore_cloud_functions.dart';
+import 'package:livit/services/firestore_storage/bloc/firestore_storage/firestore_storage.dart';
 import 'package:livit/services/auth/auth_provider.dart';
-import 'package:livit/services/cloud/bloc/users/user_event.dart';
-import 'package:livit/services/cloud/bloc/users/user_state.dart';
-import 'package:livit/services/cloud/cloud_storage_exceptions.dart';
+import 'package:livit/services/firestore_storage/bloc/users/user_event.dart';
+import 'package:livit/services/firestore_storage/bloc/users/user_state.dart';
+import 'package:livit/services/firestore_storage/bloc/firestore_storage/firestore_storage_exceptions.dart';
 
 class UserBloc extends Bloc<UserEvent, UserState> {
-  final FirebaseCloudStorage _cloudStorage;
+  final FirestoreStorage _cloudStorage;
   final FirestoreCloudFunctions _firestoreCloudFunctions;
   final AuthProvider _authProvider;
 
@@ -20,7 +20,7 @@ class UserBloc extends Bloc<UserEvent, UserState> {
   UserPrivateData? _currentPrivateData;
 
   UserBloc({
-    required FirebaseCloudStorage cloudStorage,
+    required FirestoreStorage cloudStorage,
     required FirestoreCloudFunctions firestoreCloudFunctions,
     required AuthProvider authProvider,
   })  : _cloudStorage = cloudStorage,
@@ -32,7 +32,7 @@ class UserBloc extends Bloc<UserEvent, UserState> {
     on<CreateUser>(_onCreateUser);
     on<SetUserInterests>(_onSetUserInterests);
     on<SetPromoterUserDescription>(_onSetPromoterUserDescription);
-    on<SetPromoterUserLocations>(_onSetPromoterUserLocations);
+    // on<SetPromoterUserLocations>(_onSetPromoterUserLocations);
     on<UpdateState>((event, emit) {
       if (state is CurrentUser) {
         // Create a new state object with the same data
@@ -91,7 +91,6 @@ class UserBloc extends Bloc<UserEvent, UserState> {
               interests: null,
               createdAt: Timestamp.now().toDate(),
               description: null,
-              locations: null,
             )
           : CloudCustomer(
               id: userId,
@@ -181,30 +180,30 @@ class UserBloc extends Bloc<UserEvent, UserState> {
     }
   }
 
-  Future<void> _onSetPromoterUserLocations(SetPromoterUserLocations event, Emitter<UserState> emit) async {
-    if (_currentUser == null) {
-      emit(NoCurrentUser(exception: NoCurrentUserException()));
-      return;
-    }
-    if (_currentUser is! CloudPromoter) {
-      emit(NoCurrentUser(exception: InvalidUserTypeException()));
-      return;
-    }
+  // Future<void> _onSetPromoterUserLocations(SetPromoterUserLocations event, Emitter<UserState> emit) async {
+  //   if (_currentUser == null) {
+  //     emit(NoCurrentUser(exception: NoCurrentUserException()));
+  //     return;
+  //   }
+  //   if (_currentUser is! CloudPromoter) {
+  //     emit(NoCurrentUser(exception: InvalidUserTypeException()));
+  //     return;
+  //   }
 
-    emit(CurrentUser(user: _currentUser!, privateData: _currentPrivateData!, isLoading: true));
-    try {
-      final updatedUser = (_currentUser as CloudPromoter).copyWith(
-        locations: event.locations,
-      );
-      await _cloudStorage.updateUser(user: updatedUser);
-      _currentUser = updatedUser;
-      emit(CurrentUser(user: updatedUser, privateData: _currentPrivateData!));
-    } on CouldNotUpdateUserException catch (e) {
-      emit(CurrentUser(user: _currentUser!, privateData: _currentPrivateData!, exception: e as Exception));
-    } catch (e) {
-      emit(CurrentUser(user: _currentUser!, privateData: _currentPrivateData!, exception: e as Exception));
-    }
-  }
+  //   emit(CurrentUser(user: _currentUser!, privateData: _currentPrivateData!, isLoading: true));
+  //   try {
+  //     final updatedUser = (_currentUser as CloudPromoter).copyWith(
+  //       locations: event.locations,
+  //     );
+  //     await _cloudStorage.updateUser(user: updatedUser);
+  //     _currentUser = updatedUser;
+  //     emit(CurrentUser(user: updatedUser, privateData: _currentPrivateData!));
+  //   } on CouldNotUpdateUserException catch (e) {
+  //     emit(CurrentUser(user: _currentUser!, privateData: _currentPrivateData!, exception: e as Exception));
+  //   } catch (e) {
+  //     emit(CurrentUser(user: _currentUser!, privateData: _currentPrivateData!, exception: e as Exception));
+  //   }
+  // }
 
   CloudUser? getCurrentUser() {
     return _currentUser;

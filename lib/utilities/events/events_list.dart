@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:livit/constants/styles/spaces.dart';
-import 'package:livit/services/cloud/livit_event.dart';
+import 'package:livit/services/firestore_storage/livit_event.dart';
 import 'package:livit/utilities/dialogs/delete_event_dialog.dart';
 import 'package:livit/utilities/events/event_preview.dart';
 

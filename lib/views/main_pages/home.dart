@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:livit/services/cloud/bloc/events/events_bloc.dart';
-import 'package:livit/services/cloud/bloc/events/events_event.dart';
-import 'package:livit/services/cloud/bloc/events/events_state.dart';
-import 'package:livit/services/cloud/firebase_cloud_storage.dart';
-import 'package:livit/services/cloud/livit_event.dart';
+import 'package:livit/services/firestore_storage/bloc/events/events_bloc.dart';
+import 'package:livit/services/firestore_storage/bloc/events/events_event.dart';
+import 'package:livit/services/firestore_storage/bloc/events/events_state.dart';
+import 'package:livit/services/firestore_storage/bloc/firestore_storage/firestore_storage.dart';
+import 'package:livit/services/firestore_storage/livit_event.dart';
 
 class HomePage extends StatefulWidget {
   final String creatorId;
@@ -25,7 +25,7 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
     _eventsBloc = EventsBloc(
-      storage: FirebaseCloudStorage(),
+      storage: FirestoreStorage(),
       creatorId: widget.creatorId,
     )..add(FetchInitialEvents());
 

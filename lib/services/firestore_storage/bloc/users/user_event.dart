@@ -40,7 +40,7 @@ class UpdateState extends UserEvent {
   const UpdateState();
 }
 
-class SetPromoterUserLocations extends UserEvent {
-  final List<Location?> locations;
-  SetPromoterUserLocations({required this.locations});
-}
+// class SetPromoterUserLocations extends UserEvent {
+//   final List<Location?> locations;
+//   SetPromoterUserLocations({required this.locations});
+// }

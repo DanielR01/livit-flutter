@@ -4,10 +4,10 @@ import 'package:livit/cloud_models/location.dart';
 import 'package:livit/cloud_models/user/cloud_user.dart';
 import 'package:livit/constants/enums.dart';
 import 'package:livit/constants/routes.dart';
-import 'package:livit/services/cloud/cloud_storage_exceptions.dart';
-import 'package:livit/services/cloud/bloc/users/user_bloc.dart';
-import 'package:livit/services/cloud/bloc/users/user_event.dart';
-import 'package:livit/services/cloud/bloc/users/user_state.dart';
+import 'package:livit/services/firestore_storage/bloc/firestore_storage/firestore_storage_exceptions.dart';
+import 'package:livit/services/firestore_storage/bloc/users/user_bloc.dart';
+import 'package:livit/services/firestore_storage/bloc/users/user_event.dart';
+import 'package:livit/services/firestore_storage/bloc/users/user_state.dart';
 import 'package:livit/utilities/error_screens/error_reauth_screen.dart';
 import 'package:livit/utilities/loading_screen.dart';
 import 'package:livit/views/auth/get_or_create_user/create_user_view.dart';
@@ -15,6 +15,7 @@ import 'package:livit/views/auth/get_or_create_user/final_welcome_message.dart';
 import 'package:livit/views/auth/get_or_create_user/promoter/description_prompt.dart';
 import 'package:livit/views/auth/get_or_create_user/promoter/location/address_prompt.dart';
 import 'package:livit/views/auth/get_or_create_user/promoter/location/map_location_prompt.dart';
+import 'package:livit/views/auth/get_or_create_user/promoter/location/media_prompt.dart';
 import 'package:livit/views/auth/get_or_create_user/user_type_input.dart';
 import 'package:livit/views/auth/get_or_create_user/welcome_and_data_view.dart';
 
@@ -28,6 +29,7 @@ class GetOrCreateUserView extends StatefulWidget {
 
 class _GetOrCreateUserViewState extends State<GetOrCreateUserView> {
   bool _isFirstTime = false;
+  Locatio
 
   @override
   void initState() {
@@ -45,7 +47,8 @@ class _GetOrCreateUserViewState extends State<GetOrCreateUserView> {
       if (promoter.interests == null ||
           promoter.description == null ||
           promoter.locations == null ||
-          promoter.locations!.any((location) => location?.geopoint == null) == true) {
+          promoter.locations!.any((location) => location?.geopoint == null) == true ||
+          promoter.locations!.any((location) => location?.description == null) == true) {
         return false;
       }
     }
@@ -106,7 +109,8 @@ class _GetOrCreateUserViewState extends State<GetOrCreateUserView> {
                   _isFirstTime = true;
                   return const DescriptionPrompt();
                 } else if (promoter.locations == null ||
-                    promoter.locations!.any((location) => location == null) && promoter.locations!.any((location) => location != null)) {
+                    promoter.locations!.any((location) => location == null) && promoter.locations!.any((location) => location != null) ||
+                    promoter.locations!.any((location) => location?.description == null)) {
                   _isFirstTime = true;
                   return AddressPrompt(locations: promoter.locations);
                 } else if (promoter.locations != null &&
@@ -116,6 +120,10 @@ class _GetOrCreateUserViewState extends State<GetOrCreateUserView> {
                   return MapLocationPrompt(
                     locations: promoter.locations!.whereType<Location>().toList(),
                   );
+                } else if (promoter.locations != null &&
+                    promoter.locations!.any((location) => location?.media == null)) {
+                  _isFirstTime = true;
+                  return MediaPrompt();
                 } else {
                   return const LoadingScreen();
                 }

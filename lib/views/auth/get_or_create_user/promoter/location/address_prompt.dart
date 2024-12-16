@@ -9,10 +9,10 @@ import 'package:livit/constants/colors.dart';
 import 'package:livit/constants/styles/container_style.dart';
 import 'package:livit/constants/styles/livit_text.dart';
 import 'package:livit/constants/styles/spaces.dart';
-import 'package:livit/services/cloud/bloc/users/user_bloc.dart';
-import 'package:livit/services/cloud/bloc/users/user_event.dart';
-import 'package:livit/services/cloud/bloc/users/user_state.dart';
-import 'package:livit/services/cloud/cloud_storage_exceptions.dart';
+import 'package:livit/services/firestore_storage/bloc/users/user_bloc.dart';
+import 'package:livit/services/firestore_storage/bloc/users/user_event.dart';
+import 'package:livit/services/firestore_storage/bloc/users/user_state.dart';
+import 'package:livit/services/firestore_storage/bloc/firestore_storage/firestore_storage_exceptions.dart';
 import 'package:livit/utilities/bars_containers_fields/bar.dart';
 import 'package:livit/utilities/bars_containers_fields/glass_container.dart';
 import 'package:livit/utilities/bars_containers_fields/livit_text_field.dart';
@@ -30,6 +30,7 @@ class AddressPrompt extends StatefulWidget {
 
 class _AddressPromptState extends State<AddressPrompt> {
   late final TextEditingController _addressController;
+  late final TextEditingController _descriptionController;
   late final TextEditingController _addressNameController;
 
   List<Map<String, dynamic>> locations = [
@@ -64,6 +65,8 @@ class _AddressPromptState extends State<AddressPrompt> {
     _addressController.addListener(_addressListener);
     _addressNameController = TextEditingController();
     _addressNameController.addListener(_addressNameListener);
+    _descriptionController = TextEditingController();
+    _descriptionController.addListener(_descriptionListener);
     controller.addListener(() {
       setState(() {
         height = controller.text.length * 10;
@@ -104,13 +107,20 @@ class _AddressPromptState extends State<AddressPrompt> {
     }
   }
 
+  void _descriptionListener() {
+    if ((locations[currentLocationIndex]['location']?.description ?? '') != _descriptionController.text) {
+      _updateLocations();
+    }
+  }
+
   void _updateLocations() {
     Location updatedLocation = (locations[currentLocationIndex]['location'] ??
             Location(
-              address: _addressController.text,
-              name: _addressNameController.text,
-              department: selectedState ?? '',
-              city: selectedCity ?? '',
+              address: '',
+              name: '',
+              description: '',
+              department: '',
+              city: '',
               geopoint: null,
             ))
         .copyWith(
@@ -118,10 +128,12 @@ class _AddressPromptState extends State<AddressPrompt> {
       address: _addressController.text,
       department: selectedState ?? '',
       city: selectedCity ?? '',
+      description: _descriptionController.text,
     );
     late final bool valid;
     if (RegExp(r'^[a-zA-Z0-9\s]{1,50}$').hasMatch(updatedLocation.name) &&
         _validateDirection(updatedLocation.address) &&
+        RegExp(r'^.{0,50}$').hasMatch(updatedLocation.description ?? '') &&
         updatedLocation.department != '' &&
         updatedLocation.city != '') {
       valid = true;
@@ -147,6 +159,7 @@ class _AddressPromptState extends State<AddressPrompt> {
     final Location? location = locations[currentLocationIndex]['location'];
     _addressController.text = location?.address ?? '';
     _addressNameController.text = location?.name ?? '';
+    _descriptionController.text = location?.description ?? '';
     selectedState = location?.department;
     selectedCity = location?.city;
   }
@@ -285,9 +298,20 @@ class _AddressPromptState extends State<AddressPrompt> {
                                 ? 'Continuando'
                                 : 'Continuar',
                         onPressed: () {
+                          final updatedLocations = locations.map((locationMap) {
+                            final location = locationMap['location'] as Location?;
+                            if (location != null && location.description == null) {
+                              return {
+                                ...locationMap,
+                                'location': location.copyWith(description: '')
+                              };
+                            }
+                            return locationMap;
+                          }).toList();
+
                           BlocProvider.of<UserBloc>(context).add(
                             SetPromoterUserLocations(
-                              locations: locations.map((location) => location['location'] as Location?).toList(),
+                              locations: updatedLocations.map((l) => l['location'] as Location?).toList(),
                             ),
                           );
                         },
@@ -347,6 +371,24 @@ class _AddressPromptState extends State<AddressPrompt> {
     );
   }
 
+  Widget _buildBottomCaptionCharCount() {
+    int charCount = _descriptionController.text.length;
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        LivitSpaces.s,
+        Row(
+          mainAxisSize: MainAxisSize.max,
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            LivitText('$charCount/50 caracteres', textType: LivitTextType.regular, color: LivitColors.whiteInactive),
+          ],
+        ),
+      ],
+    );
+  }
+
   Widget _locationInputActiveField(Map<String, dynamic> location) {
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -364,6 +406,17 @@ class _AddressPromptState extends State<AddressPrompt> {
           unfocusedShadow: RegExp(r'^[a-zA-Z0-9\s]{1,50}$').hasMatch(_addressNameController.text)
               ? LivitTextFieldShadow.weak
               : LivitTextFieldShadow.normal,
+        ),
+        LivitSpaces.m,
+        LivitTextField(
+          controller: _descriptionController,
+          hint: 'Descripción de la ubicación',
+          isMultiline: true,
+          bottomCaptionStyle: LivitTextStyle.regularWhiteInactiveText,
+          externalIsValid: RegExp(r'^.{0,50}$').hasMatch(_descriptionController.text),
+          unfocusedShadow:
+              RegExp(r'^.{0,50}$').hasMatch(_descriptionController.text) ? LivitTextFieldShadow.weak : LivitTextFieldShadow.normal,
+          bottomCaptionWidget: _buildBottomCaptionCharCount(),
         ),
         LivitSpaces.m,
         LivitTextField(

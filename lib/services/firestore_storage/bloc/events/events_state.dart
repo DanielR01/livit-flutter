@@ -1,5 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:livit/services/cloud/livit_event.dart';
+import 'package:livit/services/firestore_storage/livit_event.dart';
 
 abstract class EventsState {}
 

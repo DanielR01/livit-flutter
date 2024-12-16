@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:livit/services/cloud/bloc/users/user_bloc.dart';
+import 'package:livit/services/firestore_storage/bloc/users/user_bloc.dart';
 import 'package:livit/utilities/bars_containers_fields/navigation_bar.dart';
 import 'package:livit/views/main_pages/explore.dart';
 import 'package:livit/views/main_pages/home.dart';

@@ -1,6 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:livit/cloud_models/cloud_models_exceptions.dart';
-import 'package:livit/cloud_models/location.dart';
 import 'package:livit/constants/enums.dart';
 
 class CloudUser {
@@ -120,7 +119,6 @@ class CloudCustomer extends CloudUser {
 
 class CloudPromoter extends CloudUser {
   final String? description;
-  final List<Location?>? locations;
 
   CloudPromoter({
     required super.id,
@@ -130,7 +128,6 @@ class CloudPromoter extends CloudUser {
     required super.createdAt,
     required super.interests,
     required this.description,
-    required this.locations,
   });
 
   @override
@@ -142,7 +139,6 @@ class CloudPromoter extends CloudUser {
     List<String?>? interests,
     DateTime? createdAt,
     String? description,
-    List<Location?>? locations,
   }) {
     return CloudPromoter(
       id: id ?? this.id,
@@ -152,13 +148,13 @@ class CloudPromoter extends CloudUser {
       interests: interests ?? this.interests,
       createdAt: createdAt ?? this.createdAt,
       description: description ?? this.description,
-      locations: locations ?? this.locations,
+    
     );
   }
 
   @override
   String toString() {
-    return 'CloudPromoter(id: $id, username: $username, userType: $userType, name: $name, interests: $interests, createdAt: $createdAt, description: $description, locations: $locations)';
+    return 'CloudPromoter(id: $id, username: $username, userType: $userType, name: $name, interests: $interests, createdAt: $createdAt, description: $description)';
   }
 
   factory CloudPromoter.fromDocument(DocumentSnapshot doc) {
@@ -171,7 +167,7 @@ class CloudPromoter extends CloudUser {
     final interests = (data['interests'] as List<dynamic>?)?.cast<String>();
     final createdAt = (data['createdAt'] as Timestamp).toDate();
     final description = data['description'] as String?;
-    final locations = (data['locations'] as List<dynamic>).map((location) => location == null ? null : Location.fromMap(location)).toList();
+    
 
     return CloudPromoter(
       id: id,
@@ -181,7 +177,7 @@ class CloudPromoter extends CloudUser {
       interests: interests,
       createdAt: createdAt,
       description: description,
-      locations: locations,
+      
     );
   }
 
@@ -194,7 +190,6 @@ class CloudPromoter extends CloudUser {
       'interests': interests,
       'createdAt': createdAt,
       'description': description,
-      'locations': locations?.map((location) => location?.toMap()).toList(),
     };
   }
 }
