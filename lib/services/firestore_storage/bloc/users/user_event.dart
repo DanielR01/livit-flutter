@@ -1,5 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:livit/cloud_models/location.dart';
+import 'package:livit/cloud_models/location/location.dart';
 import 'package:livit/constants/enums.dart';
 
 abstract class UserEvent {

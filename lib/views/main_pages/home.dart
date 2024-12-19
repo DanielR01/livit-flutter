@@ -3,7 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:livit/services/firestore_storage/bloc/events/events_bloc.dart';
 import 'package:livit/services/firestore_storage/bloc/events/events_event.dart';
 import 'package:livit/services/firestore_storage/bloc/events/events_state.dart';
-import 'package:livit/services/firestore_storage/bloc/firestore_storage/firestore_storage.dart';
+import 'package:livit/services/firestore_storage/firestore_storage/firestore_storage.dart';
 import 'package:livit/services/firestore_storage/livit_event.dart';
 
 class HomePage extends StatefulWidget {

@@ -127,10 +127,7 @@ class _LivitDropdownButtonState extends State<LivitDropdownButton> {
             return Dialog(
               backgroundColor: Colors.transparent,
               child: Container(
-                decoration: BoxDecoration(
-                  color: LivitColors.mainBlack,
-                  borderRadius: BorderRadius.circular(12),
-                ),
+                decoration: LivitContainerStyle.decoration,
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
@@ -140,7 +137,7 @@ class _LivitDropdownButtonState extends State<LivitDropdownButton> {
                       hint: widget.defaultText,
                       onChanged: (value) => _filterEntries(_searchController.text, dialogSetState),
                     ),
-                    LivitSpaces.s,
+                    LivitSpaces.xs,
                     NotificationListener<ScrollNotification>(
                       onNotification: (notification) {
                         if (notification is ScrollUpdateNotification) {
@@ -182,14 +179,12 @@ class _LivitDropdownButtonState extends State<LivitDropdownButton> {
                       ),
                     ),
                     LivitSpaces.s,
-                    Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Button.main(
-                        text: 'Cancelar',
-                        onPressed: () => Navigator.of(context).pop(),
-                        isActive: true,
-                      ),
+                    Button.main(
+                      text: 'Cancelar',
+                      onPressed: () => Navigator.of(context).pop(),
+                      isActive: true,
                     ),
+                    LivitSpaces.m,
                   ],
                 ),
               ),

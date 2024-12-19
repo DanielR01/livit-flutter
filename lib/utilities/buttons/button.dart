@@ -19,6 +19,7 @@ enum ButtonType {
 }
 
 class Button extends StatefulWidget {
+  final bool isIconBig;
   final String? text;
   final VoidCallback onPressed;
   final bool isActive;
@@ -35,9 +36,10 @@ class Button extends StatefulWidget {
   final Color? inactiveBackgroundColor;
   final Color? inactiveTextColor;
   final Color? inactiveShadowColor;
-  final IconData? leftIcon; // New property for the left icon
-  final IconData? rightIcon; // New property for the right icon
+  final IconData? leftIcon;
+  final IconData? rightIcon;
   final List<BoxShadow>? boxShadow;
+  final bool deactivateSplash;
 
   const Button({
     super.key,
@@ -57,9 +59,11 @@ class Button extends StatefulWidget {
     this.inactiveTextColor,
     this.inactiveShadowColor,
     this.forceOnPressed,
-    this.leftIcon, // Add left icon to the constructor
-    this.rightIcon, // Add right icon to the constructor
+    this.leftIcon,
+    this.rightIcon,
     this.boxShadow,
+    this.deactivateSplash = false,
+    this.isIconBig = false,
   });
 
   factory Button.fromType({
@@ -70,9 +74,11 @@ class Button extends StatefulWidget {
     bool? bold,
     bool? blueStyle,
     bool? forceOnPressed,
-    IconData? leftIcon, // Add left icon parameter
-    IconData? rightIcon, // Add right icon parameter
+    IconData? leftIcon,
+    IconData? rightIcon,
     List<BoxShadow>? boxShadow,
+    bool deactivateSplash = false,
+    bool isIconBig = false,
   }) {
     switch (type) {
       case ButtonType.main:
@@ -82,9 +88,11 @@ class Button extends StatefulWidget {
           isActive: isActive,
           blueStyle: blueStyle ?? false,
           forceOnPressed: forceOnPressed,
-          leftIcon: leftIcon, // Pass left icon
-          rightIcon: rightIcon, // Pass right icon
+          leftIcon: leftIcon,
+          rightIcon: rightIcon,
           boxShadow: boxShadow,
+          deactivateSplash: deactivateSplash,
+          isIconBig: isIconBig,
         );
 
       case ButtonType.secondary:
@@ -94,18 +102,22 @@ class Button extends StatefulWidget {
           isActive: isActive,
           blueStyle: blueStyle ?? false,
           forceOnPressed: forceOnPressed,
-          leftIcon: leftIcon, // Pass left icon
-          rightIcon: rightIcon, // Pass right icon
+          leftIcon: leftIcon,
+          rightIcon: rightIcon,
           boxShadow: boxShadow,
+          deactivateSplash: deactivateSplash,
+          isIconBig: isIconBig,
         );
       case ButtonType.secondaryIcon:
         return Button.secondaryIcon(
           onPressed: onPressed,
           isActive: isActive,
           forceOnPressed: forceOnPressed,
-          leftIcon: leftIcon, // Pass left icon
-          rightIcon: rightIcon, // Pass right icon
+          leftIcon: leftIcon,
+          rightIcon: rightIcon,
           boxShadow: boxShadow,
+          deactivateSplash: deactivateSplash,
+          isIconBig: isIconBig,
         );
       case ButtonType.whiteText:
         return Button.whiteText(
@@ -114,9 +126,11 @@ class Button extends StatefulWidget {
           isActive: isActive,
           bold: bold ?? true,
           forceOnPressed: forceOnPressed,
-          leftIcon: leftIcon, // Pass left icon
-          rightIcon: rightIcon, // Pass right icon
+          leftIcon: leftIcon,
+          rightIcon: rightIcon,
           boxShadow: boxShadow,
+          deactivateSplash: deactivateSplash,
+          isIconBig: isIconBig,
         );
       case ButtonType.redText:
         return Button.redText(
@@ -125,9 +139,11 @@ class Button extends StatefulWidget {
           isActive: isActive,
           bold: bold ?? true,
           forceOnPressed: forceOnPressed,
-          leftIcon: leftIcon, // Pass left icon
-          rightIcon: rightIcon, // Pass right icon
+          leftIcon: leftIcon,
+          rightIcon: rightIcon,
           boxShadow: boxShadow,
+          deactivateSplash: deactivateSplash,
+          isIconBig: isIconBig,
         );
       case ButtonType.blueText:
         return Button.blueText(
@@ -136,9 +152,11 @@ class Button extends StatefulWidget {
           isActive: isActive,
           bold: bold ?? false,
           forceOnPressed: forceOnPressed,
-          leftIcon: leftIcon, // Pass left icon
-          rightIcon: rightIcon, // Pass right icon
+          leftIcon: leftIcon,
+          rightIcon: rightIcon,
           boxShadow: boxShadow,
+          deactivateSplash: deactivateSplash,
+          isIconBig: isIconBig,
         );
       case ButtonType.mainRed:
         return Button.mainRed(
@@ -146,9 +164,11 @@ class Button extends StatefulWidget {
           isActive: isActive,
           onPressed: onPressed,
           forceOnPressed: forceOnPressed,
-          leftIcon: leftIcon, // Pass left icon
-          rightIcon: rightIcon, // Pass right icon
+          leftIcon: leftIcon,
+          rightIcon: rightIcon,
           boxShadow: boxShadow,
+          deactivateSplash: deactivateSplash,
+          isIconBig: isIconBig,
         );
       case ButtonType.secondaryRed:
         return Button.secondaryRed(
@@ -156,9 +176,11 @@ class Button extends StatefulWidget {
           isActive: isActive,
           onPressed: onPressed,
           forceOnPressed: forceOnPressed,
-          leftIcon: leftIcon, // Pass left icon
-          rightIcon: rightIcon, // Pass right icon
+          leftIcon: leftIcon,
+          rightIcon: rightIcon,
           boxShadow: boxShadow,
+          deactivateSplash: deactivateSplash,
+          isIconBig: isIconBig,
         );
       case ButtonType.grayText:
         return Button.grayText(
@@ -167,9 +189,11 @@ class Button extends StatefulWidget {
           isActive: isActive,
           bold: bold ?? false,
           forceOnPressed: forceOnPressed,
-          leftIcon: leftIcon, // Pass left icon
-          rightIcon: rightIcon, // Pass right icon
+          leftIcon: leftIcon,
+          rightIcon: rightIcon,
           boxShadow: boxShadow,
+          deactivateSplash: deactivateSplash,
+          isIconBig: isIconBig,
         );
     }
   }
@@ -182,9 +206,11 @@ class Button extends StatefulWidget {
     bool blueStyle = false,
     bool isLoading = false,
     bool? forceOnPressed,
-    IconData? leftIcon, // Add left icon parameter
-    IconData? rightIcon, // Add right icon parameter
+    IconData? leftIcon,
+    IconData? rightIcon,
     List<BoxShadow>? boxShadow,
+    bool deactivateSplash = false,
+    bool isIconBig = false,
   }) {
     Color activeBackgroundColor = blueStyle ? LivitColors.mainBlueActive : LivitColors.whiteActive;
     return Button(
@@ -202,9 +228,11 @@ class Button extends StatefulWidget {
       inactiveBackgroundColor: LivitColors.whiteInactive,
       inactiveTextColor: LivitColors.mainBlack,
       forceOnPressed: forceOnPressed,
-      leftIcon: leftIcon, // Pass left icon
-      rightIcon: rightIcon, // Pass right icon
+      leftIcon: leftIcon,
+      rightIcon: rightIcon,
       boxShadow: boxShadow,
+      deactivateSplash: deactivateSplash,
+      isIconBig: isIconBig,
     );
   }
 
@@ -216,9 +244,11 @@ class Button extends StatefulWidget {
     double? width,
     bool blueStyle = false,
     bool? forceOnPressed,
-    IconData? leftIcon, // Add left icon parameter
-    IconData? rightIcon, // Add right icon parameter
+    IconData? leftIcon,
+    IconData? rightIcon,
     List<BoxShadow>? boxShadow,
+    bool deactivateSplash = false,
+    bool isIconBig = false,
   }) {
     return Button(
       text: text,
@@ -235,9 +265,11 @@ class Button extends StatefulWidget {
       isLoading: isLoading,
       forceOnPressed: forceOnPressed,
       width: width,
-      leftIcon: leftIcon, // Pass left icon
-      rightIcon: rightIcon, // Pass right icon
+      leftIcon: leftIcon,
+      rightIcon: rightIcon,
       boxShadow: boxShadow,
+      deactivateSplash: deactivateSplash,
+      isIconBig: isIconBig,
     );
   }
 
@@ -245,10 +277,12 @@ class Button extends StatefulWidget {
     required bool isActive,
     required VoidCallback onPressed,
     bool? forceOnPressed,
-    IconData? leftIcon, // Add left icon parameter
-    IconData? rightIcon, // Add right icon parameter
+    IconData? leftIcon,
+    IconData? rightIcon,
     List<BoxShadow>? boxShadow,
     double? width,
+    bool deactivateSplash = false,
+    bool isIconBig = false,
   }) {
     return Button(
       text: null,
@@ -259,10 +293,12 @@ class Button extends StatefulWidget {
       transparent: false,
       bold: false,
       forceOnPressed: forceOnPressed,
-      leftIcon: leftIcon, // Pass left icon
-      rightIcon: rightIcon, // Pass right icon
+      leftIcon: leftIcon,
+      rightIcon: rightIcon,
       boxShadow: boxShadow,
       width: width,
+      deactivateSplash: deactivateSplash,
+      isIconBig: isIconBig,
     );
   }
 
@@ -272,9 +308,11 @@ class Button extends StatefulWidget {
     required VoidCallback onPressed,
     bool blueStyle = false,
     bool? forceOnPressed,
-    IconData? leftIcon, // Add left icon parameter
-    IconData? rightIcon, // Add right icon parameter
+    IconData? leftIcon,
+    IconData? rightIcon,
     List<BoxShadow>? boxShadow,
+    bool deactivateSplash = false,
+    bool isIconBig = false,
   }) {
     return Button(
       text: text,
@@ -290,9 +328,11 @@ class Button extends StatefulWidget {
       inactiveTextColor: LivitColors.whiteInactive,
       activeShadowColor: LivitColors.red,
       forceOnPressed: forceOnPressed,
-      leftIcon: leftIcon, // Pass left icon
-      rightIcon: rightIcon, // Pass right icon
+      leftIcon: leftIcon,
+      rightIcon: rightIcon,
       boxShadow: boxShadow,
+      deactivateSplash: deactivateSplash,
+      isIconBig: isIconBig,
     );
   }
 
@@ -302,10 +342,12 @@ class Button extends StatefulWidget {
     required VoidCallback onPressed,
     bool bold = true,
     bool? forceOnPressed,
-    IconData? leftIcon, // Add left icon parameter
-    IconData? rightIcon, // Add right icon parameter
+    IconData? leftIcon,
+    IconData? rightIcon,
     List<BoxShadow>? boxShadow,
     double? width,
+    bool deactivateSplash = false,
+    bool isIconBig = false,
   }) {
     return Button(
       //activeBackgroundColor: LivitColors.red,
@@ -319,10 +361,12 @@ class Button extends StatefulWidget {
       activeTextColor: LivitColors.red, //LivitColors.mainBlack,
       inactiveTextColor: LivitColors.whiteInactive,
       forceOnPressed: forceOnPressed,
-      leftIcon: leftIcon, // Pass left icon
-      rightIcon: rightIcon, // Pass right icon
+      leftIcon: leftIcon,
+      rightIcon: rightIcon,
       boxShadow: boxShadow,
       width: width,
+      deactivateSplash: deactivateSplash,
+      isIconBig: isIconBig,
     );
   }
 
@@ -332,10 +376,12 @@ class Button extends StatefulWidget {
     required VoidCallback onPressed,
     bool bold = true,
     bool? forceOnPressed,
-    IconData? leftIcon, // Add left icon parameter
-    IconData? rightIcon, // Add right icon parameter
+    IconData? leftIcon,
+    IconData? rightIcon,
     List<BoxShadow>? boxShadow,
     double? width,
+    bool deactivateSplash = false,
+    bool isIconBig = false,
   }) {
     return Button(
       text: text,
@@ -348,10 +394,12 @@ class Button extends StatefulWidget {
       activeTextColor: LivitColors.whiteActive,
       inactiveTextColor: LivitColors.whiteInactive,
       forceOnPressed: forceOnPressed,
-      leftIcon: leftIcon, // Pass left icon
-      rightIcon: rightIcon, // Pass right icon
+      leftIcon: leftIcon,
+      rightIcon: rightIcon,
       boxShadow: boxShadow,
       width: width,
+      deactivateSplash: deactivateSplash,
+      isIconBig: isIconBig,
     );
   }
 
@@ -361,9 +409,11 @@ class Button extends StatefulWidget {
     required VoidCallback onPressed,
     bool bold = true,
     bool? forceOnPressed,
-    IconData? leftIcon, // Add left icon parameter
-    IconData? rightIcon, // Add right icon parameter
+    IconData? leftIcon,
+    IconData? rightIcon,
     List<BoxShadow>? boxShadow,
+    bool deactivateSplash = false,
+    bool isIconBig = false,
   }) {
     return Button(
       text: text,
@@ -376,9 +426,11 @@ class Button extends StatefulWidget {
       activeTextColor: LivitColors.mainBlueActive,
       inactiveTextColor: LivitColors.whiteInactive,
       forceOnPressed: forceOnPressed,
-      leftIcon: leftIcon, // Pass left icon
-      rightIcon: rightIcon, // Pass right icon
+      leftIcon: leftIcon,
+      rightIcon: rightIcon,
       boxShadow: boxShadow,
+      deactivateSplash: deactivateSplash,
+      isIconBig: isIconBig,
     );
   }
 
@@ -387,9 +439,11 @@ class Button extends StatefulWidget {
     required bool isActive,
     required VoidCallback onPressed,
     bool? forceOnPressed,
-    IconData? leftIcon, // Add left icon parameter
-    IconData? rightIcon, // Add right icon parameter
+    IconData? leftIcon,
+    IconData? rightIcon,
     List<BoxShadow>? boxShadow,
+    bool deactivateSplash = false,
+    bool isIconBig = false,
   }) {
     return Button(
       text: text,
@@ -404,9 +458,11 @@ class Button extends StatefulWidget {
       inactiveBackgroundColor: LivitColors.whiteInactive,
       inactiveTextColor: LivitColors.mainBlack,
       forceOnPressed: forceOnPressed,
-      leftIcon: leftIcon, // Pass left icon
-      rightIcon: rightIcon, // Pass right icon
+      leftIcon: leftIcon,
+      rightIcon: rightIcon,
       boxShadow: boxShadow,
+      deactivateSplash: deactivateSplash,
+      isIconBig: isIconBig,
     );
   }
 
@@ -417,9 +473,11 @@ class Button extends StatefulWidget {
     bool isLoading = false,
     bool bold = false,
     bool? forceOnPressed,
-    IconData? leftIcon, // Add left icon parameter
-    IconData? rightIcon, // Add right icon parameter
+    IconData? leftIcon,
+    IconData? rightIcon,
     List<BoxShadow>? boxShadow,
+    bool deactivateSplash = false,
+    bool isIconBig = false,
   }) {
     return Button(
       text: text,
@@ -433,9 +491,11 @@ class Button extends StatefulWidget {
       inactiveTextColor: LivitColors.whiteInactive,
       forceOnPressed: forceOnPressed,
       isLoading: isLoading,
-      leftIcon: leftIcon, // Pass left icon
-      rightIcon: rightIcon, // Pass right icon
+      leftIcon: leftIcon,
+      rightIcon: rightIcon,
       boxShadow: boxShadow,
+      deactivateSplash: deactivateSplash,
+      isIconBig: isIconBig,
     );
   }
 
@@ -508,6 +568,8 @@ class _ButtonState extends State<Button> with SingleTickerProviderStateMixin {
                   borderRadius: LivitButtonStyle.radius,
                 ),
                 child: InkWell(
+                  splashColor: widget.deactivateSplash ? Colors.transparent : null,
+                  highlightColor: widget.deactivateSplash ? Colors.transparent : null,
                   borderRadius: LivitButtonStyle.radius,
                   onTap: (widget.forceOnPressed ?? false)
                       ? widget.onPressed
@@ -523,7 +585,11 @@ class _ButtonState extends State<Button> with SingleTickerProviderStateMixin {
                         if (widget.leftIcon != null)
                           Padding(
                             padding: EdgeInsets.only(right: 4.sp),
-                            child: Icon(widget.leftIcon, color: textColor, size: 16.sp),
+                            child: Icon(
+                              widget.leftIcon,
+                              color: textColor,
+                              size: widget.isIconBig ? LivitButtonStyle.bigIconSize : LivitButtonStyle.iconSize,
+                            ),
                           ),
                         if (widget.text != null)
                           if (!widget.isLoading)
@@ -564,7 +630,11 @@ class _ButtonState extends State<Button> with SingleTickerProviderStateMixin {
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               if (widget.text != null) LivitSpaces.xs,
-                              Icon(widget.rightIcon, color: textColor, size: 16.sp),
+                              Icon(
+                                widget.rightIcon,
+                                color: textColor,
+                                size: widget.isIconBig ? LivitButtonStyle.bigIconSize : LivitButtonStyle.iconSize,
+                              ),
                             ],
                           ),
                       ],

@@ -8,7 +8,7 @@ import 'package:livit/constants/styles/spaces.dart';
 import 'package:livit/services/firestore_storage/bloc/users/user_event.dart';
 import 'package:livit/services/firestore_storage/bloc/users/user_state.dart';
 import 'package:livit/services/firestore_storage/bloc/users/user_bloc.dart';
-import 'package:livit/services/firestore_storage/bloc/firestore_storage/firestore_storage_exceptions.dart';
+import 'package:livit/services/firestore_storage/firestore_storage/firestore_storage_exceptions.dart';
 import 'package:livit/utilities/buttons/button.dart';
 import 'package:livit/utilities/bars_containers_fields/glass_container.dart';
 import 'package:livit/utilities/bars_containers_fields/title_bar.dart';

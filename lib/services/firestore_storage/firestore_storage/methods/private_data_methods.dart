@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:livit/cloud_models/user/private_data.dart';
-import 'package:livit/services/firestore_storage/bloc/firestore_storage/collections.dart';
-import 'package:livit/services/firestore_storage/bloc/firestore_storage/firestore_storage_exceptions.dart';
+import 'package:livit/services/firestore_storage/firestore_storage/collections.dart';
+import 'package:livit/services/firestore_storage/firestore_storage/firestore_storage_exceptions.dart';
 
 class PrivateDataMethods {
   static final PrivateDataMethods _shared = PrivateDataMethods._sharedInstance();
@@ -12,9 +12,9 @@ class PrivateDataMethods {
 
   Future<UserPrivateData> getPrivateData({required String userId}) async {
     try {
-      final doc = await _collections.usersCollection.doc(userId).collection('private').doc('privateData').get();
+      final doc = await _collections.privateDataDocument(userId).get();
       if (doc.exists) {
-        return UserPrivateData.fromFirestore(doc);
+        return doc.data()!;
       } else {
         throw PrivateDataNotFoundException();
       }
@@ -31,7 +31,7 @@ class PrivateDataMethods {
     required UserPrivateData privateData,
     required Transaction transaction,
   }) async {
-    final privateDataRef = _collections.usersCollection.doc(userId).collection('private').doc('privateData');
+    final privateDataRef = _collections.privateDataDocument(userId);
     transaction.update(privateDataRef, privateData.toMap());
   }
 }

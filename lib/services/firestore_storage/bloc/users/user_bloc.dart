@@ -5,11 +5,11 @@ import 'package:livit/cloud_models/user/cloud_user.dart';
 import 'package:livit/cloud_models/user/private_data.dart';
 import 'package:livit/constants/enums.dart';
 import 'package:livit/services/firestore_storage/cloud_functions/firestore_cloud_functions.dart';
-import 'package:livit/services/firestore_storage/bloc/firestore_storage/firestore_storage.dart';
+import 'package:livit/services/firestore_storage/firestore_storage/firestore_storage.dart';
 import 'package:livit/services/auth/auth_provider.dart';
 import 'package:livit/services/firestore_storage/bloc/users/user_event.dart';
 import 'package:livit/services/firestore_storage/bloc/users/user_state.dart';
-import 'package:livit/services/firestore_storage/bloc/firestore_storage/firestore_storage_exceptions.dart';
+import 'package:livit/services/firestore_storage/firestore_storage/firestore_storage_exceptions.dart';
 
 class UserBloc extends Bloc<UserEvent, UserState> {
   final FirestoreStorage _cloudStorage;
@@ -51,9 +51,9 @@ class UserBloc extends Bloc<UserEvent, UserState> {
     try {
       final userId = _authProvider.currentUser.id;
 
-      final user = await _cloudStorage.getUser(userId: userId);
+      final user = await _cloudStorage.userMethods.getUser(userId: userId);
 
-      final privateData = await _cloudStorage.getPrivateData(userId: userId);
+      final privateData = await _cloudStorage.privateDataMethods.getPrivateData(userId: userId);
 
       if (user.userType != privateData.userType) {
         emit(NoCurrentUser(exception: UserTypeMismatchException()));
@@ -76,7 +76,7 @@ class UserBloc extends Bloc<UserEvent, UserState> {
   Future<void> _onCreateUser(CreateUser event, Emitter<UserState> emit) async {
     emit(NoCurrentUser(userType: event.userType, isCreating: true));
     try {
-      final isUsernameTaken = await _cloudStorage.isUsernameTaken(event.username);
+      final isUsernameTaken = await _cloudStorage.usernameMethods.isUsernameTaken(event.username);
       if (isUsernameTaken) {
         emit(NoCurrentUser(userType: event.userType, exception: UsernameAlreadyTakenException()));
         return;
@@ -100,12 +100,22 @@ class UserBloc extends Bloc<UserEvent, UserState> {
               interests: null,
               createdAt: Timestamp.now().toDate(),
             );
-      final newPrivateData = UserPrivateData(
-        phoneNumber: _authProvider.currentUser.phoneNumber ?? '',
-        email: _authProvider.currentUser.email ?? '',
-        userType: event.userType,
-        isProfileCompleted: false,
-      );
+      final newPrivateData = event.userType == UserType.promoter
+          ? PromoterPrivateData(
+              phoneNumber: _authProvider.currentUser.phoneNumber ?? '',
+              email: _authProvider.currentUser.email ?? '',
+              userType: event.userType,
+              isProfileCompleted: false,
+              noLocations: false,
+              defaultScanners: [],
+              defaultTickets: [],
+            )
+          : UserPrivateData(
+              phoneNumber: _authProvider.currentUser.phoneNumber ?? '',
+              email: _authProvider.currentUser.email ?? '',
+              userType: event.userType,
+              isProfileCompleted: true,
+            );
 
       final createdAt = await _firestoreCloudFunctions.createUserAndUsername(
         user: newUser,
@@ -137,7 +147,7 @@ class UserBloc extends Bloc<UserEvent, UserState> {
       );
 
       if (_currentUser is CloudPromoter) {
-        await _cloudStorage.updateUser(user: updatedUser);
+        await _cloudStorage.userMethods.updateUser(user: updatedUser);
         _currentUser = updatedUser;
       } else {
         final updatedPrivateData = _currentPrivateData!.copyWith(isProfileCompleted: true);
@@ -171,7 +181,7 @@ class UserBloc extends Bloc<UserEvent, UserState> {
         description: event.description,
       );
 
-      await _cloudStorage.updateUser(user: updatedUser);
+      await _cloudStorage.userMethods.updateUser(user: updatedUser);
       _currentUser = updatedUser;
 
       emit(CurrentUser(user: updatedUser, privateData: _currentPrivateData!));

@@ -5,9 +5,11 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:livit/constants/colors.dart';
 import 'package:livit/services/auth/bloc/auth_bloc.dart';
 import 'package:livit/services/auth/firebase_auth_provider.dart';
+import 'package:livit/services/firebase_storage/bloc/storage_bloc.dart';
+import 'package:livit/services/firestore_storage/bloc/locations/location_bloc.dart';
 import 'package:livit/services/firestore_storage/bloc/users/user_bloc.dart';
 import 'package:livit/services/firestore_storage/cloud_functions/firestore_cloud_functions.dart';
-import 'package:livit/services/firestore_storage/bloc/firestore_storage/firestore_storage.dart';
+import 'package:livit/services/firestore_storage/firestore_storage/firestore_storage.dart';
 import 'package:livit/utilities/transitions/rootwidget.dart';
 
 void main() async {
@@ -23,53 +25,63 @@ class StartPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     ScreenUtil.init(context, designSize: const Size(390, 844));
-    return BlocProvider(
-      create: (context) => UserBloc(
-        cloudStorage: FirestoreStorage(),
-        firestoreCloudFunctions: FirestoreCloudFunctions(),
-        authProvider: FirebaseAuthProvider(),
-      ),
-      child: BlocProvider(
-        create: (context) => AuthBloc(
-          provider: FirebaseAuthProvider(),
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider<UserBloc>(
+          create: (context) => UserBloc(
+            cloudStorage: FirestoreStorage(),
+            firestoreCloudFunctions: FirestoreCloudFunctions(),
+            authProvider: FirebaseAuthProvider(),
+          ),
         ),
-        child: MaterialApp(
-          navigatorKey: _navKey,
-          debugShowCheckedModeBanner: false,
-          title: 'Livit',
-          theme: ThemeData(
-            textSelectionTheme: const TextSelectionThemeData(
-              selectionColor: LivitColors.whiteInactive,
-              selectionHandleColor: LivitColors.whiteActive,
-              cursorColor: LivitColors.whiteActive,
-            ),
-            scaffoldBackgroundColor: Colors.transparent,
-            appBarTheme: const AppBarTheme(
-              color: LivitColors.mainBlack,
-              titleTextStyle: TextStyle(
-                color: LivitColors.whiteActive,
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            textTheme: const TextTheme(
-              bodyLarge: TextStyle(
-                color: LivitColors.whiteActive,
-              ),
-              bodyMedium: TextStyle(
-                color: LivitColors.whiteActive,
-              ),
-              bodySmall: TextStyle(
-                color: LivitColors.whiteActive,
-              ),
-            ),
-            fontFamily: 'HelveticaNowDisplay',
-            scrollbarTheme: ScrollbarThemeData(
-              thumbColor: WidgetStateProperty.all(LivitColors.whiteActive),
+        BlocProvider<AuthBloc>(
+          create: (context) => AuthBloc(
+            provider: FirebaseAuthProvider(),
+          ),
+        ),
+        BlocProvider<LocationBloc>(
+          create: (context) => LocationBloc(),
+        ),
+        BlocProvider<StorageBloc>(
+          create: (context) => StorageBloc(),
+        ),
+      ],
+      child: MaterialApp(
+        navigatorKey: _navKey,
+        debugShowCheckedModeBanner: false,
+        title: 'Livit',
+        theme: ThemeData(
+          textSelectionTheme: const TextSelectionThemeData(
+            selectionColor: LivitColors.whiteInactive,
+            selectionHandleColor: LivitColors.whiteActive,
+            cursorColor: LivitColors.whiteActive,
+          ),
+          scaffoldBackgroundColor: Colors.transparent,
+          appBarTheme: const AppBarTheme(
+            color: LivitColors.mainBlack,
+            titleTextStyle: TextStyle(
+              color: LivitColors.whiteActive,
+              fontSize: 22,
+              fontWeight: FontWeight.bold,
             ),
           ),
-          home: RootWidgetBackground(),
+          textTheme: const TextTheme(
+            bodyLarge: TextStyle(
+              color: LivitColors.whiteActive,
+            ),
+            bodyMedium: TextStyle(
+              color: LivitColors.whiteActive,
+            ),
+            bodySmall: TextStyle(
+              color: LivitColors.whiteActive,
+            ),
+          ),
+          fontFamily: 'HelveticaNowDisplay',
+          scrollbarTheme: ScrollbarThemeData(
+            thumbColor: WidgetStateProperty.all(LivitColors.whiteActive),
+          ),
         ),
+        home: RootWidgetBackground(),
       ),
     );
   }

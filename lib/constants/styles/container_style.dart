@@ -36,4 +36,10 @@ class LivitContainerStyle {
     color: LivitColors.mainBlack,
     boxShadow: [LivitShadows.activeWhiteShadow],
   );
+
+  static BoxDecoration decorationWithInactiveShadow = BoxDecoration(
+    borderRadius: LivitContainerStyle.borderRadius,
+    color: LivitColors.mainBlack,
+    boxShadow: [LivitShadows.inactiveWhiteShadow],
+  );
 }

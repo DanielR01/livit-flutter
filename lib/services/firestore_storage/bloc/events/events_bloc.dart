@@ -1,7 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:livit/services/firestore_storage/bloc/events/events_event.dart';
 import 'package:livit/services/firestore_storage/bloc/events/events_state.dart';
-import 'package:livit/services/firestore_storage/bloc/firestore_storage/firestore_storage.dart';
+import 'package:livit/services/firestore_storage/firestore_storage/firestore_storage.dart';
 
 class EventsBloc extends Bloc<EventsEvent, EventsState> {
   final FirestoreStorage _storage;
@@ -18,7 +18,7 @@ class EventsBloc extends Bloc<EventsEvent, EventsState> {
   Future<void> _onFetchInitialEvents(FetchInitialEvents event, Emitter<EventsState> emit) async {
     emit(EventsLoading());
     try {
-      final events = await _storage.getEventsPaginated(
+      final events = await _storage.eventMethods.getEventsPaginated(
         creatorId: creatorId,
         limit: _limit,
       );
@@ -38,7 +38,7 @@ class EventsBloc extends Bloc<EventsEvent, EventsState> {
     final currentState = state;
     if (currentState is EventsLoaded && currentState.hasMore) {
       try {
-        final newEvents = await _storage.getEventsPaginated(
+        final newEvents = await _storage.eventMethods.getEventsPaginated(
           creatorId: creatorId,
           limit: _limit,
           startAfterDoc: currentState.lastDocument,

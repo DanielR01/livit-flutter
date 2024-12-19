@@ -1,5 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:livit/cloud_models/location.dart';
+import 'package:livit/cloud_models/location/location.dart';
 import 'package:livit/cloud_models/ticket/ticket_price.dart';
 import 'package:livit/cloud_models/ticket/ticket_status.dart';
 
@@ -40,5 +40,24 @@ class Ticket {
     required this.entranceLocation,
   });
 
-  
+  factory Ticket.fromMap(Map<String, dynamic> map) {
+    return Ticket(
+      ticketId: map['ticketId'],
+      eventId: map['eventId'],
+      ownerId: map['ownerId'],
+      ticketType: map['ticketType'],
+      ticketStatus: TicketStatus.values.byName(map['ticketStatus']),
+      ticketPrice: TicketPrice.fromMap(map['ticketPrice']),
+      description: map['description'],
+      eventDateName: map['eventDateName'],
+      ownedAt: map['ownedAt'],
+      scannedBy: map['scannedBy'],
+      scannedAt: map['scannedAt'],
+      scanStartTime: map['scanStartTime'],
+      scanExpiryTime: map['scanExpiryTime'],
+      minActivationTime: map['minActivationTime'],
+      activatedAt: map['activatedAt'],
+      entranceLocation: Location.fromMap(map['entranceLocation']),
+    );
+  }
 }

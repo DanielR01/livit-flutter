@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:livit/services/firestore_storage/livit_ticket.dart';
-import 'package:livit/services/firestore_storage/bloc/firestore_storage/collections.dart';
-import 'package:livit/services/firestore_storage/bloc/firestore_storage/firestore_storage_exceptions.dart';
+import 'package:livit/services/firestore_storage/firestore_storage/collections.dart';
+import 'package:livit/services/firestore_storage/firestore_storage/firestore_storage_exceptions.dart';
 
 class TicketMethods {
   static final TicketMethods _shared = TicketMethods._sharedInstance();

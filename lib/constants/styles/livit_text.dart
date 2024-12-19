@@ -90,7 +90,7 @@ class LivitText extends StatelessWidget {
 
 class LivitTextStyle {
   static const double _goldenRatio = 1.618;
-  static final double regularFontSize = 13.sp;
+  static final double regularFontSize = 14.sp;
   static final double smallFontSize = regularFontSize * (_goldenRatio - 1) * 1.5;
   static final double smallTitleFontSize = regularFontSize * (_goldenRatio - 1) * 2;
   static final double normalTitleFontSize = regularFontSize * (_goldenRatio - 1) * 3;

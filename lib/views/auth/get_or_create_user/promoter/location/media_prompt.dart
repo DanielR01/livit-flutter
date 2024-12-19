@@ -1,17 +1,19 @@
-import 'package:flutter/cupertino.dart';
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:livit/cloud_models/location.dart';
-import 'package:livit/cloud_models/user/cloud_user.dart';
+import 'package:livit/cloud_models/location/location.dart';
+import 'package:livit/cloud_models/location/location_media.dart';
+import 'package:livit/cloud_models/location/location_media_file.dart';
 import 'package:livit/constants/styles/container_style.dart';
 import 'package:livit/constants/styles/livit_text.dart';
-import 'package:livit/services/firestore_storage/bloc/users/user_bloc.dart';
-import 'package:livit/services/firestore_storage/bloc/users/user_state.dart';
-import 'package:livit/utilities/bars_containers_fields/bar.dart';
+import 'package:livit/services/firestore_storage/bloc/locations/location_bloc.dart';
+import 'package:livit/services/firestore_storage/bloc/locations/location_state.dart';
 import 'package:livit/utilities/bars_containers_fields/glass_container.dart';
 import 'package:livit/utilities/buttons/button.dart';
 import 'package:livit/utilities/error_screens/error_reauth_screen.dart';
 import 'package:livit/utilities/livit_scrollbar.dart';
+import 'package:livit/views/auth/get_or_create_user/promoter/location/media_prompt/location_media_prompt_field.dart';
 
 class MediaPrompt extends StatefulWidget {
   const MediaPrompt({super.key});
@@ -29,14 +31,62 @@ class _MediaPromptState extends State<MediaPrompt> {
     _scrollController.dispose();
   }
 
+  List<Location> _locations = [];
+  bool _isInitialized = false;
+
+  void _initializeLocations(List<Location> locations) {
+    _isInitialized = true;
+    _locations = locations;
+  }
+
+  void _onMainSelected(LivitLocationMediaFile file, Location location) {
+    final index = _locations.indexWhere((element) => element.id == location.id);
+    if (index != -1) {
+      final locationToUpdate = _locations[index];
+      final updatedLocation =
+          locationToUpdate.copyWith(media: locationToUpdate.media?.copyWith(mainFile: file) ?? LocationMedia(mainFile: file));
+      setState(() {
+        _locations[index] = updatedLocation;
+      });
+    }
+  }
+
+  void _onSecondarySelected(LivitLocationMediaFile file, Location location) {
+    final index = _locations.indexWhere((element) => element.id == location.id);
+    if (index != -1) {
+      final locationToUpdate = _locations[index];
+      final updatedLocation = locationToUpdate.copyWith(
+          media: locationToUpdate.media?.copyWith(secondaryFiles: [...(locationToUpdate.media?.secondaryFiles ?? []), file]) ??
+              LocationMedia(secondaryFiles: [file]));
+      setState(() {
+        _locations[index] = updatedLocation;
+      });
+    }
+  }
+
+  void _onMainDeleted(LivitLocationMediaFile file, Location location) {}
+
+  void _onSecondaryDeleted(LivitLocationMediaFile file, Location location) {}
+
+  void _onMediaReset(Location location) {
+    final index = _locations.indexWhere((element) => element.id == location.id);
+    if (index != -1) {
+      setState(() {
+        _locations[index] = location.copyWith(media: null);
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<UserBloc, UserState>(
+    return BlocBuilder<LocationBloc, LocationState>(
       builder: (context, state) {
         try {
-          if (state is CurrentUser) {
-            CloudPromoter user = state.user as CloudPromoter;
-            List<Location?> locations = user.locations!;
+          if (state is LocationsLoaded) {
+            if (!_isInitialized) {
+              _initializeLocations(state.locations);
+            }
+            List<Location?> locations = state.locations;
             return Scaffold(
               body: SafeArea(
                 child: Center(
@@ -51,7 +101,11 @@ class _MediaPromptState extends State<MediaPrompt> {
                           child: Column(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              LivitText('Agrega videos o imagenes de tus locaciones para que tus clientes puedan verlos'),
+                              Padding(
+                                padding: LivitContainerStyle.padding(padding: [0, null, 0, null]),
+                                child: LivitText(
+                                    'Agrega videos o imagenes de tus locaciones para que tus clientes puedan verlos. La imagen o video principal sera la que se muestre como portada de tu locación.'),
+                              ),
                               Flexible(
                                 child: Padding(
                                   padding: EdgeInsets.symmetric(vertical: LivitContainerStyle.verticalPadding / 2),
@@ -60,15 +114,19 @@ class _MediaPromptState extends State<MediaPrompt> {
                                     controller: _scrollController,
                                     child: _locationsScroller(
                                       scrollController: _scrollController,
-                                      locations: locations,
                                     ),
                                   ),
                                 ),
                               ),
                               Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 mainAxisSize: MainAxisSize.max,
                                 children: [
+                                  Button.grayText(
+                                    isActive: true,
+                                    text: 'Completar más tarde',
+                                    onPressed: () {},
+                                  ),
                                   Button.main(
                                     isActive: true,
                                     text: 'Continuar',
@@ -95,65 +153,25 @@ class _MediaPromptState extends State<MediaPrompt> {
     );
   }
 
-  Widget _locationsScroller({required ScrollController scrollController, required List<Location?> locations}) {
+  Widget _locationsScroller({required ScrollController scrollController}) {
     return ListView.builder(
       controller: scrollController,
       shrinkWrap: true,
       physics: const AlwaysScrollableScrollPhysics(),
-      itemCount: locations.length,
+      itemCount: _locations.length,
       itemBuilder: (context, index) {
-        final location = locations[index];
+        final location = _locations.elementAt(index);
         return Padding(
           padding: LivitContainerStyle.padding(padding: [index != 0 ? 0 : null, null, null, null]),
-          child: _locationMediaInputField(location!),
+          child: LocationMediaInputField(
+              location: location,
+              onMainSelected: _onMainSelected,
+              onSecondarySelected: _onSecondarySelected,
+              onMainDeleted: _onMainDeleted,
+              onSecondaryDeleted: _onSecondaryDeleted,
+              onMediaReset: _onMediaReset),
         );
       },
-    );
-  }
-
-  Widget _locationMediaInputField(Location location) {
-    final bool isLocationMediaEmpty = location.media == null ||
-        (location.media!.mainUrl == null && (location.media!.secondaryUrls!.isEmpty || location.media!.secondaryUrls == null));
-    return LivitBar(
-      noPadding: true,
-      child: Column(
-        children: [
-          Padding(
-            padding: LivitContainerStyle.padding(padding: [null, null, 0, null]),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Column(
-                  children: [
-                    LivitText(
-                      location.name,
-                      textType: LivitTextType.smallTitle,
-                    ),
-                  ],
-                ),
-                Button.secondary(
-                  text: 'Agregar',
-                  rightIcon: CupertinoIcons.plus_circle,
-                  isActive: true,
-                  onPressed: () {},
-                ),
-              ],
-            ),
-          ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            mainAxisSize: MainAxisSize.max,
-            children: [
-              Button.whiteText(
-                isActive: !isLocationMediaEmpty,
-                text: isLocationMediaEmpty ? 'Sin archivos' : 'Ver archivos',
-                rightIcon: !isLocationMediaEmpty ? CupertinoIcons.chevron_down : null,
-                onPressed: () {},
-              ),
-            ],
-          ),
-        ],
-      ),
     );
   }
 }

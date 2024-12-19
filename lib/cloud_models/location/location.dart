@@ -1,10 +1,5 @@
-import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:livit/services/firebase_storage/storage_service.dart';
-import 'package:livit/services/firebase_storage/bloc/storage_bloc.dart';
-import 'package:livit/services/firebase_storage/bloc/storage_event.dart';
-import 'package:livit/services/firebase_storage/bloc/storage_state.dart';
-import 'dart:async';
+import 'package:livit/cloud_models/location/location_media.dart';
 
 class Location {
   final String id;
@@ -28,7 +23,6 @@ class Location {
 
   Map<String, dynamic> toMap() {
     return {
-      'id': id,
       'name': name,
       'address': address,
       'geopoint': geopoint,
@@ -40,7 +34,14 @@ class Location {
   }
 
   Location copyWith(
-      {String? id, String? name, String? address, GeoPoint? geopoint, String? department, String? city, String? description, LocationMedia? media}) {
+      {String? id,
+      String? name,
+      String? address,
+      GeoPoint? geopoint,
+      String? department,
+      String? city,
+      String? description,
+      LocationMedia? media}) {
     return Location(
       id: id ?? this.id,
       name: name ?? this.name,
@@ -80,64 +81,9 @@ class Location {
     );
   }
 
-  Future<Location> addMedia({required List<File> images}) async {
-    final storageBloc = StorageBloc(storageService: StorageService());
-
-    final completer = Completer<List<String>>();
-
-    late StreamSubscription<StorageState> subscription;
-
-    subscription = storageBloc.stream.listen(
-      (state) {
-        if (state is StorageSuccess) {
-          completer.complete(state.urls);
-          subscription.cancel();
-        } else if (state is StorageFailure) {
-          completer.completeError(state.exception);
-          subscription.cancel();
-        }
-      },
-    );
-
-    storageBloc.add(UploadLocationMedia(
-      locationId: id,
-      files: images,
-      type: 'images',
-    ));
-
-    final urls = await completer.future;
-
-    final LocationMedia newMedia = LocationMedia(
-      mainUrl: urls.first,
-      secondaryUrls: urls.length > 1 ? urls.sublist(1) : [],
-    );
-
-    return copyWith(media: newMedia);
-  }
-
   @override
   String toString() {
     return 'Location(name: $name, address: $address, geopoint: $geopoint, department: $department, city: $city, description: $description, media: $media)';
   }
 }
 
-class LocationMedia {
-  final String? mainUrl;
-  final List<String?>? secondaryUrls;
-
-  LocationMedia({this.mainUrl, this.secondaryUrls});
-
-  Map<String, dynamic> toMap() {
-    return {
-      'mainUrl': mainUrl,
-      'secondaryUrls': secondaryUrls,
-    };
-  }
-
-  factory LocationMedia.fromMap(Map<String, dynamic> map) {
-    return LocationMedia(
-      mainUrl: map['mainUrl'] as String?,
-      secondaryUrls: map['secondaryUrls'] as List<String?>?,
-    );
-  }
-}

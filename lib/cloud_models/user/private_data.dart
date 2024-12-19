@@ -29,8 +29,13 @@ class UserPrivateData {
     );
   }
 
-  factory UserPrivateData.fromFirestore(DocumentSnapshot doc) {
+  factory UserPrivateData.fromDocument(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>;
+
+    if (data['userType'] == UserType.promoter.name) {
+      return PromoterPrivateData.fromDocument(doc);
+    }
+
     return UserPrivateData(
       phoneNumber: data['phoneNumber'],
       email: data['email'],
@@ -54,15 +59,41 @@ class UserPrivateData {
   }
 }
 
-class PrivatePromoterData extends UserPrivateData {
-  final List<String> defaultScanners;
-  final List<Ticket> defaultTickets;
+class PromoterPrivateData extends UserPrivateData {
+  final bool noLocations;
+  final List<String?> defaultScanners;
+  final List<Ticket?> defaultTickets;
 
-  PrivatePromoterData(
+  PromoterPrivateData(
       {required super.phoneNumber,
       required super.email,
       required super.userType,
+      required super.isProfileCompleted,
       required this.defaultScanners,
       required this.defaultTickets,
-      required super.isProfileCompleted});
+      required this.noLocations});
+
+  factory PromoterPrivateData.fromDocument(DocumentSnapshot doc) {
+    final data = doc.data() as Map<String, dynamic>;
+
+    final List<String?> defaultScanners = (data['defaultScanners'] as List<dynamic>?)?.map((e) => e as String?).toList() ?? [];
+    final List<Ticket?> defaultTickets = (data['defaultTickets'] as List<dynamic>?)?.map((e) => Ticket.fromMap(e)).toList() ?? [];
+
+    final PromoterPrivateData privatePromoterData = PromoterPrivateData(
+      phoneNumber: data['phoneNumber'],
+      email: data['email'],
+      userType: UserType.values.byName(data['userType']),
+      defaultScanners: defaultScanners,
+      defaultTickets: defaultTickets,
+      isProfileCompleted: data['isProfileCompleted'],
+      noLocations: data['noLocations'],
+    );
+
+    return privatePromoterData;
+  }
+
+  @override
+  String toString() {
+    return 'PrivatePromoterData(phoneNumber: $phoneNumber, email: $email, userType: $userType, isProfileCompleted: $isProfileCompleted, defaultScanners: $defaultScanners, defaultTickets: $defaultTickets, noLocations: $noLocations)';
+  }
 }

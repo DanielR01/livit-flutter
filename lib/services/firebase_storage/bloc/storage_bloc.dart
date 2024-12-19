@@ -8,9 +8,7 @@ import 'package:livit/services/firebase_storage/storage_service.dart';
 class StorageBloc extends Bloc<StorageEvent, StorageState> {
   final StorageService _storageService;
 
-  StorageBloc({
-    required StorageService storageService,
-  })  : _storageService = storageService,
+  StorageBloc()  : _storageService = StorageService(),
         super(const StorageInitial()) {
     on<UploadLocationMedia>(_onUploadLocationMedia);
   }

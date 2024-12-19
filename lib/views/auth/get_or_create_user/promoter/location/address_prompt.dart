@@ -4,25 +4,25 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:livit/cloud_models/location.dart';
+import 'package:livit/cloud_models/location/location.dart';
 import 'package:livit/constants/colors.dart';
 import 'package:livit/constants/styles/container_style.dart';
 import 'package:livit/constants/styles/livit_text.dart';
 import 'package:livit/constants/styles/spaces.dart';
-import 'package:livit/services/firestore_storage/bloc/users/user_bloc.dart';
-import 'package:livit/services/firestore_storage/bloc/users/user_event.dart';
-import 'package:livit/services/firestore_storage/bloc/users/user_state.dart';
-import 'package:livit/services/firestore_storage/bloc/firestore_storage/firestore_storage_exceptions.dart';
+import 'package:livit/services/firestore_storage/bloc/locations/location_bloc.dart';
+import 'package:livit/services/firestore_storage/bloc/locations/location_event.dart';
+import 'package:livit/services/firestore_storage/bloc/locations/location_state.dart';
+import 'package:livit/services/firestore_storage/firestore_storage/firestore_storage_exceptions.dart';
 import 'package:livit/utilities/bars_containers_fields/bar.dart';
 import 'package:livit/utilities/bars_containers_fields/glass_container.dart';
 import 'package:livit/utilities/bars_containers_fields/livit_text_field.dart';
 import 'package:livit/utilities/buttons/button.dart';
 import 'package:livit/utilities/buttons/livit_dropdown_button.dart';
+import 'package:livit/utilities/error_screens/error_reauth_screen.dart';
 import 'package:livit/utilities/livit_scrollbar.dart';
 
 class AddressPrompt extends StatefulWidget {
-  final List<Location?>? locations;
-  const AddressPrompt({super.key, this.locations});
+  const AddressPrompt({super.key});
 
   @override
   State<AddressPrompt> createState() => _AddressPromptState();
@@ -33,16 +33,9 @@ class _AddressPromptState extends State<AddressPrompt> {
   late final TextEditingController _descriptionController;
   late final TextEditingController _addressNameController;
 
-  List<Map<String, dynamic>> locations = [
-    {
-      'index': 0,
-      'location': null,
-      'valid': false,
-    },
-  ];
+  List<Map<String, dynamic>> locations = [];
+  bool _isInitialized = false;
   int currentLocationIndex = 0;
-
-  bool _isSearching = false;
 
   String? selectedState;
   String? selectedCity;
@@ -67,32 +60,22 @@ class _AddressPromptState extends State<AddressPrompt> {
     _addressNameController.addListener(_addressNameListener);
     _descriptionController = TextEditingController();
     _descriptionController.addListener(_descriptionListener);
-    controller.addListener(() {
-      setState(() {
-        height = controller.text.length * 10;
-      });
-    });
-    if (widget.locations != null) {
-      locations = [];
-      currentLocationIndex = -1;
-      for (Location? location in widget.locations!) {
-        locations.add({
-          'index': locations.length,
-          'location': location,
-          'valid': location != null && location.address != '' && location.name != '' && location.department != '' && location.city != '',
-        });
-      }
-    }
+    controller.addListener(_heightListener);
     _loadLocationData();
   }
 
   @override
   void dispose() {
+    super.dispose();
     _addressController.removeListener(_addressListener);
+    _addressNameController.removeListener(_addressNameListener);
+    _descriptionController.removeListener(_descriptionListener);
+    controller.removeListener(_heightListener);
     _addressController.dispose();
     _addressNameController.dispose();
+    _descriptionController.dispose();
+    controller.dispose();
     _scrollController.dispose();
-    super.dispose();
   }
 
   void _addressListener() {
@@ -113,9 +96,18 @@ class _AddressPromptState extends State<AddressPrompt> {
     }
   }
 
+  void _heightListener() {
+    if (mounted) {
+      setState(() {
+        height = controller.text.length * 10;
+      });
+    }
+  }
+
   void _updateLocations() {
     Location updatedLocation = (locations[currentLocationIndex]['location'] ??
             Location(
+              id: '',
               address: '',
               name: '',
               description: '',
@@ -194,62 +186,98 @@ class _AddressPromptState extends State<AddressPrompt> {
 
   double height = 100;
   final TextEditingController controller = TextEditingController();
+
+  void _initializeLocationsFromState(List<Location> stateLocations) {
+    if (_isInitialized) return;
+
+    if (stateLocations.isEmpty) {
+      currentLocationIndex = 0;
+    } else {
+      currentLocationIndex = -1;
+    }
+
+    locations = stateLocations.isEmpty
+        ? [
+            {
+              'index': 0,
+              'location': null,
+              'valid': false,
+            }
+          ]
+        : stateLocations.asMap().entries.map((entry) {
+            return {
+              'index': entry.key,
+              'location': entry.value,
+              'valid': entry.value.address.isNotEmpty &&
+                  entry.value.name.isNotEmpty &&
+                  entry.value.department.isNotEmpty &&
+                  entry.value.city.isNotEmpty,
+            };
+          }).toList();
+
+    _isInitialized = true;
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: SafeArea(
-        child: Center(
-          child: GlassContainer(
-            hasPadding: false,
-            titleBarText: '¿Dónde estás ubicado?',
-            child: Flexible(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Padding(
-                    padding: LivitContainerStyle.padding(padding: [0, null, 0, null]),
-                    child: LivitText(
-                      key: textKey,
-                      'Agrega todas las ubicaciones que desees, si no tienes un local físico o deseas completar esta información mas tarde, puedes continuar con el siguiente paso eliminando todas las ubicaciones.',
-                    ),
-                  ),
-                  LivitSpaces.s,
-                  Flexible(
+    return BlocBuilder<LocationBloc, LocationState>(
+      builder: (context, state) {
+        if (state is LocationsLoaded && !_isInitialized) {
+          _initializeLocationsFromState(state.locations);
+        }
+
+        return Scaffold(
+          body: SafeArea(
+            child: Center(
+              child: Padding(
+                padding: LivitContainerStyle.paddingFromScreen,
+                child: GlassContainer(
+                  hasPadding: false,
+                  titleBarText: '¿Dónde estás ubicado?',
+                  child: Flexible(
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
+                        Padding(
+                          padding: LivitContainerStyle.padding(padding: [0, null, 0, null]),
+                          child: LivitText(
+                            key: textKey,
+                            'Agrega todas las ubicaciones que desees, si no tienes un local físico o deseas completar esta información mas tarde, puedes continuar con el siguiente paso eliminando todas las ubicaciones.',
+                          ),
+                        ),
+                        LivitSpaces.s,
                         Flexible(
-                          child: _locationInput(),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Flexible(
+                                child: _locationInput(),
+                              ),
+                            ],
+                          ),
                         ),
                       ],
                     ),
                   ),
-                ],
+                ),
               ),
             ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 
   Widget _locationInput() {
     String? errorMessage;
-
-    return BlocBuilder<UserBloc, UserState>(
+    bool isLoading = false;
+    return BlocBuilder<LocationBloc, LocationState>(
       builder: (context, state) {
-        if (state is CurrentUser) {
-          if (state.isLoading) {
-            _isSearching = true;
-          } else {
-            _isSearching = false;
-          }
-          if (state.exception is CouldNotUpdateUserException) {
-            errorMessage = 'No se pudo actualizar las ubicaciones, verifica tu conexión e intenta nuevamente mas tarde';
-          } else if (state.exception == null) {
-            errorMessage = null;
-          }
+        if (state is! LocationsLoaded) {
+          return ErrorReauthScreen(exception: UserInformationCorruptedException());
         }
+        errorMessage = state.errorMessage;
+        isLoading = state.isLoading;
         return Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -294,29 +322,22 @@ class _AddressPromptState extends State<AddressPrompt> {
                       Button.main(
                         text: errorMessage != null
                             ? 'Error'
-                            : _isSearching
+                            : isLoading
                                 ? 'Continuando'
                                 : 'Continuar',
                         onPressed: () {
                           final updatedLocations = locations.map((locationMap) {
-                            final location = locationMap['location'] as Location?;
-                            if (location != null && location.description == null) {
-                              return {
-                                ...locationMap,
-                                'location': location.copyWith(description: '')
-                              };
-                            }
-                            return locationMap;
+                            return locationMap['location'] as Location;
                           }).toList();
 
-                          BlocProvider.of<UserBloc>(context).add(
-                            SetPromoterUserLocations(
-                              locations: updatedLocations.map((l) => l['location'] as Location?).toList(),
+                          BlocProvider.of<LocationBloc>(context).add(
+                            CreateLocations(
+                              locations: updatedLocations,
                             ),
                           );
                         },
                         isActive: !locations.any((location) => location['valid'] == false),
-                        isLoading: _isSearching,
+                        isLoading: isLoading,
                       ),
                     ],
                   ),

@@ -1,11 +1,19 @@
 import 'dart:io';
-import 'package:livit/cloud_models/location.dart';
+import 'package:livit/cloud_models/location/location.dart';
 
 abstract class LocationEvent {
   const LocationEvent();
 }
 
-class LoadUserLocations extends LocationEvent {}
+class InitializeLocationBloc extends LocationEvent {
+  final String userId;
+  const InitializeLocationBloc({required this.userId});
+}
+
+class LoadUserLocations extends LocationEvent {
+  
+  const LoadUserLocations();
+}
 
 class UpdateLocationMedia extends LocationEvent {
   final Location location;
@@ -23,10 +31,22 @@ class CreateLocation extends LocationEvent {
   const CreateLocation({required this.location});
 }
 
+class CreateLocations extends LocationEvent {
+  final List<Location> locations;
+
+  const CreateLocations({required this.locations});
+}
+
 class UpdateLocation extends LocationEvent {
   final Location location;
 
   const UpdateLocation({required this.location});
+}
+
+class UpdateLocations extends LocationEvent {
+  final List<Location> locations;
+
+  const UpdateLocations({required this.locations});
 }
 
 class DeleteLocation extends LocationEvent {

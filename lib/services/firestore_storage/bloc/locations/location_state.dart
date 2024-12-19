@@ -1,11 +1,11 @@
-import 'package:livit/cloud_models/location.dart';
+import 'package:livit/cloud_models/location/location.dart';
 
 abstract class LocationState {
   const LocationState();
 }
 
-class LocationInitial extends LocationState {
-  const LocationInitial();
+class LocationUninitialized extends LocationState {
+  const LocationUninitialized();
 }
 
 class LocationLoading extends LocationState {
@@ -14,10 +14,9 @@ class LocationLoading extends LocationState {
 
 class LocationsLoaded extends LocationState {
   final List<Location> locations;
-  const LocationsLoaded({required this.locations});
-}
+  final Map<Location, String>? failedLocations;
+  final bool isLoading;
+  final String? errorMessage;
 
-class LocationError extends LocationState {
-  final String message;
-  const LocationError({required this.message});
+  const LocationsLoaded({required this.locations, this.failedLocations, this.errorMessage, this.isLoading = false});
 }

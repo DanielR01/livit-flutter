@@ -3,26 +3,26 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:livit/cloud_models/location.dart';
+import 'package:livit/cloud_models/location/location.dart';
 import 'package:livit/constants/colors.dart';
 import 'package:livit/constants/styles/bar_style.dart';
 import 'package:livit/constants/styles/container_style.dart';
 import 'package:livit/constants/styles/livit_text.dart';
 import 'package:livit/constants/styles/spaces.dart';
-import 'package:livit/services/firestore_storage/bloc/users/user_bloc.dart';
-import 'package:livit/services/firestore_storage/bloc/users/user_event.dart';
-import 'package:livit/services/firestore_storage/bloc/users/user_state.dart';
-import 'package:livit/services/firestore_storage/bloc/firestore_storage/firestore_storage_exceptions.dart';
+import 'package:livit/services/firestore_storage/bloc/locations/location_bloc.dart';
+import 'package:livit/services/firestore_storage/bloc/locations/location_event.dart';
+import 'package:livit/services/firestore_storage/bloc/locations/location_state.dart';
+import 'package:livit/services/firestore_storage/firestore_storage/firestore_storage_exceptions.dart';
 import 'package:livit/services/location/location_search_service.dart';
 import 'package:livit/utilities/bars_containers_fields/bar.dart';
 import 'package:livit/utilities/bars_containers_fields/glass_container.dart';
 import 'package:livit/utilities/buttons/button.dart';
+import 'package:livit/utilities/error_screens/error_reauth_screen.dart';
 import 'package:livit/utilities/livit_scrollbar.dart';
 import 'package:livit/utilities/map_viewer.dart';
 
 class MapLocationPrompt extends StatefulWidget {
-  final List<Location> locations;
-  const MapLocationPrompt({super.key, required this.locations});
+  const MapLocationPrompt({super.key});
 
   @override
   State<MapLocationPrompt> createState() => _MapLocationPromptState();
@@ -41,29 +41,29 @@ class _MapLocationPromptState extends State<MapLocationPrompt> {
   bool _shouldReinitialize = false;
   bool _shouldUseUserLocation = false;
 
+  bool _isInitialized = false;
+
   late final PageController _pageController;
 
   @override
   void initState() {
     super.initState();
     _pageController = PageController(keepPage: false, viewportFraction: 0.85);
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _getCoordinates(widget.locations.first);
-    });
-    _locations = widget.locations;
   }
 
   @override
   void dispose() {
-    // _pageController.dispose();
+    _pageController.dispose();
     super.dispose();
   }
 
   Future<void> _getCoordinates(Location location) async {
+    if (!mounted) return;
     try {
       final fullAddress = '${location.address}, ${location.city}, ${location.department}';
       final coordinates = await LocationSearchService.searchLocation(fullAddress);
 
+      if (!mounted) return;
       setState(() {
         _coordinates['latitude'] = coordinates['latitude']!;
         _coordinates['longitude'] = coordinates['longitude']!;
@@ -75,6 +75,7 @@ class _MapLocationPromptState extends State<MapLocationPrompt> {
         final cityAddress = '${location.city}, ${location.department}, Colombia';
         final cityCoordinates = await LocationSearchService.searchLocation(cityAddress);
 
+        if (!mounted) return;
         setState(() {
           _coordinates['latitude'] = cityCoordinates['latitude']!;
           _coordinates['longitude'] = cityCoordinates['longitude']!;
@@ -82,6 +83,7 @@ class _MapLocationPromptState extends State<MapLocationPrompt> {
           _shouldUseUserLocation = false;
         });
       } catch (e) {
+        if (!mounted) return;
         setState(() {
           _coordinates['latitude'] = 0;
           _coordinates['longitude'] = 0;
@@ -107,10 +109,7 @@ class _MapLocationPromptState extends State<MapLocationPrompt> {
           child: Dialog(
             backgroundColor: Colors.transparent,
             child: Container(
-              decoration: BoxDecoration(
-                color: LivitColors.mainBlack,
-                borderRadius: BorderRadius.circular(12),
-              ),
+              decoration: LivitContainerStyle.decoration,
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -162,7 +161,9 @@ class _MapLocationPromptState extends State<MapLocationPrompt> {
                                         );
                                       }
                                       WidgetsBinding.instance.addPostFrameCallback((_) {
+                                        if (!mounted) return;
                                         Future.delayed(const Duration(milliseconds: 500), () {
+                                          if (!mounted) return;
                                           _getCoordinates(_locations[index]);
                                         });
                                       });
@@ -235,7 +236,9 @@ class _MapLocationPromptState extends State<MapLocationPrompt> {
         _shouldReinitialize = true;
       });
       WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
         Future.delayed(const Duration(milliseconds: 300), () {
+          if (!mounted) return;
           _getCoordinates(_locations[_index]);
         });
       });
@@ -244,22 +247,16 @@ class _MapLocationPromptState extends State<MapLocationPrompt> {
 
   @override
   Widget build(BuildContext context) {
-    String? errorMessage;
-    bool _isLoading = false;
-    return BlocBuilder<UserBloc, UserState>(
+    return BlocBuilder<LocationBloc, LocationState>(
       builder: (context, state) {
-        if (state is CurrentUser) {
-          if (state.exception is CouldNotUpdateUserException) {
-            errorMessage = 'No se pudo actualizar las ubicaciones, verifica tu conexión e intenta nuevamente mas tarde';
-          } else if (state.exception == null) {
-            errorMessage = null;
-          }
-          if (state.isLoading) {
-            _isLoading = true;
-          } else {
-            _isLoading = false;
-          }
+        if (state is! LocationsLoaded) return ErrorReauthScreen(exception: UserInformationCorruptedException());
+        if (!_isInitialized) {
+          _isInitialized = true;
+          _locations = state.locations;
+          _getCoordinates(_locations.first);
         }
+        String? errorMessage = state.errorMessage;
+        bool isLoading = state.isLoading;
         return Scaffold(
           body: SafeArea(
             child: Center(
@@ -352,12 +349,8 @@ class _MapLocationPromptState extends State<MapLocationPrompt> {
                                                 child: GestureDetector(
                                                   onTap: () {
                                                     setState(() {
-                                                      _locations[index] = Location(
-                                                        name: _locations[index].name,
-                                                        address: _locations[index].address,
+                                                      _locations[index] = _locations[index].copyWith(
                                                         geopoint: null,
-                                                        department: _locations[index].department,
-                                                        city: _locations[index].city,
                                                       );
                                                       _shouldRemoveAnnotation = true;
                                                     });
@@ -392,13 +385,14 @@ class _MapLocationPromptState extends State<MapLocationPrompt> {
                               LivitSpaces.xs,
                               Button.grayText(
                                 isActive: true,
+                                deactivateSplash: true,
                                 text: 'Ver todas las ubicaciones',
                                 onPressed: () async {
                                   _showLocationsDialog(context);
                                 },
                               ),
+                              LivitSpaces.xs,
                             ],
-                            LivitSpaces.xs,
                             Flexible(
                               child: Container(
                                 clipBehavior: Clip.hardEdge,
@@ -431,11 +425,11 @@ class _MapLocationPromptState extends State<MapLocationPrompt> {
                             ),
                             LivitSpaces.m,
                             Button.main(
-                              text: _isLoading ? 'Continuando' : 'Continuar',
-                              isLoading: _isLoading,
+                              text: isLoading ? 'Continuando' : 'Continuar',
+                              isLoading: isLoading,
                               isActive: _locations.every((location) => location.geopoint != null),
                               onPressed: () {
-                                BlocProvider.of<UserBloc>(context).add(SetPromoterUserLocations(locations: _locations));
+                                BlocProvider.of<LocationBloc>(context).add(UpdateLocations(locations: _locations));
                               },
                             ),
                           ],
