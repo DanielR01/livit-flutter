@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:livit/cloud_models/location/location.dart';
@@ -7,7 +5,9 @@ import 'package:livit/cloud_models/location/location_media.dart';
 import 'package:livit/cloud_models/location/location_media_file.dart';
 import 'package:livit/constants/styles/container_style.dart';
 import 'package:livit/constants/styles/livit_text.dart';
+import 'package:livit/constants/styles/spaces.dart';
 import 'package:livit/services/firestore_storage/bloc/locations/location_bloc.dart';
+import 'package:livit/services/firestore_storage/bloc/locations/location_event.dart';
 import 'package:livit/services/firestore_storage/bloc/locations/location_state.dart';
 import 'package:livit/utilities/bars_containers_fields/glass_container.dart';
 import 'package:livit/utilities/buttons/button.dart';
@@ -44,7 +44,7 @@ class _MediaPromptState extends State<MediaPrompt> {
     if (index != -1) {
       final locationToUpdate = _locations[index];
       final updatedLocation =
-          locationToUpdate.copyWith(media: locationToUpdate.media?.copyWith(mainFile: file) ?? LocationMedia(mainFile: file));
+          locationToUpdate.copyWith(media: locationToUpdate.media?.copyWith(mainFile: file) ?? LivitLocationMedia(mainFile: file));
       setState(() {
         _locations[index] = updatedLocation;
       });
@@ -57,22 +57,27 @@ class _MediaPromptState extends State<MediaPrompt> {
       final locationToUpdate = _locations[index];
       final updatedLocation = locationToUpdate.copyWith(
           media: locationToUpdate.media?.copyWith(secondaryFiles: [...(locationToUpdate.media?.secondaryFiles ?? []), file]) ??
-              LocationMedia(secondaryFiles: [file]));
+              LivitLocationMedia(secondaryFiles: [file]));
       setState(() {
         _locations[index] = updatedLocation;
       });
     }
   }
 
-  void _onMainDeleted(LivitLocationMediaFile file, Location location) {}
-
-  void _onSecondaryDeleted(LivitLocationMediaFile file, Location location) {}
-
   void _onMediaReset(Location location) {
     final index = _locations.indexWhere((element) => element.id == location.id);
     if (index != -1) {
       setState(() {
         _locations[index] = location.copyWith(media: null);
+      });
+    }
+  }
+
+  void _onMediaChanged(LivitLocationMedia media, Location location) {
+    final index = _locations.indexWhere((element) => element.id == location.id);
+    if (index != -1) {
+      setState(() {
+        _locations[index] = location.copyWith(media: media);
       });
     }
   }
@@ -87,6 +92,9 @@ class _MediaPromptState extends State<MediaPrompt> {
               _initializeLocations(state.locations);
             }
             List<Location?> locations = state.locations;
+            final isValid = _locations.every((location) => location.media?.mainFile?.file != null);
+            final isLoading = state.isLoading;
+            final errorMessage = state.errorMessage ?? state.failedLocations?.toString();
             return Scaffold(
               body: SafeArea(
                 child: Center(
@@ -118,21 +126,38 @@ class _MediaPromptState extends State<MediaPrompt> {
                                   ),
                                 ),
                               ),
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                mainAxisSize: MainAxisSize.max,
-                                children: [
-                                  Button.grayText(
-                                    isActive: true,
-                                    text: 'Completar más tarde',
-                                    onPressed: () {},
-                                  ),
-                                  Button.main(
-                                    isActive: true,
-                                    text: 'Continuar',
-                                    onPressed: () {},
-                                  ),
-                                ],
+                              if (errorMessage != null) ...[
+                                LivitSpaces.s,
+                                LivitText(errorMessage),
+                                LivitSpaces.s,
+                              ],
+                              Padding(
+                                padding: EdgeInsets.only(right: LivitContainerStyle.horizontalPadding),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  mainAxisSize: MainAxisSize.max,
+                                  children: [
+                                    Button.grayText(
+                                      deactivateSplash: true,
+                                      isActive: true,
+                                      text: isLoading ? 'Completando' : 'Completar más tarde',
+                                      isLoading: isLoading,
+                                      rightIcon: Icons.arrow_forward_ios,
+                                      onPressed: () {
+                                        _locations = _locations.map((location) => location.copyWith(media: LivitLocationMedia())).toList();
+                                        BlocProvider.of<LocationBloc>(context).add(UpdateLocationsMedia(locations: _locations));
+                                      },
+                                    ),
+                                    Button.main(
+                                      isActive: isValid,
+                                      text: isLoading ? 'Continuando' : 'Continuar',
+                                      isLoading: isLoading,
+                                      onPressed: () {
+                                        BlocProvider.of<LocationBloc>(context).add(UpdateLocationsMedia(locations: _locations));
+                                      },
+                                    ),
+                                  ],
+                                ),
                               ),
                             ],
                           ),
@@ -167,8 +192,7 @@ class _MediaPromptState extends State<MediaPrompt> {
               location: location,
               onMainSelected: _onMainSelected,
               onSecondarySelected: _onSecondarySelected,
-              onMainDeleted: _onMainDeleted,
-              onSecondaryDeleted: _onSecondaryDeleted,
+              onMediaChanged: _onMediaChanged,
               onMediaReset: _onMediaReset),
         );
       },

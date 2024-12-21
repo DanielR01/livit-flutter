@@ -6,7 +6,8 @@ import 'package:livit/constants/styles/container_style.dart';
 enum ShadowType {
   strong,
   normal,
-  weak, none,
+  weak,
+  none,
 }
 
 class LivitBar extends StatelessWidget {

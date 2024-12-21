@@ -16,6 +16,7 @@ enum ButtonType {
   blueText,
   mainRed,
   grayText,
+  icon,
 }
 
 class Button extends StatefulWidget {
@@ -191,6 +192,16 @@ class Button extends StatefulWidget {
           forceOnPressed: forceOnPressed,
           leftIcon: leftIcon,
           rightIcon: rightIcon,
+          boxShadow: boxShadow,
+          deactivateSplash: deactivateSplash,
+          isIconBig: isIconBig,
+        );
+      case ButtonType.icon:
+        return Button.icon(
+          isActive: isActive,
+          onPressed: onPressed,
+          icon: rightIcon,
+          forceOnPressed: forceOnPressed,
           boxShadow: boxShadow,
           deactivateSplash: deactivateSplash,
           isIconBig: isIconBig,
@@ -496,6 +507,37 @@ class Button extends StatefulWidget {
       boxShadow: boxShadow,
       deactivateSplash: deactivateSplash,
       isIconBig: isIconBig,
+    );
+  }
+
+  factory Button.icon({
+    required bool isActive,
+    required VoidCallback onPressed,
+    IconData? icon,
+    bool? forceOnPressed,
+    List<BoxShadow>? boxShadow,
+    bool deactivateSplash = false,
+    bool isIconBig = true,
+    Color? activeColor,
+    Color? inactiveColor,
+    bool isShadowActive = false,
+  }) {
+    return Button(
+      text: null,
+      onPressed: onPressed,
+      isActive: isActive,
+      blueStyle: false,
+      isShadowActive: isShadowActive,
+      transparent: false,
+      bold: false,
+      rightIcon: icon,
+      forceOnPressed: forceOnPressed,
+      boxShadow: boxShadow,
+      deactivateSplash: deactivateSplash,
+      isIconBig: isIconBig,
+      activeTextColor: activeColor ?? LivitColors.whiteActive,
+      inactiveTextColor: inactiveColor ?? LivitColors.whiteInactive,
+      inactiveBackgroundColor: LivitColors.mainBlack,
     );
   }
 

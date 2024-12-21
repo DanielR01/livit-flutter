@@ -284,7 +284,6 @@ class _MapLocationPromptState extends State<MapLocationPrompt> {
                                 clipBehavior: Clip.none,
                                 itemCount: _locations.length,
                                 controller: _pageController,
-                                //controller: PageController(viewportFraction: 0.85),
                                 onPageChanged: (index) async {
                                   if (index == _index) return;
                                   setState(() {

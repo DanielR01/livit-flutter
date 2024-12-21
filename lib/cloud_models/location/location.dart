@@ -9,7 +9,7 @@ class Location {
   final String department;
   final String city;
   final String? description;
-  final LocationMedia? media;
+  final LivitLocationMedia? media;
 
   Location(
       {required this.id,
@@ -41,7 +41,7 @@ class Location {
       String? department,
       String? city,
       String? description,
-      LocationMedia? media}) {
+      LivitLocationMedia? media}) {
     return Location(
       id: id ?? this.id,
       name: name ?? this.name,
@@ -56,6 +56,7 @@ class Location {
 
   factory Location.fromDocument(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>;
+
     return Location(
       id: doc.id,
       name: data['name'] as String,
@@ -64,7 +65,7 @@ class Location {
       department: data['department'] as String,
       city: data['city'] as String,
       description: data['description'] as String?,
-      media: data['media'] != null ? LocationMedia.fromMap(data['media'] as Map<String, dynamic>) : null,
+      media: data['media'] != null ? LivitLocationMedia.fromMap(data['media'] as Map<String, dynamic>) : null,
     );
   }
 
@@ -77,7 +78,7 @@ class Location {
       department: map['department'] as String,
       city: map['city'] as String,
       description: map['description'] as String?,
-      media: map['media'] != null ? LocationMedia.fromMap(map['media'] as Map<String, dynamic>) : null,
+      media: map['media'] != null ? LivitLocationMedia.fromMap(map['media'] as Map<String, dynamic>) : null,
     );
   }
 
@@ -86,4 +87,3 @@ class Location {
     return 'Location(name: $name, address: $address, geopoint: $geopoint, department: $department, city: $city, description: $description, media: $media)';
   }
 }
-

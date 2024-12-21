@@ -1,27 +1,27 @@
 import 'package:livit/cloud_models/location/location_media_file.dart';
 
-class LocationMedia {
+class LivitLocationMedia {
   final LivitLocationMediaFile? mainFile;
   final List<LivitLocationMediaFile?>? secondaryFiles;
 
-  LocationMedia({this.mainFile, this.secondaryFiles});
+  LivitLocationMedia({this.mainFile, this.secondaryFiles});
 
   Map<String, dynamic> toMap() {
     return {
-      'mainFile': mainFile,
-      'secondaryFiles': secondaryFiles,
+      'mainFile': mainFile?.toMap(),
+      'secondaryFiles': secondaryFiles?.map((file) => file?.toMap()).toList(),
     };
   }
 
-  factory LocationMedia.fromMap(Map<String, dynamic> map) {
-    return LocationMedia(
-      mainFile: map['mainFile'] as LivitLocationMediaFile?,
-      secondaryFiles: map['secondaryFiles'] as List<LivitLocationMediaFile?>?,
+  factory LivitLocationMedia.fromMap(Map<String, dynamic> map) {
+    return LivitLocationMedia(
+      mainFile: map['mainFile'] != null ? LivitLocationMediaFile.fromMap(map['mainFile'] as Map<String, dynamic>) : null,
+      secondaryFiles: map['secondaryFiles'] != null ? (map['secondaryFiles'] as List<dynamic>).map((file) => LivitLocationMediaFile.fromMap(file as Map<String, dynamic>)).toList() : null,
     );
   }
 
-  LocationMedia copyWith({LivitLocationMediaFile? mainFile, List<LivitLocationMediaFile?>? secondaryFiles}) {
-    return LocationMedia(
+  LivitLocationMedia copyWith({LivitLocationMediaFile? mainFile, List<LivitLocationMediaFile?>? secondaryFiles}) {
+    return LivitLocationMedia(
       mainFile: mainFile ?? this.mainFile,
       secondaryFiles: secondaryFiles ?? this.secondaryFiles,
     );

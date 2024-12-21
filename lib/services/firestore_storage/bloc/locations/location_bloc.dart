@@ -19,7 +19,7 @@ class LocationBloc extends Bloc<LocationEvent, LocationState> {
     on<UpdateLocation>(_onUpdateLocation);
     on<UpdateLocations>(_onUpdateLocations);
     on<DeleteLocation>(_onDeleteLocation);
-    //on<UpdateLocationMedia>(_onUpdateLocationMedia);
+    on<UpdateLocationsMedia>(_onUpdateLocationsMedia);
   }
 
   bool get isInitialized => _userId != null;
@@ -55,24 +55,29 @@ class LocationBloc extends Bloc<LocationEvent, LocationState> {
     }
   }
 
-  // Future<void> _onUpdateLocationMedia(
-  //   UpdateLocationMedia event,
-  //   Emitter<LocationState> emit,
-  // ) async {
-  //   _ensureInitialized();
-  //   if (state is! LocationsLoaded) return;
-
-  //   emit(const LocationLoading());
-  //   try {
-  //     final updatedLocation = await event.location.addMedia(images: event.images);
-  //     await _cloudStorage.locationMethods.updateLocation(_userId!, updatedLocation);
-
-  //     final locations = await _cloudStorage.locationMethods.getUserLocations(_userId!);
-  //     emit(LocationsLoaded(locations: locations));
-  //   } catch (e) {
-  //     emit(LocationsLoaded(locations: _locations, errorMessage: e.toString()));
-  //   }
-  // }
+  Future<void> _onUpdateLocationsMedia(
+    UpdateLocationsMedia event,
+    Emitter<LocationState> emit,
+  ) async {
+    _ensureInitialized();
+    emit(LocationsLoaded(locations: _locations, isLoading: true));
+    Map<Location, String>? failedLocations;
+    try {
+      for (var location in event.locations) {
+        try {
+          await _cloudStorage.locationMethods.updateLocation(_userId!, location);
+        } catch (e) {
+          failedLocations ??= {};
+          failedLocations[location] = e.toString();
+        }
+      }
+      final locations = await _cloudStorage.locationMethods.getUserLocations(_userId!);
+      emit(LocationsLoaded(locations: locations, failedLocations: failedLocations));
+      _locations = locations;
+    } catch (e) {
+      emit(LocationsLoaded(locations: _locations, errorMessage: e.toString()));
+    }
+  }
 
   Future<void> _onCreateLocations(
     CreateLocations event,

@@ -122,7 +122,7 @@ class _GetOrCreateUserViewState extends State<GetOrCreateUserView> {
                           } else if (locations.isNotEmpty &&
                               !privateData.noLocations &&
                               !locations.any((location) => location.geopoint == null) &&
-                              (locations.any((location) => location.media?.mainFile?.url == null))) {
+                              (locations.any((location) => location.media == null))) {
                             return const MediaPrompt();
                           } else {
                             return ErrorReauthScreen(exception: UserInformationCorruptedException());

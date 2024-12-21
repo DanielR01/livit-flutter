@@ -1,32 +1,64 @@
 import 'dart:io';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:image_cropper/image_cropper.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:livit/cloud_models/location/location_media_file.dart';
 import 'package:livit/constants/colors.dart';
-import 'package:livit/constants/styles/button_style.dart';
+import 'package:livit/constants/styles/bar_style.dart';
+import 'package:livit/constants/styles/container_style.dart';
 import 'package:livit/constants/styles/livit_text.dart';
 import 'package:livit/constants/styles/spaces.dart';
 import 'package:livit/services/video/export_video_service.dart';
+import 'package:livit/utilities/buttons/arrow_back_button.dart';
 import 'package:livit/utilities/buttons/button.dart';
-import 'package:livit/utilities/video_editor/crop_page.dart';
+import 'package:livit/utilities/media/video_editor/crop_page.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:video_editor/video_editor.dart';
 
-class VideoEditor extends StatefulWidget {
-  const VideoEditor({super.key, required this.file});
+class LivitMediaEditor extends StatefulWidget {
+  final String videoPath;
+  final String? coverPath;
 
-  final File file;
+  const LivitMediaEditor({super.key, required this.videoPath, this.coverPath});
 
   @override
-  State<VideoEditor> createState() => _VideoEditorState();
+  State<LivitMediaEditor> createState() => _LivitMediaEditorState();
+
+  static Future<File?> cropImage(String sourcePath) async {
+    final croppedFile = await ImageCropper().cropImage(
+      sourcePath: sourcePath,
+      aspectRatio: const CropAspectRatio(ratioX: 9, ratioY: 16),
+      uiSettings: [
+        AndroidUiSettings(
+          toolbarTitle: 'Ajustar imagen',
+          toolbarColor: LivitColors.mainBlack,
+          toolbarWidgetColor: Colors.white,
+          initAspectRatio: CropAspectRatioPreset.ratio16x9,
+          lockAspectRatio: true,
+        ),
+        IOSUiSettings(
+          title: 'Ajustar imagen',
+          aspectRatioLockEnabled: true,
+          resetAspectRatioEnabled: false,
+          rotateButtonsHidden: true,
+        ),
+      ],
+    );
+
+    return croppedFile != null ? File(croppedFile.path) : null;
+  }
 }
 
-class _VideoEditorState extends State<VideoEditor> with TickerProviderStateMixin {
+class _LivitMediaEditorState extends State<LivitMediaEditor> with TickerProviderStateMixin {
   final _exportingProgress = ValueNotifier<double>(0.0);
   final _isExporting = ValueNotifier<bool>(false);
-  final double height = 60;
+  final double height = LivitBarStyle.height;
+
+  String? _coverPath;
 
   late final VideoEditorController _controller = VideoEditorController.file(
-    widget.file,
+    File(widget.videoPath),
     minDuration: const Duration(seconds: 1),
     maxDuration: const Duration(seconds: 10),
   );
@@ -36,9 +68,9 @@ class _VideoEditorState extends State<VideoEditor> with TickerProviderStateMixin
   @override
   void initState() {
     super.initState();
+    _coverPath = widget.coverPath;
     _tabController = TabController(length: 2, vsync: this);
     _controller.initialize(aspectRatio: 9 / 16).then((_) => setState(() {})).catchError((error) {
-      // handle minumum duration bigger than video duration error
       if (mounted) {
         Navigator.pop(context);
       }
@@ -94,6 +126,19 @@ class _VideoEditorState extends State<VideoEditor> with TickerProviderStateMixin
   }
 
   Future<void> _exportCover(File videoFile) async {
+    if (_coverPath != null) {
+      final LivitLocationMediaImage coverImage = LivitLocationMediaImage(
+        file: File(_coverPath!),
+        url: '',
+      );
+      final LivitLocationMediaVideo video = LivitLocationMediaVideo(
+        file: videoFile,
+        url: '',
+        cover: coverImage,
+      );
+      Navigator.pop(context, video);
+      return;
+    }
     final config = CoverFFmpegVideoEditorConfig(_controller);
     final execute = await config.getExecuteConfig();
     if (execute == null) {
@@ -124,9 +169,7 @@ class _VideoEditorState extends State<VideoEditor> with TickerProviderStateMixin
   @override
   Widget build(BuildContext context) {
     return PopScope(
-      onPopInvokedWithResult: (didPop, result) async {
-  
-      },
+      onPopInvokedWithResult: (didPop, result) async {},
       child: Scaffold(
         backgroundColor: Colors.black,
         body: _controller.initialized
@@ -172,7 +215,7 @@ class _VideoEditorState extends State<VideoEditor> with TickerProviderStateMixin
                                         ),
                                       ],
                                     ),
-                                    CoverViewer(controller: _controller)
+                                    _coverPath == null ? CoverViewer(controller: _controller) : Image.asset(_coverPath!)
                                   ],
                                 ),
                               ),
@@ -262,11 +305,13 @@ class _VideoEditorState extends State<VideoEditor> with TickerProviderStateMixin
   }
 
   Widget _topNavBar() {
-    return SafeArea(
-      child: SizedBox(
-        height: height,
+    return SizedBox(
+      height: height,
+      child: Padding(
+        padding: LivitContainerStyle.paddingFromScreen,
         child: Row(
           children: [
+            ArrowBackButton(onPressed: () => Navigator.pop(context)),
             Expanded(
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -382,29 +427,70 @@ class _VideoEditorState extends State<VideoEditor> with TickerProviderStateMixin
   }
 
   Widget _coverSelection() {
-    return SingleChildScrollView(
-      child: Center(
-        child: Container(
-          margin: const EdgeInsets.all(15),
-          child: CoverSelection(
-            controller: _controller,
-            size: height + 10,
-            quantity: 20,
-            selectedCoverBuilder: (cover, size) {
-              return Stack(
-                alignment: Alignment.center,
-                children: [
-                  cover,
-                  Icon(
-                    Icons.check_circle,
-                    color: const CoverSelectionStyle().selectedBorderColor,
-                  )
-                ],
-              );
+    if (_coverPath != null) {
+      return Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Button.secondary(
+            isActive: true,
+            onPressed: () {
+              _coverPath = null;
+              setState(() {});
             },
+            text: 'Eliminar portada',
           ),
+        ],
+      );
+    }
+    return SingleChildScrollView(
+      child: Padding(
+        padding: LivitContainerStyle.padding(),
+        child: Column(
+          children: [
+            SizedBox(
+              width: double.infinity,
+              child: Button.secondary(
+                isActive: true,
+                onPressed: () async {
+                  final cover = await ImagePicker().pickImage(source: ImageSource.gallery);
+                  if (cover == null) return;
+                  final croppedFile = await LivitMediaEditor.cropImage(cover.path);
+                  if (croppedFile == null) return;
+                  _coverPath = croppedFile.path;
+                  setState(() {});
+                },
+                text: 'Subir portada',
+                rightIcon: CupertinoIcons.upload_circle,
+              ),
+            ),
+            LivitSpaces.s,
+            Center(
+              child: CoverSelection(
+                controller: _controller,
+                size: height,
+                quantity: 20,
+                wrap: Wrap(
+                  spacing: LivitSpaces.xsDouble,
+                  runSpacing: LivitSpaces.xsDouble,
+                ),
+                selectedCoverBuilder: (cover, size) {
+                  return Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      cover,
+                      Icon(
+                        Icons.check_circle,
+                        color: const CoverSelectionStyle().selectedBorderColor,
+                      )
+                    ],
+                  );
+                },
+              ),
+            ),
+          ],
         ),
       ),
     );
   }
 }
+

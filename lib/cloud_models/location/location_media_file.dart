@@ -14,17 +14,16 @@ class LivitLocationMediaFile {
 
   Map<String, dynamic> toMap() {
     return {
-      'type': type,
+      'type': type.name,
       'url': url,
-      'file': file,
     };
-  } 
+  }
 
   factory LivitLocationMediaFile.fromMap(Map<String, dynamic> map) {
     return LivitLocationMediaFile(
-      type: map['type'],
+      type: LivitLocationMediaType.values.firstWhere((e) => e.name == map['type']),
       url: map['url'],
-      file: map['file'] as File?,
+      file: null,
     );
   }
 
@@ -43,12 +42,12 @@ class LivitLocationMediaFile {
 }
 
 class LivitLocationMediaImage extends LivitLocationMediaFile {
-  LivitLocationMediaImage({ required super.url, required super.file}) : super(type: LivitLocationMediaType.image);
+  LivitLocationMediaImage({required super.url, required super.file}) : super(type: LivitLocationMediaType.image);
 
   factory LivitLocationMediaImage.fromMap(Map<String, dynamic> map) {
     return LivitLocationMediaImage(
       url: map['url'],
-      file: map['file'] as File?,
+      file: null,
     );
   }
 
@@ -61,7 +60,7 @@ class LivitLocationMediaImage extends LivitLocationMediaFile {
 class LivitLocationMediaVideo extends LivitLocationMediaFile {
   final LivitLocationMediaImage cover;
 
-  LivitLocationMediaVideo({ required super.url, required super.file, required this.cover}) : super(type: LivitLocationMediaType.video);
+  LivitLocationMediaVideo({required super.url, required super.file, required this.cover}) : super(type: LivitLocationMediaType.video);
 
   @override
   Map<String, dynamic> toMap() {
@@ -74,7 +73,7 @@ class LivitLocationMediaVideo extends LivitLocationMediaFile {
   factory LivitLocationMediaVideo.fromMap(Map<String, dynamic> map) {
     return LivitLocationMediaVideo(
       url: map['url'],
-      file: map['file'] as File?,
+      file: null,
       cover: LivitLocationMediaImage.fromMap(map['cover']),
     );
   }

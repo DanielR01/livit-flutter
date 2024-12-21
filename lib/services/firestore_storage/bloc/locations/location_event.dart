@@ -1,5 +1,5 @@
-import 'dart:io';
 import 'package:livit/cloud_models/location/location.dart';
+import 'package:livit/cloud_models/location/location_media.dart';
 
 abstract class LocationEvent {
   const LocationEvent();
@@ -17,11 +17,18 @@ class LoadUserLocations extends LocationEvent {
 
 class UpdateLocationMedia extends LocationEvent {
   final Location location;
-  final List<File> images;
 
   const UpdateLocationMedia({
     required this.location,
-    required this.images,
+  });
+}
+
+class UpdateLocationsMedia extends LocationEvent {
+  final List<Location> locations;
+
+
+  const UpdateLocationsMedia({
+    required this.locations,
   });
 }
 

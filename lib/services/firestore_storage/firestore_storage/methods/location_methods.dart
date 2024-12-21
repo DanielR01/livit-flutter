@@ -22,4 +22,5 @@ class LocationMethods {
     final locationRef = _collections.locationsCollection(userId).doc(location.id);
     await locationRef.update(location.toMap());
   }
+
 }
