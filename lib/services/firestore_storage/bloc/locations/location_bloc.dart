@@ -445,4 +445,41 @@ class LocationBloc extends Bloc<LocationEvent, LocationState> {
       loadingStates: _loadingStates,
     ));
   }
+
+  Map<String, bool> isLocationValid(Location location) {
+    final bool isNameValid = location.name != '' && 
+                           location.name.isNotEmpty && 
+                           location.name.length < 30;
+    
+    final bool isAddressValid = location.address != '' && 
+                               location.address.isNotEmpty && 
+                               location.address.length < 50;
+    
+    final bool isDepartmentValid = location.department != '' && 
+                                  location.department.isNotEmpty;
+    
+    final bool isCityValid = location.city != '' && 
+                            location.city.isNotEmpty;
+    
+    final bool isDescriptionValid = (location.description?.length ?? 0) <= 50;
+    
+    final bool isMediaValid = location.media?.mainFile?.filePath != null;
+
+    return {
+      'isValid': isNameValid && isAddressValid && isDepartmentValid && isCityValid && isDescriptionValid && isMediaValid,
+      'isValidWithoutMedia': isNameValid && isAddressValid && isDepartmentValid && isCityValid && isDescriptionValid,
+      'isNameValid': isNameValid,
+      'isAddressValid': isAddressValid,
+      'isDepartmentValid': isDepartmentValid,
+      'isCityValid': isCityValid,
+      'isDescriptionValid': isDescriptionValid,
+      'isMediaValid': isMediaValid
+    };
+  }
+
+  bool get areAllLocationsValid => 
+    locations.every((location) => isLocationValid(location)['isValid'] as bool);
+
+  bool get areAllLocationsValidWithoutMedia => 
+    locations.every((location) => isLocationValid(location)['isValidWithoutMedia'] as bool);
 }

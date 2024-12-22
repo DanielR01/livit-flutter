@@ -45,9 +45,6 @@ class _LocationAddressPromptFieldState extends State<LocationAddressPromptField>
   final _descriptionControllerKey = GlobalKey();
   final _stateCityControllerKey = GlobalKey();
 
-  String? selectedState;
-  String? selectedCity;
-
   @override
   void initState() {
     super.initState();
@@ -80,12 +77,12 @@ class _LocationAddressPromptFieldState extends State<LocationAddressPromptField>
     });
 
     _loadStatesAndCityData();
-    _validateLocation();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _calculateAddressContainerHeight();
     });
 
+    locationBloc = BlocProvider.of<LocationBloc>(context);
   }
 
   @override
@@ -96,6 +93,9 @@ class _LocationAddressPromptFieldState extends State<LocationAddressPromptField>
     super.dispose();
   }
 
+  late final LocationBloc locationBloc;
+  late Map<String, bool> isLocationValid;
+
   void _calculateAddressContainerHeight() {
     final addressContainerHeight = _addressControllerKey.currentContext?.size?.height ?? 0;
     final nameContainerHeight = _nameControllerKey.currentContext?.size?.height ?? 0;
@@ -105,13 +105,6 @@ class _LocationAddressPromptFieldState extends State<LocationAddressPromptField>
     final stateCityContainerHeight = _stateCityControllerKey.currentContext?.size?.height ?? 0;
     _addressContainerHeight =
         addressContainerHeight + nameContainerHeight + descriptionContainerHeight + spacesHeight + paddingHeight + stateCityContainerHeight;
-  }
-
-  void _validateLocation() {
-    setState(() {
-      isValid =
-          widget.location.name != '' && widget.location.address != '' && widget.location.department != '' && widget.location.city != '';
-    });
   }
 
   Future<void> _loadStatesAndCityData() async {
@@ -147,12 +140,14 @@ class _LocationAddressPromptFieldState extends State<LocationAddressPromptField>
             key: _nameControllerKey,
             controller: _nameController,
             hint: 'Nombre',
+            externalIsValid: isLocationValid['isNameValid'] as bool,
           ),
           LivitSpaces.s,
           LivitTextField(
             key: _addressControllerKey,
             controller: _addressController,
             hint: 'Dirección',
+            externalIsValid: isLocationValid['isAddressValid'] as bool,
           ),
           LivitSpaces.s,
           LivitTextField(
@@ -162,6 +157,7 @@ class _LocationAddressPromptFieldState extends State<LocationAddressPromptField>
             isMultiline: true,
             lines: 2,
             bottomCaptionWidget: _buildBottomCaptionCharCount(),
+            externalIsValid: isLocationValid['isDescriptionValid'] as bool,
           ),
           LivitSpaces.s,
           Row(
@@ -179,18 +175,19 @@ class _LocationAddressPromptFieldState extends State<LocationAddressPromptField>
                     )
                     .toList(),
                 onSelected: (value) {
-                  setState(() {
-                    selectedState = value;
-                    selectedCity = null;
-                  });
+                  BlocProvider.of<LocationBloc>(context).add(
+                    UpdateLocationLocally(
+                      location: widget.location.copyWith(department: value, city: ''),
+                    ),
+                  );
                 },
                 defaultText: 'Departamento',
                 isActive: true,
-                selectedValue: selectedState == '' ? null : selectedState,
+                selectedValue: widget.location.department == '' ? null : widget.location.department,
               ),
               LivitSpaces.s,
               LivitDropdownButton(
-                entries: (citiesByState[selectedState] ?? [])
+                entries: (citiesByState[widget.location.department] ?? [])
                     .map(
                       (city) => DropdownMenuEntry<String>(
                         value: city,
@@ -199,13 +196,15 @@ class _LocationAddressPromptFieldState extends State<LocationAddressPromptField>
                     )
                     .toList(),
                 onSelected: (value) {
-                  setState(() {
-                    selectedCity = value;
-                  });
+                  BlocProvider.of<LocationBloc>(context).add(
+                    UpdateLocationLocally(
+                      location: widget.location.copyWith(city: value),
+                    ),
+                  );
                 },
                 defaultText: 'Ciudad',
-                isActive: (selectedState != null && selectedState != ''),
-                selectedValue: selectedCity == '' ? null : selectedCity,
+                isActive: (widget.location.department != ''),
+                selectedValue: widget.location.city == '' ? null : widget.location.city,
               ),
             ],
           ),
@@ -216,8 +215,10 @@ class _LocationAddressPromptFieldState extends State<LocationAddressPromptField>
 
   @override
   Widget build(BuildContext context) {
+    isLocationValid = locationBloc.isLocationValid(widget.location);
     return LivitBar(
       noPadding: true,
+      shadowType: isLocationValid['isValidWithoutMedia'] as bool ? ShadowType.weak : ShadowType.strong,
       child: Column(
         children: [
           LivitBar(
@@ -228,6 +229,10 @@ class _LocationAddressPromptFieldState extends State<LocationAddressPromptField>
                 setState(() {
                   isEditing = !isEditing;
                 });
+                final currentFocus = FocusScope.of(context);
+                if (!currentFocus.hasPrimaryFocus) {
+                  currentFocus.unfocus();
+                }
               },
               child: Column(
                 children: [
@@ -242,7 +247,7 @@ class _LocationAddressPromptFieldState extends State<LocationAddressPromptField>
                             children: [
                               Icon(
                                 Icons.circle,
-                                color: isValid ? LivitColors.mainBlueActive : LivitColors.red,
+                                color: isLocationValid['isValidWithoutMedia'] as bool ? LivitColors.mainBlueActive : LivitColors.red,
                                 size: 6.sp,
                               ),
                               SizedBox(width: 6.sp),
@@ -279,7 +284,13 @@ class _LocationAddressPromptFieldState extends State<LocationAddressPromptField>
                         Row(
                           children: [
                             GestureDetector(
-                              onTap: () {},
+                              onTap: () {
+                                BlocProvider.of<LocationBloc>(context).add(
+                                  DeleteLocationLocally(
+                                    location: widget.location,
+                                  ),
+                                );
+                              },
                               child: Container(
                                 color: Colors.transparent,
                                 child: Padding(

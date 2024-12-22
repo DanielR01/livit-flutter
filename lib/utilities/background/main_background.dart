@@ -187,7 +187,7 @@ class _MainBackgroundState extends State<MainBackground> with TickerProviderStat
   List<int> animationStates = [];
 
   // Lower frame rate but maintain speed
-  static const int _targetFrameRate = 20;
+  static const int _targetFrameRate = 15;
   static const double _frameInterval = 1000.0 / _targetFrameRate;
   static const double _animationIncrement = 0.001 * (60.0 / _targetFrameRate); // Adjust increment for lower FPS
   Duration _lastFrameTime = Duration.zero;

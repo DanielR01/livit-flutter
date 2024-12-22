@@ -9,8 +9,8 @@ import 'package:livit/services/firestore_storage/bloc/locations/location_bloc.da
 import 'package:livit/services/firestore_storage/bloc/locations/location_event.dart';
 import 'package:livit/services/firestore_storage/bloc/locations/location_state.dart';
 import 'package:livit/services/firestore_storage/firestore_storage/exceptions/firestore_exceptions.dart';
-import 'package:livit/utilities/background/main_background.dart';
 import 'package:livit/utilities/bars_containers_fields/glass_container.dart';
+import 'package:livit/utilities/bars_containers_fields/keyboard_dismissible.dart';
 import 'package:livit/utilities/buttons/button.dart';
 import 'package:livit/utilities/error_screens/error_reauth_screen.dart';
 import 'package:livit/utilities/livit_scrollbar.dart';
@@ -50,87 +50,86 @@ class _AddressPromptState extends State<AddressPrompt> {
           return ErrorReauthScreen(exception: UserInformationCorruptedException());
         }
 
-        _locations = BlocProvider.of<LocationBloc>(context).locations;
-        final isValid = _locations.every((location) => location.media?.mainFile?.filePath != null);
-        final isCloudLoading = LocationBloc().isCloudLoading;
+        final locationBloc = BlocProvider.of<LocationBloc>(context);
+        _locations = locationBloc.locations;
+        final isValid = locationBloc.areAllLocationsValidWithoutMedia && state.localUnsavedLocations.isNotEmpty;
+        final isCloudLoading = locationBloc.isCloudLoading && state.loadingStates.entries.any((entry) => entry.key != 'cloud');
         final errorMessage = state.errorMessage ?? state.failedLocations?.toString();
 
-        return Scaffold(
-          body: Stack(
-            children: [
-              MainBackground.colorful(blurred: false),
-              SafeArea(
-                child: Center(
-                  child: Padding(
-                    padding: LivitContainerStyle.paddingFromScreen,
-                    child: GlassContainer(
-                      hasPadding: false,
-                      titleBarText: '¿Dónde estás ubicado?',
-                      child: Flexible(
-                        child: Padding(
-                          padding: LivitContainerStyle.padding(padding: [0, 0, null, 0]),
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Padding(
-                                padding: LivitContainerStyle.padding(padding: [0, null, 0, null]),
-                                child: LivitText(
-                                  'Agrega todas las ubicaciones que desees, si no tienes un local físico o deseas completar esta información mas tarde, puedes continuar con el siguiente paso eliminando todas las ubicaciones.',
-                                ),
+        return KeyboardDismissible(
+          child: Scaffold(
+            resizeToAvoidBottomInset: false,
+            body: SafeArea(
+              child: Center(
+                child: Padding(
+                  padding: LivitContainerStyle.paddingFromScreen,
+                  child: GlassContainer(
+                    hasPadding: false,
+                    titleBarText: 'Agrega tus ubicaciones',
+                    child: Flexible(
+                      child: Padding(
+                        padding: LivitContainerStyle.padding(padding: [0, 0, null, 0]),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Padding(
+                              padding: LivitContainerStyle.padding(padding: [0, null, 0, null]),
+                              child: LivitText(
+                                'Agrega todas las ubicaciones que desees, si no tienes un local físico o deseas completar esta información mas tarde, puedes continuar con el siguiente paso.',
                               ),
-                              Flexible(
-                                child: Padding(
-                                  padding: EdgeInsets.symmetric(vertical: LivitContainerStyle.verticalPadding / 2),
-                                  child: LivitScrollbar(
-                                    thumbVisibility: true,
-                                    controller: _scrollController,
-                                    child: _locationsScroller(
-                                      scrollController: _scrollController,
-                                    ),
+                            ),
+                            Flexible(
+                              child: Padding(
+                                padding: EdgeInsets.symmetric(vertical: LivitContainerStyle.verticalPadding / 2),
+                                child: LivitScrollbar(
+                                  thumbVisibility: true,
+                                  controller: _scrollController,
+                                  child: _locationsScroller(
+                                    scrollController: _scrollController,
                                   ),
                                 ),
                               ),
-                              if (errorMessage != null) ...[
-                                LivitSpaces.s,
-                                LivitText(errorMessage),
-                                LivitSpaces.s,
-                              ],
-                              Padding(
-                                padding: EdgeInsets.only(right: LivitContainerStyle.horizontalPadding),
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  mainAxisSize: MainAxisSize.max,
-                                  children: [
-                                    Button.grayText(
-                                      deactivateSplash: true,
-                                      isActive: true,
-                                      text: isCloudLoading ? 'Completando' : 'Completar más tarde',
-                                      isLoading: isCloudLoading,
-                                      rightIcon: Icons.arrow_forward_ios,
-                                      onPressed: () {
-                                        // TODO: Implement this
-                                      },
-                                    ),
-                                    Button.main(
-                                      isActive: isValid,
-                                      text: isCloudLoading ? 'Continuando' : 'Continuar',
-                                      isLoading: isCloudLoading,
-                                      onPressed: () {
-                                        // TODO: Implement this
-                                      },
-                                    ),
-                                  ],
-                                ),
-                              ),
+                            ),
+                            if (errorMessage != null) ...[
+                              LivitSpaces.s,
+                              LivitText(errorMessage),
+                              LivitSpaces.s,
                             ],
-                          ),
+                            Padding(
+                              padding: EdgeInsets.only(right: LivitContainerStyle.horizontalPadding),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                mainAxisSize: MainAxisSize.max,
+                                children: [
+                                  Button.grayText(
+                                    deactivateSplash: true,
+                                    isActive: true,
+                                    text: isCloudLoading ? 'Completando' : 'Completar más tarde',
+                                    isLoading: isCloudLoading,
+                                    rightIcon: Icons.arrow_forward_ios,
+                                    onPressed: () {
+                                      // TODO: Implement this
+                                    },
+                                  ),
+                                  Button.main(
+                                    isActive: isValid,
+                                    text: isCloudLoading ? 'Continuando' : 'Continuar',
+                                    isLoading: isCloudLoading,
+                                    onPressed: () {
+                                      // TODO: Implement this
+                                    },
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ),
                   ),
                 ),
               ),
-            ],
+            ),
           ),
         );
       },

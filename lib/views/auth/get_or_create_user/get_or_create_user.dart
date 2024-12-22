@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:livit/cloud_models/location/location.dart';
 import 'package:livit/cloud_models/user/cloud_user.dart';
 import 'package:livit/cloud_models/user/private_data.dart';
 import 'package:livit/constants/enums.dart';
