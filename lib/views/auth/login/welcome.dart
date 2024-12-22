@@ -43,36 +43,40 @@ class _WelcomeViewState extends State<WelcomeView> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.transparent,
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            if (displayLivit)
-              Animate(
-                effects: [
-                  FadeEffect(duration: 500.ms, curve: Curves.easeOut),
-                ],
-                child: const LivitText(
-                  'LIVIT',
-                  textType: LivitTextType.bigTitle,
-                ),
-              ),
-            if (displayContent)
-              Animate(
-                effects: [
-                  FadeEffect(duration: 500.ms, curve: Curves.easeOut),
-                  SlideEffect(
-                    begin: const Offset(0, 0.05),
-                    end: Offset.zero,
-                    duration: 500.ms,
-                    curve: Curves.easeOut,
-                  ),
-                ],
-                child: WelcomeMessage(animationsCompleted: animationsCompleted),
-              ),
-          ],
-        ),
-      ),
+      body: 
+ 
+              
+              Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    if (displayLivit)
+                      Animate(
+                        effects: [
+                          FadeEffect(duration: 500.ms, curve: Curves.easeOut),
+                        ],
+                        child: const LivitText(
+                          'LIVIT',
+                          textType: LivitTextType.bigTitle,
+                        ),
+                      ),
+                    if (displayContent)
+                      Animate(
+                        effects: [
+                          FadeEffect(duration: 500.ms, curve: Curves.easeOut),
+                          SlideEffect(
+                            begin: const Offset(0, 0.05),
+                            end: Offset.zero,
+                            duration: 500.ms,
+                            curve: Curves.easeOut,
+                          ),
+                        ],
+                        child: WelcomeMessage(animationsCompleted: animationsCompleted),
+                      ),
+                  ],
+                      ),
+                    ),
+          
     );
   }
 }

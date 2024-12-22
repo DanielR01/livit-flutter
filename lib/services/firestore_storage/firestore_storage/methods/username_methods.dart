@@ -1,5 +1,5 @@
 import 'package:livit/services/firestore_storage/firestore_storage/collections.dart';
-import 'package:livit/services/firestore_storage/firestore_storage/firestore_storage_exceptions.dart';
+import 'package:livit/services/firestore_storage/firestore_storage/exceptions/firestore_exceptions.dart';
 
 class UsernameMethods {
   static final UsernameMethods _shared = UsernameMethods._sharedInstance();

@@ -8,15 +8,27 @@ class LocationUninitialized extends LocationState {
   const LocationUninitialized();
 }
 
-class LocationLoading extends LocationState {
-  const LocationLoading();
-}
-
 class LocationsLoaded extends LocationState {
-  final List<Location> locations;
+  final List<Location> cloudLocations;
+  final List<Location> localSavedLocations;
+  final List<Location> localUnsavedLocations;
   final Map<Location, String>? failedLocations;
-  final bool isLoading;
+  final Map<String, LoadingState> loadingStates;
   final String? errorMessage;
 
-  const LocationsLoaded({required this.locations, this.failedLocations, this.errorMessage, this.isLoading = false});
+  const LocationsLoaded(
+      {required this.cloudLocations,
+      required this.localSavedLocations,
+      required this.localUnsavedLocations,
+      this.failedLocations,
+      this.errorMessage,
+      this.loadingStates = const {
+        
+      }});
+}
+
+enum LoadingState {
+  loading,
+  loaded,
+  error,
 }

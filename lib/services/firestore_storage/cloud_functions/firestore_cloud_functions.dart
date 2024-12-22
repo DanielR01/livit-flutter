@@ -3,7 +3,7 @@ import 'package:cloud_functions/cloud_functions.dart';
 import 'package:livit/cloud_models/user/cloud_user.dart';
 import 'package:livit/cloud_models/user/private_data.dart';
 import 'package:livit/services/firestore_storage/cloud_functions/cloud_functions_exceptions.dart';
-import 'package:livit/services/firestore_storage/firestore_storage/firestore_storage_exceptions.dart';
+import 'package:livit/services/firestore_storage/firestore_storage/exceptions/firestore_exceptions.dart';
 
 class FirestoreCloudFunctions {
   final FirebaseFunctions _functions = FirebaseFunctions.instance;

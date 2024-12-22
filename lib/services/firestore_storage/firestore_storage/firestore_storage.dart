@@ -8,7 +8,7 @@ import 'package:livit/services/firestore_storage/firestore_storage/methods/user_
 import 'package:livit/services/firestore_storage/firestore_storage/methods/event_methods.dart';
 import 'package:livit/services/firestore_storage/firestore_storage/methods/username_methods.dart';
 import 'package:livit/services/firestore_storage/firestore_storage/ticket_methods.dart';
-import 'package:livit/services/firestore_storage/firestore_storage/firestore_storage_exceptions.dart';
+import 'package:livit/services/firestore_storage/firestore_storage/exceptions/firestore_exceptions.dart';
 
 class FirestoreStorage {
   static final FirestoreStorage _shared = FirestoreStorage._sharedInstance();

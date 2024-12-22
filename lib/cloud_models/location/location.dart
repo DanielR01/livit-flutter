@@ -21,6 +21,16 @@ class Location {
       this.description,
       this.media});
 
+  Location.empty()
+      : id = DateTime.now().millisecondsSinceEpoch.toString(),
+        name = '',
+        address = '',
+        geopoint = null,
+        department = '',
+        city = '',
+        description = null,
+        media = null;
+
   Map<String, dynamic> toMap() {
     return {
       'name': name,

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -5,6 +7,8 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:livit/constants/colors.dart';
 import 'package:livit/services/auth/bloc/auth_bloc.dart';
 import 'package:livit/services/auth/firebase_auth_provider.dart';
+import 'package:livit/services/files/file_cleanup_service.dart';
+import 'package:livit/services/files/storage_monitor.dart';
 import 'package:livit/services/firebase_storage/bloc/storage_bloc.dart';
 import 'package:livit/services/firestore_storage/bloc/locations/location_bloc.dart';
 import 'package:livit/services/firestore_storage/bloc/users/user_bloc.dart';
@@ -14,13 +18,44 @@ import 'package:livit/utilities/transitions/rootwidget.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  Timer.periodic(const Duration(minutes: 10), (_) {
+    FileCleanupService().cleanupTempFiles();
+  });
+
+  Timer.periodic(const Duration(minutes: 10), (_) async {
+    final sizes = await StorageMonitor.getStorageInfo();
+    debugPrint('Storage sizes: $sizes');
+  });
   SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]).then((value) => runApp(StartPage()));
 }
 
-class StartPage extends StatelessWidget {
-  StartPage({super.key});
+class StartPage extends StatefulWidget {
+  @override
+  State<StartPage> createState() => _StartPageState();
+}
 
+class _StartPageState extends State<StartPage> with WidgetsBindingObserver {
   final _navKey = GlobalKey<NavigatorState>(debugLabel: 'navKey');
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.paused) {
+      FileCleanupService().cleanupTempFiles();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {

@@ -7,7 +7,7 @@ import 'package:livit/constants/routes.dart';
 import 'package:livit/services/firestore_storage/bloc/locations/location_bloc.dart';
 import 'package:livit/services/firestore_storage/bloc/locations/location_event.dart';
 import 'package:livit/services/firestore_storage/bloc/locations/location_state.dart';
-import 'package:livit/services/firestore_storage/firestore_storage/firestore_storage_exceptions.dart';
+import 'package:livit/services/firestore_storage/firestore_storage/exceptions/firestore_exceptions.dart';
 import 'package:livit/services/firestore_storage/bloc/users/user_bloc.dart';
 import 'package:livit/services/firestore_storage/bloc/users/user_event.dart';
 import 'package:livit/services/firestore_storage/bloc/users/user_state.dart';
@@ -16,9 +16,9 @@ import 'package:livit/utilities/loading_screen.dart';
 import 'package:livit/views/auth/get_or_create_user/create_user_view.dart';
 import 'package:livit/views/auth/get_or_create_user/final_welcome_message.dart';
 import 'package:livit/views/auth/get_or_create_user/promoter/description_prompt.dart';
-import 'package:livit/views/auth/get_or_create_user/promoter/location/address_prompt.dart';
+import 'package:livit/views/auth/get_or_create_user/promoter/location/address_prompt/address_prompt.dart';
 import 'package:livit/views/auth/get_or_create_user/promoter/location/map_location_prompt.dart';
-import 'package:livit/views/auth/get_or_create_user/promoter/location/media_prompt.dart';
+import 'package:livit/views/auth/get_or_create_user/promoter/location/media_prompt/media_prompt.dart';
 import 'package:livit/views/auth/get_or_create_user/user_type_input.dart';
 import 'package:livit/views/auth/get_or_create_user/welcome_and_data_view.dart';
 
@@ -114,20 +114,20 @@ class _GetOrCreateUserViewState extends State<GetOrCreateUserView> {
                         case LocationUninitialized():
                           return const LoadingScreen();
                         case LocationsLoaded():
-                          final locations = locationState.locations;
-                          if (locations.isEmpty && !privateData.noLocations) {
+                          final cloudLocations = locationState.cloudLocations;
+
+                          if (cloudLocations.isEmpty && !privateData.noLocations) {
                             return AddressPrompt();
-                          } else if (locations.any((location) => location.geopoint == null)) {
+                          } else if (cloudLocations.any((location) => location.geopoint == null)) {
                             return const MapLocationPrompt();
-                          } else if (locations.isNotEmpty &&
+                          } else if (cloudLocations.isNotEmpty &&
                               !privateData.noLocations &&
-                              !locations.any((location) => location.geopoint == null) &&
-                              (locations.any((location) => location.media == null))) {
+                              !cloudLocations.any((location) => location.geopoint == null) &&
+                              (cloudLocations.any((location) => location.media == null))) {
                             return const MediaPrompt();
                           } else {
                             return ErrorReauthScreen(exception: UserInformationCorruptedException());
                           }
-                        case LocationLoading():
                         default:
                           return const LoadingScreen();
                       }

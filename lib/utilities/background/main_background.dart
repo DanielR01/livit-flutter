@@ -3,12 +3,88 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:livit/constants/colors.dart';
 import 'package:livit/utilities/background/blend_mask.dart';
 import 'dart:math' show Random;
+import 'package:flutter/scheduler.dart';
+
+class MainBackgroundController {
+  static final MainBackgroundController _instance = MainBackgroundController._internal();
+  factory MainBackgroundController() => _instance;
+
+  MainBackgroundController._internal();
+
+  bool _blurred = false;
+  List<List<List<double>>> _blobPositions = MainBackground._defaultBlobPositions;
+  List<List<Color>> _blobColorStates = MainBackground._defaultBlobColorStates;
+
+  // Getters and setters
+  bool get blurred => _blurred;
+  List<List<List<double>>> get blobPositions => _blobPositions;
+  List<List<Color>> get blobColorStates => _blobColorStates;
+
+  set blurred(bool value) => _blurred = value;
+  set blobPositions(List<List<List<double>>> value) => _blobPositions = value;
+  set blobColorStates(List<List<Color>> value) => _blobColorStates = value;
+}
 
 class MainBackground extends StatefulWidget {
+  static final MainBackground _colorful = MainBackground._internal(
+    blurred: false,
+    blobPositions:
+        _defaultBlobPositions.map((blobSet) => blobSet.map((position) => [position[0] * 0.9, position[1] * 0.9]).toList()).toList(),
+    blobColorStates: _defaultBlobColorStates,
+  );
+
+  static final MainBackground _normal = MainBackground._internal(
+    blurred: false,
+    blobPositions: _defaultBlobPositions,
+    blobColorStates: _defaultBlobColorStates,
+  );
+
   final bool blurred;
   final List<List<List<double>>> blobPositions;
   final List<List<Color>> blobColorStates;
 
+  const MainBackground._internal({
+    required this.blurred,
+    required this.blobPositions,
+    required this.blobColorStates,
+  });
+
+  static MainBackground colorful({bool blurred = false}) {
+    _colorful.blurred = blurred;
+    return _colorful;
+  }
+
+  static MainBackground normal() {
+    return _normal;
+  }
+
+  static MainBackground colorfulTinted({
+    required Color tintColor,
+    required double opacity,
+  }) {
+    final random = Random();
+    final tintedBlobColorStates = _defaultBlobColorStates.map((blobColors) {
+      return blobColors.map((color) {
+        final randomOpacity = (opacity + (random.nextDouble() * 0.7 - 0.35)).clamp(0.0, 1.0);
+        return Color.alphaBlend(tintColor.withOpacity(randomOpacity), color);
+      }).toList();
+    }).toList();
+
+    return MainBackground._internal(
+      blurred: false,
+      blobPositions: _colorful.blobPositions,
+      blobColorStates: tintedBlobColorStates,
+    );
+  }
+
+  // Add setter for blurred property
+  set blurred(bool value) {
+    if (_colorful.blurred != value) {
+      _colorful.blurred = value;
+    }
+  }
+
+  // Rest of the existing static properties...
   static final List<String> _defaultBlobPaths = [
     "assets/images/blobs/blob5.png",
     "assets/images/blobs/blob4.png",
@@ -98,215 +174,114 @@ class MainBackground extends StatefulWidget {
     ],
   ];
 
-  const MainBackground({
-    super.key,
-    this.blurred = false,
-    required this.blobPositions,
-    required this.blobColorStates,
-  });
-
-  factory MainBackground.normal() {
-    return MainBackground(
-      blurred: false,
-      blobPositions: _defaultBlobPositions,
-      blobColorStates: _defaultBlobColorStates,
-    );
-  }
-
-  factory MainBackground.colorful({bool blurred = false}) {
-    List<List<List<double>>> colorfulBlobPositions = [
-      for (var blobSet in _defaultBlobPositions)
-        [
-          for (var position in blobSet)
-            [
-              position[0] * 0.9, // Reduce horizontal spread
-              position[1] * 0.9, // Reduce vertical spread
-            ]
-        ]
-    ];
-
-    return MainBackground(
-      blurred: blurred,
-      blobPositions: colorfulBlobPositions,
-      blobColorStates: _defaultBlobColorStates,
-    );
-  }
-
-  factory MainBackground.colorfulTinted({
-    required Color tintColor,
-    required double opacity,
-  }) {
-    final random = Random();
-    List<List<List<double>>> colorfulBlobPositions = [
-      for (var blobSet in _defaultBlobPositions)
-        [
-          for (var position in blobSet)
-            [
-              position[0] * 0.95, // Reduce horizontal spread
-              position[1] * 1, // Reduce vertical spread
-            ]
-        ]
-    ];
-    List<List<Color>> tintedBlobColorStates = _defaultBlobColorStates.map((blobColors) {
-      return blobColors.map((color) {
-        final randomOpacity = (opacity + (random.nextDouble() * 0.7 - 0.35)).clamp(0.0, 1.0);
-        return Color.alphaBlend(tintColor.withOpacity(randomOpacity), color);
-      }).toList();
-    }).toList();
-
-    return MainBackground(
-      blurred: false,
-      blobPositions: colorfulBlobPositions,
-      blobColorStates: tintedBlobColorStates,
-    );
-  }
-
-  factory MainBackground.normalTinted({
-    required Color tintColor,
-    required double opacity,
-  }) {
-    final random = Random();
-    List<List<Color>> tintedBlobColorStates = _defaultBlobColorStates.map((blobColors) {
-      return blobColors.map((color) {
-        final randomOpacity = (opacity + (random.nextDouble() * 0.7 - 0.35)).clamp(0.0, 1.0);
-        return Color.alphaBlend(tintColor.withOpacity(randomOpacity), color);
-      }).toList();
-    }).toList();
-
-    return MainBackground(
-      blurred: false,
-      blobPositions: _defaultBlobPositions,
-      blobColorStates: tintedBlobColorStates,
-    );
-  }
-
-  factory MainBackground.plainTinted({
-    required Color tintColor,
-    required double opacity,
-    bool blurred = false,
-  }) {
-    final random = Random();
-
-    List<List<Color>> grayscaleBlobColorStates = _defaultBlobColorStates.map((blobColors) {
-      return blobColors.map((color) {
-        final hslColor = HSLColor.fromColor(color);
-        return hslColor.withSaturation(0).toColor();
-      }).toList();
-    }).toList();
-
-    List<List<Color>> tintedBlobColorStates = grayscaleBlobColorStates.map((blobColors) {
-      return blobColors.map((color) {
-        final randomOpacity = (opacity + (random.nextDouble() * 0.8 - 0.4)).clamp(0.0, 1.0);
-        return Color.alphaBlend(tintColor.withOpacity(randomOpacity), color);
-      }).toList();
-    }).toList();
-
-    return MainBackground(
-      blurred: blurred,
-      blobPositions: _defaultBlobPositions,
-      blobColorStates: tintedBlobColorStates,
-    );
-  }
-
   @override
   State<MainBackground> createState() => _MainBackgroundState();
 }
 
 class _MainBackgroundState extends State<MainBackground> with TickerProviderStateMixin {
-  late List<AnimationController> _controllers;
+  late Ticker _ticker;
+  late AnimationController _mainController;
   late List<Animation<Offset>> _positionAnimations;
   late List<Animation<Color?>> _colorAnimations;
 
   List<int> animationStates = [];
 
+  // Lower frame rate but maintain speed
+  static const int _targetFrameRate = 20;
+  static const double _frameInterval = 1000.0 / _targetFrameRate;
+  static const double _animationIncrement = 0.001 * (60.0 / _targetFrameRate); // Adjust increment for lower FPS
+  Duration _lastFrameTime = Duration.zero;
+
   @override
   void initState() {
     super.initState();
-
     animationStates = widget.blobPositions[0].map((_) => 0).toList();
 
-    _controllers = MainBackground._defaultBlobPaths.map(
-      (_) {
-        return AnimationController(
-          duration: const Duration(milliseconds: 5000),
-          vsync: this,
-        );
-      },
-    ).toList();
-
-    _positionAnimations = _controllers.map(
-      (controller) {
-        return Tween<Offset>(
-          begin: Offset.zero,
-          end: Offset.zero,
-        ).animate(controller);
-      },
-    ).toList();
-
-    _colorAnimations = _controllers.map(
-      (controller) {
-        return ColorTween(
-          begin: Colors.transparent,
-          end: Colors.transparent,
-        ).animate(controller);
-      },
-    ).toList();
-
-    _startAnimations();
-  }
-
-  void _startAnimations() {
-    for (int i = 0; i < _controllers.length; i++) {
-      _animateBlob(i);
-    }
-  }
-
-  void _animateBlob(int blobIndex) {
-    final start = widget.blobPositions[blobIndex][animationStates[blobIndex]];
-    final end = widget.blobPositions[blobIndex][(animationStates[blobIndex] + 1) % widget.blobPositions[blobIndex].length];
-    final colorStart = widget.blobColorStates[blobIndex][animationStates[blobIndex]];
-    final colorEnd = widget.blobColorStates[blobIndex][(animationStates[blobIndex] + 1) % widget.blobColorStates[blobIndex].length];
-
-    _positionAnimations[blobIndex] = Tween<Offset>(
-      begin: Offset(start[0], start[1]),
-      end: Offset(end[0], end[1]),
-    ).animate(
-      CurvedAnimation(
-        parent: _controllers[blobIndex],
-        curve: Curves.linear,
-      ),
+    _mainController = AnimationController(
+      duration: const Duration(milliseconds: 25000),
+      vsync: this,
     );
 
-    _colorAnimations[blobIndex] = ColorTween(
-      begin: colorStart,
-      end: colorEnd,
-    ).animate(
-      CurvedAnimation(
-        parent: _controllers[blobIndex],
-        curve: Curves.linear,
-      ),
+    _setupSimultaneousAnimations();
+    
+    _ticker = createTicker((elapsed) {
+      if (elapsed - _lastFrameTime > Duration(milliseconds: _frameInterval.floor())) {
+        _lastFrameTime = elapsed;
+        if (mounted) {
+          setState(() {
+            // Update animation with adjusted increment
+            _mainController.value = (_mainController.value + _animationIncrement) % 1;
+          });
+        }
+      }
+    });
+
+    _ticker.start();
+  }
+
+  void _setupSimultaneousAnimations() {
+    _positionAnimations = List.generate(
+      MainBackground._defaultBlobPaths.length,
+      (index) {
+        return TweenSequence<Offset>(
+          List.generate(
+            widget.blobPositions[index].length,
+            (stateIndex) {
+              final currentPos = widget.blobPositions[index][stateIndex];
+              final nextPos = widget.blobPositions[index][(stateIndex + 1) % widget.blobPositions[index].length];
+
+              return TweenSequenceItem(
+                tween: Tween<Offset>(
+                  begin: Offset(currentPos[0], currentPos[1]),
+                  end: Offset(nextPos[0], nextPos[1]),
+                ),
+                weight: 1,
+              );
+            },
+          ),
+        ).animate(
+          CurvedAnimation(
+            parent: _mainController,
+            curve: Curves.linear,
+          ),
+        );
+      },
     );
 
-    _controllers[blobIndex].forward(from: 0).whenComplete(
-      () {
-        setState(
-          () {
-            animationStates[blobIndex] = (animationStates[blobIndex] + 1) % widget.blobPositions[blobIndex].length;
-          },
+    _colorAnimations = List.generate(
+      MainBackground._defaultBlobPaths.length,
+      (index) {
+        return TweenSequence<Color?>(
+          List.generate(
+            widget.blobColorStates[index].length,
+            (stateIndex) {
+              return TweenSequenceItem(
+                tween: ColorTween(
+                  begin: widget.blobColorStates[index][stateIndex],
+                  end: widget.blobColorStates[index][(stateIndex + 1) % widget.blobColorStates[index].length],
+                ),
+                weight: 1,
+              );
+            },
+          ),
+        ).animate(
+          CurvedAnimation(
+            parent: _mainController,
+            curve: Curves.linear,
+          ),
         );
-        _animateBlob(blobIndex);
       },
     );
   }
 
   @override
   void dispose() {
-    for (var controller in _controllers) {
-      controller.dispose();
-    }
+    _ticker.dispose();
+    _mainController.dispose();
     super.dispose();
   }
 
+  // Update Blobs widget to use the new animation system
   @override
   Widget build(BuildContext context) {
     final double screenWidth = MediaQuery.sizeOf(context).width;
@@ -318,13 +293,18 @@ class _MainBackgroundState extends State<MainBackground> with TickerProviderStat
       height: screenHeight,
       child: Stack(
         children: [
-          Blobs(
-            controllers: _controllers,
-            positionAnimations: _positionAnimations,
-            colorAnimations: _colorAnimations,
-            screenHeight: screenHeight,
-            screenWidth: screenWidth,
-            svg: false,
+          AnimatedBuilder(
+            animation: _mainController,
+            builder: (context, child) {
+              return Blobs(
+                controller: _mainController,
+                positionAnimations: _positionAnimations,
+                colorAnimations: _colorAnimations,
+                screenHeight: screenHeight,
+                screenWidth: screenWidth,
+                svg: false,
+              );
+            },
           ),
           BlendMask(
             opacity: 1,
@@ -336,6 +316,66 @@ class _MainBackgroundState extends State<MainBackground> with TickerProviderStat
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+// Update Blobs widget to match new animation system
+class Blobs extends StatelessWidget {
+  final AnimationController controller;
+  final List<Animation<Offset>> positionAnimations;
+  final List<Animation<Color?>> colorAnimations;
+  final double screenWidth;
+  final double screenHeight;
+  final bool svg;
+
+  const Blobs({
+    required this.controller,
+    required this.positionAnimations,
+    required this.colorAnimations,
+    required this.screenHeight,
+    required this.screenWidth,
+    required this.svg,
+    super.key,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      color: LivitColors.mainBlack,
+      child: Stack(
+        children: MainBackground._defaultBlobPaths.asMap().entries.map(
+          (entry) {
+            int index = entry.key;
+            String blob = entry.value;
+            final position = positionAnimations[index].value;
+            final color = colorAnimations[index].value;
+
+            return Positioned(
+              left: screenWidth * position.dx / 390 - 150,
+              top: screenHeight * position.dy / 844 - 150,
+              child: svg
+                  ? SvgPicture.asset(
+                      blob,
+                      colorFilter: ColorFilter.mode(
+                        color ?? Colors.transparent,
+                        BlendMode.srcIn,
+                      ),
+                    )
+                  : ColorFiltered(
+                      colorFilter: ColorFilter.mode(
+                        color ?? Colors.transparent,
+                        BlendMode.srcIn,
+                      ),
+                      child: Image.asset(
+                        blob,
+                        height: MainBackground._defaultBlobHeights[index] * screenHeight,
+                      ),
+                    ),
+            );
+          },
+        ).toList(),
       ),
     );
   }
@@ -364,69 +404,6 @@ class DotsBackground extends StatelessWidget {
         width: screenWidth,
         height: screenHeight,
         fit: BoxFit.fill,
-      ),
-    );
-  }
-}
-
-class Blobs extends StatelessWidget {
-  final List<AnimationController> controllers;
-  final List<Animation<Offset>> positionAnimations;
-  final List<Animation<Color?>> colorAnimations;
-  final double screenWidth;
-  final double screenHeight;
-  final bool svg;
-
-  const Blobs({
-    required this.controllers,
-    required this.positionAnimations,
-    required this.colorAnimations,
-    required this.screenHeight,
-    required this.screenWidth,
-    required this.svg,
-    super.key,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      color: LivitColors.mainBlack,
-      child: Stack(
-        children: MainBackground._defaultBlobPaths.asMap().entries.map(
-          (entry) {
-            int index = entry.key;
-            String blob = entry.value;
-            return AnimatedBuilder(
-              animation: controllers[index],
-              builder: (context, child) {
-                final position = positionAnimations[index].value;
-                final color = colorAnimations[index].value;
-                return Positioned(
-                  left: screenWidth * position.dx / 390 - 150,
-                  top: screenHeight * position.dy / 844 - 150,
-                  child: svg
-                      ? SvgPicture.asset(
-                          blob,
-                          colorFilter: ColorFilter.mode(
-                            color ?? Colors.transparent,
-                            BlendMode.srcIn,
-                          ),
-                        )
-                      : ColorFiltered(
-                          colorFilter: ColorFilter.mode(
-                            color ?? Colors.transparent,
-                            BlendMode.srcIn,
-                          ),
-                          child: Image.asset(
-                            blob,
-                            height: MainBackground._defaultBlobHeights[index] * screenHeight,
-                          ),
-                        ),
-                );
-              },
-            );
-          },
-        ).toList(),
       ),
     );
   }

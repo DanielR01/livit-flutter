@@ -9,7 +9,7 @@ import 'package:livit/services/firestore_storage/firestore_storage/firestore_sto
 import 'package:livit/services/auth/auth_provider.dart';
 import 'package:livit/services/firestore_storage/bloc/users/user_event.dart';
 import 'package:livit/services/firestore_storage/bloc/users/user_state.dart';
-import 'package:livit/services/firestore_storage/firestore_storage/firestore_storage_exceptions.dart';
+import 'package:livit/services/firestore_storage/firestore_storage/exceptions/firestore_exceptions.dart';
 
 class UserBloc extends Bloc<UserEvent, UserState> {
   final FirestoreStorage _cloudStorage;

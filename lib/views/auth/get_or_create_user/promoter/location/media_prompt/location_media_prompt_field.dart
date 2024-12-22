@@ -12,6 +12,8 @@ import 'package:livit/constants/styles/container_style.dart';
 import 'package:livit/constants/styles/livit_text.dart';
 import 'package:livit/constants/styles/shadows.dart';
 import 'package:livit/constants/styles/spaces.dart';
+import 'package:livit/services/files/file_cleanup_service.dart';
+import 'package:livit/services/video/video_compression_service.dart';
 import 'package:livit/utilities/bars_containers_fields/bar.dart';
 import 'package:livit/utilities/media/media_preview_player/location_media_preview_player.dart';
 
@@ -43,9 +45,6 @@ class _LocationMediaInputFieldState extends State<LocationMediaInputField> {
   late double _mediaDisplayHeight;
   late double _mediaDisplayContainerHeight;
 
-  bool _isMainLoading = false;
-  bool _isSecondaryLoading = false;
-
   int secondaryFilesLength = 0;
   int secondaryTilesLength = 0;
 
@@ -75,6 +74,7 @@ class _LocationMediaInputFieldState extends State<LocationMediaInputField> {
 
   @override
   void dispose() {
+    FileCleanupService().cleanupTempFiles();
     for (final path in _videoThumbnails.values) {
       try {
         File(path).deleteSync();
@@ -83,20 +83,20 @@ class _LocationMediaInputFieldState extends State<LocationMediaInputField> {
       }
     }
     _videoThumbnails.clear();
+    VideoCompressionService.cleanup();
     super.dispose();
   }
 
   Widget _buildMediaPreview(LivitLocationMediaFile file, {bool isSmall = false}) {
     try {
       final bool isVideo = file is LivitLocationMediaVideo;
-      final String? path = isVideo ? file.cover.file?.path : file.file?.path;
+      final String? path = isVideo ? file.cover.filePath : file.filePath;
 
       if (path == null) return const SizedBox.shrink();
 
       if (isVideo) {
         return GestureDetector(
           onTap: () {
-            if (_isMainLoading || _isSecondaryLoading) return;
             _showMediaPreview(file);
           },
           child: Stack(
@@ -126,7 +126,6 @@ class _LocationMediaInputFieldState extends State<LocationMediaInputField> {
       } else {
         return GestureDetector(
           onTap: () {
-            if (_isMainLoading || _isSecondaryLoading) return;
             _showMediaPreview(file);
           },
           child: Image.asset(path),
@@ -144,7 +143,7 @@ class _LocationMediaInputFieldState extends State<LocationMediaInputField> {
   }
 
   void _showMediaPreview(LivitLocationMediaFile currentMedia) async {
-    if (currentMedia.file?.path == null || widget.location.media == null) return;
+    if (currentMedia.filePath == null || widget.location.media == null) return;
     final result = await Navigator.push<LivitLocationMedia?>(
       context,
       MaterialPageRoute<LivitLocationMedia?>(
@@ -166,7 +165,7 @@ class _LocationMediaInputFieldState extends State<LocationMediaInputField> {
   Widget build(BuildContext context) {
     _calculateMediaDisplaySizes();
     secondaryFilesLength = widget.location.media?.secondaryFiles?.length ?? 0;
-    secondaryTilesLength = min(secondaryFilesLength + (_isSecondaryLoading ? 1 : 0) + 1, 6);
+    secondaryTilesLength = min(secondaryFilesLength  + 1, 6);
     if (secondaryFilesLength + (widget.location.media?.mainFile != null ? 1 : 0) > 7) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         widget.onMediaReset(widget.location);
@@ -305,18 +304,7 @@ class _LocationMediaInputFieldState extends State<LocationMediaInputField> {
                       LivitShadows.inactiveWhiteShadow,
                     ],
                   ),
-                  child: (_isSecondaryLoading && index == secondaryFilesLength)
-                      ? Center(
-                          child: SizedBox(
-                            width: 24.sp,
-                            height: 24.sp,
-                            child: CircularProgressIndicator(
-                              color: LivitColors.whiteActive,
-                              strokeWidth: 2.sp,
-                            ),
-                          ),
-                        )
-                      : index == secondaryTilesLength - 1 && secondaryFilesLength < 6
+                  child:  index == secondaryTilesLength - 1 && secondaryFilesLength < 6
                           ? InkWell(
                               onTap: () async {
                                 final result = await Navigator.push<LivitLocationMedia?>(
@@ -368,21 +356,10 @@ class _LocationMediaInputFieldState extends State<LocationMediaInputField> {
           decoration: widget.location.media?.mainFile == null
               ? LivitContainerStyle.decorationWithActiveShadow
               : LivitContainerStyle.decorationWithInactiveShadow,
-          child: _isMainLoading
-              ? Center(
-                  child: SizedBox(
-                    width: 24.sp,
-                    height: 24.sp,
-                    child: CircularProgressIndicator(
-                      color: LivitColors.whiteActive,
-                      strokeWidth: 2.sp,
-                    ),
-                  ),
-                )
-              : widget.location.media?.mainFile?.file == null
+          child: widget.location.media?.mainFile?.filePath == null
                   ? InkWell(
                       onTap: () async {
-                        final result = await Navigator.push<LivitLocationMedia?>(
+                        final LivitLocationMedia? result = await Navigator.push<LivitLocationMedia?>(
                           context,
                           MaterialPageRoute<LivitLocationMedia?>(
                             builder: (context) => LocationMediaPreviewPlayer(

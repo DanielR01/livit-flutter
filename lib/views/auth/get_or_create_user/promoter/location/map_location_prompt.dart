@@ -12,7 +12,7 @@ import 'package:livit/constants/styles/spaces.dart';
 import 'package:livit/services/firestore_storage/bloc/locations/location_bloc.dart';
 import 'package:livit/services/firestore_storage/bloc/locations/location_event.dart';
 import 'package:livit/services/firestore_storage/bloc/locations/location_state.dart';
-import 'package:livit/services/firestore_storage/firestore_storage/firestore_storage_exceptions.dart';
+import 'package:livit/services/firestore_storage/firestore_storage/exceptions/firestore_exceptions.dart';
 import 'package:livit/services/location/location_search_service.dart';
 import 'package:livit/utilities/bars_containers_fields/bar.dart';
 import 'package:livit/utilities/bars_containers_fields/glass_container.dart';
@@ -252,11 +252,11 @@ class _MapLocationPromptState extends State<MapLocationPrompt> {
         if (state is! LocationsLoaded) return ErrorReauthScreen(exception: UserInformationCorruptedException());
         if (!_isInitialized) {
           _isInitialized = true;
-          _locations = state.locations;
+          _locations = LocationBloc().locations;
           _getCoordinates(_locations.first);
         }
         String? errorMessage = state.errorMessage;
-        bool isLoading = state.isLoading;
+        bool isCloudLoading = LocationBloc().isCloudLoading;
         return Scaffold(
           body: SafeArea(
             child: Center(
@@ -424,11 +424,11 @@ class _MapLocationPromptState extends State<MapLocationPrompt> {
                             ),
                             LivitSpaces.m,
                             Button.main(
-                              text: isLoading ? 'Continuando' : 'Continuar',
-                              isLoading: isLoading,
+                              text: isCloudLoading ? 'Continuando' : 'Continuar',
+                              isLoading: isCloudLoading,
                               isActive: _locations.every((location) => location.geopoint != null),
                               onPressed: () {
-                                BlocProvider.of<LocationBloc>(context).add(UpdateLocations(locations: _locations));
+                                BlocProvider.of<LocationBloc>(context).add(UpdateLocationsToCloud(locations: _locations));
                               },
                             ),
                           ],

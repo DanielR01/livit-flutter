@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:livit/services/firestore_storage/livit_event.dart';
 import 'package:livit/services/firestore_storage/firestore_storage/collections.dart';
-import 'package:livit/services/firestore_storage/firestore_storage/firestore_storage_exceptions.dart';
+import 'package:livit/services/firestore_storage/firestore_storage/exceptions/firestore_exceptions.dart';
 
 class EventMethods {
   static final EventMethods _shared = EventMethods._sharedInstance();

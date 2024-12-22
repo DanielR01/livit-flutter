@@ -9,12 +9,15 @@ import 'package:livit/constants/styles/bar_style.dart';
 import 'package:livit/constants/styles/container_style.dart';
 import 'package:livit/constants/styles/livit_text.dart';
 import 'package:livit/constants/styles/spaces.dart';
+import 'package:livit/services/files/file_cleanup_service.dart';
 import 'package:livit/services/video/export_video_service.dart';
 import 'package:livit/utilities/buttons/arrow_back_button.dart';
 import 'package:livit/utilities/buttons/button.dart';
+import 'package:livit/utilities/media/media_file_cleanup.dart';
 import 'package:livit/utilities/media/video_editor/crop_page.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:video_editor/video_editor.dart';
+import 'package:livit/services/video/video_compression_service.dart';
 
 class LivitMediaEditor extends StatefulWidget {
   final String videoPath;
@@ -25,7 +28,7 @@ class LivitMediaEditor extends StatefulWidget {
   @override
   State<LivitMediaEditor> createState() => _LivitMediaEditorState();
 
-  static Future<File?> cropImage(String sourcePath) async {
+  static Future<String?> cropImage(String sourcePath) async {
     final croppedFile = await ImageCropper().cropImage(
       sourcePath: sourcePath,
       aspectRatio: const CropAspectRatio(ratioX: 9, ratioY: 16),
@@ -46,7 +49,7 @@ class LivitMediaEditor extends StatefulWidget {
       ],
     );
 
-    return croppedFile != null ? File(croppedFile.path) : null;
+    return croppedFile?.path;
   }
 }
 
@@ -84,6 +87,7 @@ class _LivitMediaEditorState extends State<LivitMediaEditor> with TickerProvider
     _controller.dispose();
     _tabController.dispose();
     ExportService.dispose();
+    FileCleanupService().cleanupTempFiles();
     super.dispose();
   }
 
@@ -95,56 +99,83 @@ class _LivitMediaEditorState extends State<LivitMediaEditor> with TickerProvider
       );
 
   Future<void> _exportVideo() async {
-    _exportingProgress.value = 0;
     _isExporting.value = true;
+    File? trimmedFile;
+    String? compressedFilePath;
 
-    final appDocDir = await getApplicationDocumentsDirectory();
+    try {
+      final appDocDir = await getApplicationDocumentsDirectory();
+      final tempDir = Directory('${appDocDir.path}/temp');
+      await tempDir.create(recursive: true);
 
-    final config = VideoFFmpegVideoEditorConfig(
-      _controller,
-      outputDirectory: appDocDir.path,
-    );
+      final config = VideoFFmpegVideoEditorConfig(
+        _controller,
+        outputDirectory: tempDir.path,
+      );
 
-    final executeConfig = await config.getExecuteConfig();
+      final executeConfig = await config.getExecuteConfig();
 
-    await ExportService.runFFmpegCommand(
-      executeConfig,
-      onProgress: (stats) {
-        _exportingProgress.value = config.getFFmpegProgress(stats.getTime().toInt());
-      },
-      onError: (e, s) {
-        _showErrorSnackBar("Error on export video :(");
-      },
-      onCompleted: (file) async {
-        _isExporting.value = false;
-        if (!mounted) return;
+      await ExportService.runFFmpegCommand(
+        executeConfig,
+        onProgress: (stats) {
+          _exportingProgress.value = config.getFFmpegProgress(stats.getTime().toInt());
+        },
+        onError: (e, s) {
+          _showErrorSnackBar("Error on export video :(");
+        },
+        onCompleted: (file) async {
+          trimmedFile = file;
+          _exportingProgress.value = 0;
 
-        // Export cover after video is done
-        await _exportCover(file);
-      },
-    );
+          compressedFilePath = await VideoCompressionService.compressVideo(
+            inputFilePath: file.path,
+            onProgress: (progress) {
+              _exportingProgress.value = progress;
+            },
+          );
+
+          if (compressedFilePath != null) {
+            await file.delete();
+            await trimmedFile?.delete();
+            await _exportCover(compressedFilePath!);
+          }
+
+          _isExporting.value = false;
+        },
+      );
+    } catch (e) {
+      // Clean up any temporary files on error
+      await trimmedFile?.delete();
+      await MediaFileCleanup.deleteFileByPath(compressedFilePath);
+      _isExporting.value = false;
+      _showErrorSnackBar("Error processing video");
+    }
   }
 
-  Future<void> _exportCover(File videoFile) async {
+  Future<void> _exportCover(String videoFilePath) async {
+          final appDocDir = await getApplicationDocumentsDirectory();
+      final tempDir = Directory('${appDocDir.path}/temp');
+      await tempDir.create(recursive: true);
+
     if (_coverPath != null) {
       final LivitLocationMediaImage coverImage = LivitLocationMediaImage(
-        file: File(_coverPath!),
+        filePath: _coverPath!,
         url: '',
       );
       final LivitLocationMediaVideo video = LivitLocationMediaVideo(
-        file: videoFile,
+        filePath: videoFilePath,
         url: '',
         cover: coverImage,
       );
       Navigator.pop(context, video);
       return;
     }
-    final config = CoverFFmpegVideoEditorConfig(_controller);
+    final config = CoverFFmpegVideoEditorConfig(_controller, outputDirectory: tempDir.path,);
     final execute = await config.getExecuteConfig();
     if (execute == null) {
       _showErrorSnackBar("Error on cover exportation initialization.");
       return;
-    }
+    } 
 
     await ExportService.runFFmpegCommand(
       execute,
@@ -153,11 +184,11 @@ class _LivitMediaEditorState extends State<LivitMediaEditor> with TickerProvider
         if (!mounted) return;
 
         final LivitLocationMediaImage coverImage = LivitLocationMediaImage(
-          file: cover,
+          filePath: cover.path  ,
           url: '',
         );
         final LivitLocationMediaVideo video = LivitLocationMediaVideo(
-          file: videoFile,
+          filePath: videoFilePath,
           url: '',
           cover: coverImage,
         );
@@ -311,7 +342,10 @@ class _LivitMediaEditorState extends State<LivitMediaEditor> with TickerProvider
         padding: LivitContainerStyle.paddingFromScreen,
         child: Row(
           children: [
-            ArrowBackButton(onPressed: () => Navigator.pop(context)),
+            ArrowBackButton(onPressed: () {
+              FileCleanupService().cleanupTempFiles();
+              Navigator.pop(context);
+            }),
             Expanded(
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -434,6 +468,7 @@ class _LivitMediaEditorState extends State<LivitMediaEditor> with TickerProvider
           Button.secondary(
             isActive: true,
             onPressed: () {
+              MediaFileCleanup.deleteFile(File(_coverPath!));
               _coverPath = null;
               setState(() {});
             },
@@ -452,11 +487,11 @@ class _LivitMediaEditorState extends State<LivitMediaEditor> with TickerProvider
               child: Button.secondary(
                 isActive: true,
                 onPressed: () async {
-                  final cover = await ImagePicker().pickImage(source: ImageSource.gallery);
+                  final XFile? cover = await ImagePicker().pickImage(source: ImageSource.gallery);
                   if (cover == null) return;
-                  final croppedFile = await LivitMediaEditor.cropImage(cover.path);
-                  if (croppedFile == null) return;
-                  _coverPath = croppedFile.path;
+                  final String? croppedFilePath = await LivitMediaEditor.cropImage(cover.path);
+                  if (croppedFilePath == null) return;
+                  _coverPath = croppedFilePath;
                   setState(() {});
                 },
                 text: 'Subir portada',
@@ -493,4 +528,3 @@ class _LivitMediaEditorState extends State<LivitMediaEditor> with TickerProvider
     );
   }
 }
-

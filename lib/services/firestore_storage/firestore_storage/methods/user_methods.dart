@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:livit/cloud_models/user/cloud_user.dart';
 import 'package:livit/services/firestore_storage/firestore_storage/collections.dart';
-import 'package:livit/services/firestore_storage/firestore_storage/firestore_storage_exceptions.dart';
+import 'package:livit/services/firestore_storage/firestore_storage/exceptions/firestore_exceptions.dart';
 
 class UserMethods {
   static final UserMethods _shared = UserMethods._sharedInstance();

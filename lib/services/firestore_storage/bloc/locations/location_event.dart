@@ -10,54 +10,74 @@ class InitializeLocationBloc extends LocationEvent {
   const InitializeLocationBloc({required this.userId});
 }
 
-class LoadUserLocations extends LocationEvent {
-  
-  const LoadUserLocations();
+// Cloud Events
+
+class GetUserLocations extends LocationEvent {
+  const GetUserLocations();
 }
 
-class UpdateLocationMedia extends LocationEvent {
-  final Location location;
 
-  const UpdateLocationMedia({
-    required this.location,
-  });
-}
-
-class UpdateLocationsMedia extends LocationEvent {
+class CreateLocationsToCloud extends LocationEvent {
   final List<Location> locations;
 
-
-  const UpdateLocationsMedia({
-    required this.locations,
-  });
+  const CreateLocationsToCloud({required this.locations});
 }
 
-class CreateLocation extends LocationEvent {
+class UpdateLocationToCloud extends LocationEvent {
   final Location location;
 
-  const CreateLocation({required this.location});
+  const UpdateLocationToCloud({required this.location});
 }
 
-class CreateLocations extends LocationEvent {
+class UpdateLocationsToCloud extends LocationEvent {
   final List<Location> locations;
 
-  const CreateLocations({required this.locations});
+  const UpdateLocationsToCloud({required this.locations});
 }
 
-class UpdateLocation extends LocationEvent {
+class UpdateLocationsToCloudFromLocal extends LocationEvent {
+  const UpdateLocationsToCloudFromLocal();
+}
+
+class DeleteLocationToCloud extends LocationEvent {
   final Location location;
 
-  const UpdateLocation({required this.location});
+  const DeleteLocationToCloud({required this.location});
 }
 
-class UpdateLocations extends LocationEvent {
+class UpdateLocationsMediaToCloud extends LocationEvent {
   final List<Location> locations;
 
-  const UpdateLocations({required this.locations});
+  const UpdateLocationsMediaToCloud({required this.locations});
 }
 
-class DeleteLocation extends LocationEvent {
+// Local Events
+
+class CreateLocationLocally extends LocationEvent {
   final Location location;
 
-  const DeleteLocation({required this.location});
+  const CreateLocationLocally({required this.location});
+}
+
+class UpdateLocationLocally extends LocationEvent {
+  final Location location;
+
+  const UpdateLocationLocally({required this.location});
+}
+
+class DeleteLocationLocally extends LocationEvent {
+  final Location location;
+
+  const DeleteLocationLocally({required this.location});
+}
+
+class UpdateLocationMediaLocally extends LocationEvent {
+  final Location location;
+  final LivitLocationMedia media;
+
+  const UpdateLocationMediaLocally({required this.location, required this.media});
+}
+
+class SaveChangesLocally extends LocationEvent {
+  const SaveChangesLocally();
 }
