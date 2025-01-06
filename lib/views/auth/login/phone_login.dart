@@ -7,6 +7,7 @@ import 'package:livit/constants/styles/spaces.dart';
 import 'package:livit/constants/enums.dart';
 import 'package:livit/services/auth/auth_exceptions.dart';
 import 'package:livit/utilities/bars_containers_fields/glass_container.dart';
+import 'package:livit/utilities/bars_containers_fields/keyboard_dismissible.dart';
 import 'package:livit/utilities/bars_containers_fields/livit_text_field.dart';
 import 'package:livit/utilities/bars_containers_fields/title_bar.dart';
 import 'package:livit/utilities/buttons/button.dart';
@@ -113,79 +114,82 @@ class _PhoneLoginViewState extends State<PhoneLoginView> {
         }
         return Scaffold(
           backgroundColor: Colors.transparent,
-          body: SafeArea(
-            child: SingleChildScrollView(
-              physics: const BouncingScrollPhysics(),
-              child: ConstrainedBox(
-                constraints: BoxConstraints(
-                  minHeight:
-                      MediaQuery.of(context).size.height - MediaQuery.of(context).padding.top - MediaQuery.of(context).padding.bottom,
-                ),
-                child: Padding(
-                  padding: EdgeInsets.only(
-                    bottom: MediaQuery.of(context).viewInsets.bottom,
+          body: KeyboardDismissible(
+            child: SafeArea(
+              child: SingleChildScrollView(
+                physics: const BouncingScrollPhysics(),
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(
+                    minHeight:
+                        MediaQuery.of(context).size.height - MediaQuery.of(context).padding.top - MediaQuery.of(context).padding.bottom,
                   ),
-                  child: Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Padding(
-                          padding: LivitContainerStyle.paddingFromScreen,
-                          child: GlassContainer(
-                            child: SizedBox(
-                              width: double.infinity,
-                              child: Column(
-                                children: [
-                                  const TitleBar(
-                                    title: 'Continuar con número de teléfono',
-                                    isBackEnabled: true,
-                                  ),
-                                  Padding(
-                                    padding: LivitContainerStyle.padding(padding: [0, null, null, null]),
-                                    child: Column(
-                                      children: [
-                                        const LivitText('Ingresa tu número de teléfono, te llegará un código de verificación.'),
-                                        LivitSpaces.m,
-                                        LivitTextField(
-                                          controller: _phoneController,
-                                          hint: 'Número de teléfono',
-                                          phoneNumberField: true,
-                                          onChanged: onPhoneChange,
-                                          onClear: onPhoneCleared,
-                                          initialCountry: initialCountry,
-                                          onCountryCodeChanged: (value) {
-                                            setState(
-                                              () {
-                                                selectedCountryCode = value;
-                                              },
-                                            );
-                                          },
-                                          bottomCaptionText: phoneError,
-                                        ),
-                                        LivitSpaces.m,
-                                        Button.main(
-                                          text: _isSendingCode ? 'Enviando código' : 'Enviar código',
-                                          isActive: isPhoneValid,
-                                          isLoading: _isSendingCode,
-                                          onPressed: () {
-                                            context.read<AuthBloc>().add(
-                                                  AuthEventSendOtpCode(
-                                                    isResending: false,
-                                                    phoneCode: selectedCountryCode,
-                                                    phoneNumber: _phoneController.text,
-                                                  ),
-                                                );
-                                          },
-                                        ),
-                                      ],
+                  child: Padding(
+                    padding: EdgeInsets.only(
+                      bottom: MediaQuery.of(context).viewInsets.bottom,
+                    ),
+                    child: Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Padding(
+                            padding: LivitContainerStyle.paddingFromScreen,
+                            child: GlassContainer(
+                              child: SizedBox(
+                                width: double.infinity,
+                                child: Column(
+                                  children: [
+                                    const TitleBar(
+                                      title: 'Continuar con número de teléfono',
+                                      isBackEnabled: true,
                                     ),
-                                  ),
-                                ],
+                                    Padding(
+                                      padding: LivitContainerStyle.padding(padding: [0, null, null, null]),
+                                      child: Column(
+                                        children: [
+                                          const LivitText('Ingresa tu número de teléfono, te llegará un código de verificación.'),
+                                          LivitSpaces.m,
+                                          LivitTextField(
+                                            controller: _phoneController,
+                                            hint: 'Número de teléfono',
+                                            phoneNumberField: true,
+                                            onChanged: onPhoneChange,
+                                            onClear: onPhoneCleared,
+                                            initialCountry: initialCountry,
+                                            onCountryCodeChanged: (value) {
+                                              setState(
+                                                () {
+                                                  selectedCountryCode = value;
+                                                },
+                                              );
+                                            },
+                                            bottomCaptionText: phoneError,
+                                          ),
+                                          LivitSpaces.m,
+                                          Button.main(
+                                            text: _isSendingCode ? 'Enviando código' : 'Enviar código',
+                                            isActive: isPhoneValid,
+                                            isLoading: _isSendingCode,
+                                            onPressed: () {
+                                              context.read<AuthBloc>().add(
+                                                    AuthEventSendOtpCode(
+                                                      context,
+                                                      isResending: false,
+                                                      phoneCode: selectedCountryCode,
+                                                      phoneNumber: _phoneController.text,
+                                                    ),
+                                                  );
+                                            },
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
                             ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
                 ),

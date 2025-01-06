@@ -1,25 +1,23 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
-import 'package:livit/cloud_models/user/cloud_user.dart';
-import 'package:livit/cloud_models/user/private_data.dart';
+import 'package:flutter/material.dart';
+import 'package:livit/cloud_models/location/location.dart';
 import 'package:livit/services/firestore_storage/cloud_functions/cloud_functions_exceptions.dart';
-import 'package:livit/services/firestore_storage/firestore_storage/exceptions/firestore_exceptions.dart';
+
 
 class FirestoreCloudFunctions {
   final FirebaseFunctions _functions = FirebaseFunctions.instance;
 
-  Future<Timestamp> createUserAndUsername({
-    required CloudUser user,
-    required UserPrivateData privateData,
+  Future<void> createUserAndUsername({
+    required String userId,
+    required String username,
+    required String userType,
+    required String name,
+    required String phoneNumber,
+    required String email,
   }) async {
     try {
+      debugPrint('📥 [FirestoreCloudFunctions] Creating user $username');
       final HttpsCallable callable = _functions.httpsCallable('createUserAndUsername');
-      final name = user.name;
-      final userType = user.userType.name;
-      final username = user.username;
-      final userId = user.id;
-      final phoneNumber = privateData.phoneNumber;
-      final email = privateData.email;
       final response = await callable.call({
         'userId': userId,
         'username': username,
@@ -28,12 +26,14 @@ class FirestoreCloudFunctions {
         'phoneNumber': phoneNumber,
         'email': email,
       });
-      if (response.data['status'] != "success" || response.data['createdAt'] == null) {
-        throw GenericCloudFunctionException();
-      }
-      final createdAt = Timestamp.fromDate(DateTime.parse(response.data['createdAt']));
-      return createdAt;
+      if (response.data['status'] != "success") {
+        debugPrint('❌ [FirestoreCloudFunctions] Could not create user $username: ${response.data['error']}');
+        throw GenericCloudFunctionException(details: response.data['error']);
+      } 
+      debugPrint('✅ [FirestoreCloudFunctions] User $username created');
+      return;
     } on FirebaseFunctionsException catch (e) {
+      debugPrint('❌ [FirestoreCloudFunctions] Could not create user: $e');
       if (e.code == 'already-exists') {
         if (e.message == 'UsernameAlreadyTakenError') {
           throw UsernameAlreadyTakenException();
@@ -41,9 +41,114 @@ class FirestoreCloudFunctions {
           throw UserAlreadyExistsException();
         }
       }
-      throw GenericCloudFunctionException();
+      throw GenericCloudFunctionException(details: e.toString());
     } catch (e) {
-      throw GenericCloudFunctionException();
+      debugPrint('❌ [FirestoreCloudFunctions] Could not create user: $e');
+      throw GenericCloudFunctionException(details: e.toString());
     }
   }
+
+  Future<String> createLocation({
+    required LivitLocation location,
+  }) async {
+    try {
+      debugPrint('📥 [FirestoreCloudFunctions] Creating location ${location.name}');
+      final HttpsCallable callable = _functions.httpsCallable('createLocation');
+      final response = await callable.call({
+        'name': location.name,
+        'description': location.description,
+        'address': location.address,
+        'city': location.city,
+        'state': location.state,
+      });
+      if (response.data['status'] != "success") {
+        debugPrint('❌ [FirestoreCloudFunctions] Could not create location ${location.name}: ${response.data['error']}');
+        throw GenericCloudFunctionException(details: response.data['error']);
+      } else if (response.data['locationId'] == null) {
+        debugPrint('❌ [FirestoreCloudFunctions] Location ID is null after location creation');
+        throw GenericCloudFunctionException(details: 'Location ID is null after location creation');
+      }
+      debugPrint('📬 [FirestoreCloudFunctions] Response: ${response.data}');
+      debugPrint('✅ [FirestoreCloudFunctions] Location ${location.name} created');
+      return response.data['locationId'];
+    } catch (e) {
+      debugPrint('❌ [FirestoreCloudFunctions] Could not create location: $e');
+      throw GenericCloudFunctionException(details: e.toString());
+    }
+  }
+
+  Future<List<String>> getLocationMediaUploadUrls({
+    required String locationId,
+    required List<int> fileSizes,
+    required List<String> fileTypes,
+    required List<String> names,
+  }) async {
+    try {
+      debugPrint('📥 [FirestoreCloudFunctions] Getting location media upload URL for $locationId');
+      final HttpsCallable callable = _functions.httpsCallable('getLocationMediaUploadUrl');
+      final response = await callable.call({
+        'locationId': locationId,
+        'fileSizes': fileSizes,
+        'fileTypes': fileTypes,
+        'names': names,
+      });
+      final List<dynamic> responseList = response.data as List<dynamic>;
+      final List<Map<String, dynamic>> responseData = responseList.map((element) {
+        final map = Map<String, dynamic>.from(element as Map);
+        return map;
+      }).toList();
+
+      if (responseData.isEmpty || responseData.any((element) => element['signedUrl'] == null)) {
+        debugPrint('❌ [FirestoreCloudFunctions] Signed URL is null after getting location media upload URL');
+        throw GenericCloudFunctionException(details: 'Signed URL is null after getting location media upload URL');
+      }
+
+      final List<String> signedUrls = responseData.map((element) => element['signedUrl'] as String).toList();
+      debugPrint('✅ [FirestoreCloudFunctions] Signed URLs for location media upload for $locationId received');
+      return signedUrls;
+    } on FirebaseFunctionsException catch (e) {
+      if (e.message == 'file-size-limit') {
+        debugPrint('❌ [FirestoreCloudFunctions] File size exceeds limit, throwing LocationMediaFileSizeExceedsLimitException');
+        throw LocationMediaFileSizeExceedsLimitException();
+      } else if (e.message == 'files-limit') {
+        debugPrint('❌ [FirestoreCloudFunctions] Location exceeds files limit, throwing LocationMediaExceedsMaxFilesLimitException');
+        throw LocationMediaExceedsMaxFilesLimitException();
+      } else if (e.message == 'user-does-not-have-permission') {
+        debugPrint(
+            '❌ [FirestoreCloudFunctions] User does not have permission to upload media to location, throwing UserDoesNotHavePermissionToUploadMediaToLocationException');
+        throw UserDoesNotHavePermissionToUploadMediaToLocationException();
+      } else if (e.message == 'location-files-not-match') {
+        debugPrint('❌ [FirestoreCloudFunctions] Location files not match, throwing LocationFilesNotMatchException');
+        throw LocationFilesNotMatchException();
+      } else if (e.message == 'missing-params') {
+        debugPrint('❌ [FirestoreCloudFunctions] Missing parameters, throwing MissingParametersException');
+        throw MissingParametersException();
+      } else if (e.message == 'location-not-found') {
+        debugPrint('❌ [FirestoreCloudFunctions] Location not found, throwing LocationNotFoundException');
+        throw LocationNotFoundException();
+      }
+      debugPrint('❌ [FirestoreCloudFunctions] Could not get location media upload URL, unknown error: ${e.toString()}');
+      throw GenericCloudFunctionException(details: e.toString());
+    } on CloudFunctionException catch (e) {
+      debugPrint('❌ [FirestoreCloudFunctions] Could not get location media upload URL, cloud function exception: $e');
+      rethrow;
+    } catch (e) {
+      debugPrint('❌ [FirestoreCloudFunctions] Could not get location media upload URL, unknown error: $e');
+      throw GenericCloudFunctionException(details: e.toString());
+    }
+  }
+
+  Future<void> updatePromoterUserNoLocations({
+    required String userId,
+  }) async {
+    debugPrint('📥 [FirestoreCloudFunctions] Updating promoter user no locations for $userId');
+    final HttpsCallable callable = _functions.httpsCallable('updatePromoterUserNoLocations');
+    final response = await callable.call({ 'userId': userId });
+    if (response.data['status'] != "success") {
+      debugPrint('❌ [FirestoreCloudFunctions] Could not update promoter user no locations: ${response.data['error']}');
+      throw GenericCloudFunctionException(details: response.data['error']);
+    }
+    debugPrint('✅ [FirestoreCloudFunctions] Promoter user no locations updated');
+  }
 }
+

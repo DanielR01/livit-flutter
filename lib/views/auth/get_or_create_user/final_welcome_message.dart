@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:livit/constants/styles/container_style.dart';
 import 'package:livit/constants/styles/livit_text.dart';
 import 'package:livit/constants/styles/spaces.dart';
+import 'package:livit/services/background/background_bloc.dart';
+import 'package:livit/services/background/background_events.dart';
+import 'package:livit/services/background/background_states.dart';
 import 'package:livit/utilities/buttons/button.dart';
 
 class FinalWelcomeMessage extends StatefulWidget {
@@ -28,6 +32,8 @@ class _FinalWelcomeMessageState extends State<FinalWelcomeMessage> with TickerPr
   @override
   void initState() {
     super.initState();
+    debugPrint('🔒 [FinalWelcomeMessage] Locking speed to normal');
+    BlocProvider.of<BackgroundBloc>(context, listen: false).add(BackgroundLockSpeed(AnimationSpeed.normal, 0.05));
 
     _titleAnimationController = AnimationController(
       duration: const Duration(milliseconds: 300),
@@ -116,39 +122,42 @@ class _FinalWelcomeMessageState extends State<FinalWelcomeMessage> with TickerPr
       body: Center(
         child: Padding(
           padding: LivitContainerStyle.paddingFromScreen,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              FadeTransition(
-                opacity: _titleAnimation,
-                child: LivitText(
-                  '¡Todo listo!',
-                  textType: LivitTextType.bigTitle,
+          child: Padding(
+            padding: LivitContainerStyle.padding(),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                FadeTransition(
+                  opacity: _titleAnimation,
+                  child: LivitText(
+                    '¡Todo listo!',
+                    textType: LivitTextType.bigTitle,
+                  ),
                 ),
-              ),
-              LivitSpaces.s,
-              FadeTransition(
-                opacity: _descriptionAnimation,
-                child: const LivitText('Disfruta de una nueva experiencia en LIVIT. Estamos trabajando para mejorar constantemente.'),
-              ),
-              LivitSpaces.s,
-              FadeTransition(
-                opacity: _secondDescriptionAnimation,
-                child: const LivitText(
-                    'Actualmente puedes comprar entradas para tus discotecas favoritas. Pronto podrás descubrir nuevos lugares y eventos que te encantarán.',
-                    fontWeight: FontWeight.bold),
-              ),
-              LivitSpaces.m,
-              FadeTransition(
-                opacity: _buttonAnimation,
-                child: Button.main(
-                  text: 'Comenzar a usar LIVIT',
-                  isActive: _animationsCompleted,
-                  onPressed: widget.onPressed,
+                LivitSpaces.s,
+                FadeTransition(
+                  opacity: _descriptionAnimation,
+                  child: const LivitText('Disfruta de nuevas experiencias con LIVIT. Estamos trabajando para mejorar constantemente.'),
                 ),
-              ),
-            ],
+                LivitSpaces.s,
+                FadeTransition(
+                  opacity: _secondDescriptionAnimation,
+                  child: const LivitText(
+                      'Actualmente puedes comprar entradas para tus discotecas favoritas. Pronto podrás descubrir nuevos lugares y eventos que te encantarán.',
+                      fontWeight: FontWeight.bold),
+                ),
+                LivitSpaces.m,
+                FadeTransition(
+                  opacity: _buttonAnimation,
+                  child: Button.main(
+                    text: 'Comenzar a usar LIVIT',
+                    isActive: _animationsCompleted,
+                    onPressed: widget.onPressed,
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),

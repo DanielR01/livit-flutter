@@ -26,12 +26,40 @@ class PrivateDataMethods {
     }
   }
 
-  Future<void> updatePrivateData({
+  Future<void> updatePrivateDataWithTransaction({
     required String userId,
     required UserPrivateData privateData,
     required Transaction transaction,
   }) async {
-    final privateDataRef = _collections.privateDataDocument(userId);
-    transaction.update(privateDataRef, privateData.toMap());
+    try {
+      final privateDataRef = _collections.privateDataDocument(userId);
+      transaction.update(privateDataRef, privateData.toMap());
+    } catch (e) {
+      throw CouldNotUpdatePrivateDataException();
+    }
+  }
+
+  Future<void> updatePrivateData({
+    required String userId,
+    required UserPrivateData privateData,
+  }) async {
+    try {
+      final privateDataRef = FirebaseFirestore.instance.collection('users').doc(userId).collection('private').doc('privateData');
+      await privateDataRef.update(privateData.toMap());
+    } catch (e) {
+      throw CouldNotUpdatePrivateDataException(details: e.toString());
+    }
+  }
+
+  Future<void> updatePromoterPrivateData({
+    required String userId,
+    required PromoterPrivateData privateData,
+  }) async {
+    try {
+      final privateDataRef = _collections.privateDataDocument(userId);
+      await privateDataRef.update(privateData.toMap());
+    } catch (e) {
+      throw CouldNotUpdatePrivateDataException(details: e.toString());
+    }
   }
 }

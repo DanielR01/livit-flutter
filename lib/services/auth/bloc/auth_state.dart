@@ -1,6 +1,7 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter/foundation.dart' show immutable;
 import 'package:livit/constants/enums.dart';
+import 'package:livit/services/auth/auth_exceptions.dart';
 import 'package:livit/services/auth/auth_user.dart';
 
 @immutable
@@ -23,7 +24,7 @@ class AuthStateLoggingOut extends AuthState {
 }
 
 class AuthStateLoggedOut extends AuthState with EquatableMixin {
-  final Exception? exception;
+  final AuthException? exception;
   final LoginMethod? loginMethod;
   const AuthStateLoggedOut({this.exception, this.loginMethod});
 
@@ -40,7 +41,7 @@ class AuthStateRegistered extends AuthState {
 }
 
 class AuthStateRegisterError extends AuthState {
-  final Exception exception;
+  final AuthException exception;
   const AuthStateRegisterError({required this.exception});
 }
 
@@ -60,7 +61,7 @@ class AuthStateCodeSent extends AuthState {
 }
 
 class AuthStateCodeSentError extends AuthState {
-  final Exception exception;
+  final AuthException exception;
   const AuthStateCodeSentError({required this.exception});
 }
 
@@ -73,7 +74,7 @@ class AuthStateEmailVerificationSent extends AuthState {
 }
 
 class AuthStateEmailVerificationSentError extends AuthState {
-  final Exception exception;
+  final AuthException exception;
   const AuthStateEmailVerificationSentError({required this.exception});
 }
 
@@ -86,6 +87,6 @@ class AuthStatePasswordResetSent extends AuthState {
 }
 
 class AuthStatePasswordResetSentError extends AuthState {
-  final Exception exception;
+  final AuthException exception;
   const AuthStatePasswordResetSentError({required this.exception});
 }

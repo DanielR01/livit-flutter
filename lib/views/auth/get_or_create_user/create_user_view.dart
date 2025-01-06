@@ -5,6 +5,8 @@ import 'package:livit/constants/enums.dart';
 import 'package:livit/constants/styles/container_style.dart';
 import 'package:livit/constants/styles/livit_text.dart';
 import 'package:livit/constants/styles/spaces.dart';
+import 'package:livit/services/background/background_bloc.dart';
+import 'package:livit/services/background/background_events.dart';
 import 'package:livit/services/firestore_storage/bloc/users/user_event.dart';
 import 'package:livit/services/firestore_storage/bloc/users/user_state.dart';
 import 'package:livit/services/firestore_storage/bloc/users/user_bloc.dart';
@@ -47,6 +49,7 @@ class _CreateUserViewState extends State<CreateUserView> with TickerProviderStat
   void initState() {
     _usernameController = TextEditingController();
     _nameController = TextEditingController();
+    BlocProvider.of<BackgroundBloc>(context, listen: false).add(BackgroundSpeedNormal());
     super.initState();
 
     _titleController = AnimationController(
@@ -78,6 +81,7 @@ class _CreateUserViewState extends State<CreateUserView> with TickerProviderStat
                 _showContainer = true;
               });
               _containerController.forward();
+              BlocProvider.of<BackgroundBloc>(context, listen: false).add(BackgroundStopTransitionAnimation());
             }
           });
         });
@@ -109,6 +113,7 @@ class _CreateUserViewState extends State<CreateUserView> with TickerProviderStat
   void _onContinue() {
     BlocProvider.of<UserBloc>(context).add(
       CreateUser(
+        context,
         name: _nameController.text.trim(),
         username: _usernameController.text.trim(),
         userType: _userType,
@@ -121,8 +126,10 @@ class _CreateUserViewState extends State<CreateUserView> with TickerProviderStat
     return BlocBuilder<UserBloc, UserState>(
       builder: (context, state) {
         if (state is NoCurrentUser) {
-          if (state.exception is UsernameAlreadyTakenException) {
+          if (state.exception is UsernameAlreadyExistsException) {
             _bottomCaptionText = 'El nombre de usuario ya esta en uso.';
+          } else if (state.exception is UserNotFoundException) {
+            _bottomCaptionText = null;
           } else if (state.exception != null) {
             _bottomCaptionText = 'Algo salio mal, intentalo de nuevo mas tarde';
           } else {
@@ -137,6 +144,7 @@ class _CreateUserViewState extends State<CreateUserView> with TickerProviderStat
         }
 
         return Scaffold(
+          resizeToAvoidBottomInset: false,
           backgroundColor: Colors.transparent,
           body: Center(
             child: Column(

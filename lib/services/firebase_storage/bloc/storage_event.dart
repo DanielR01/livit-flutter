@@ -1,17 +1,15 @@
-import 'dart:io';
+import 'package:livit/cloud_models/location/location_media.dart';
 
 abstract class StorageEvent {
   const StorageEvent();
 }
 
-class UploadLocationMedia extends StorageEvent {
+class SetLocationMedia extends StorageEvent {
   final String locationId;
-  final List<File> files;
-  final String type; // 'images' or 'videos'
+  final LivitLocationMedia media;
 
-  const UploadLocationMedia({
+  const SetLocationMedia({
     required this.locationId,
-    required this.files,
-    required this.type,
+    required this.media,
   });
 }

@@ -8,6 +8,9 @@ import 'package:livit/constants/styles/spaces.dart';
 import 'package:livit/services/firestore_storage/bloc/locations/location_bloc.dart';
 import 'package:livit/services/firestore_storage/bloc/locations/location_event.dart';
 import 'package:livit/services/firestore_storage/bloc/locations/location_state.dart';
+import 'package:livit/services/firestore_storage/bloc/users/user_bloc.dart';
+import 'package:livit/services/firestore_storage/bloc/users/user_event.dart';
+import 'package:livit/services/firestore_storage/bloc/users/user_state.dart';
 import 'package:livit/services/firestore_storage/firestore_storage/exceptions/firestore_exceptions.dart';
 import 'package:livit/utilities/bars_containers_fields/glass_container.dart';
 import 'package:livit/utilities/bars_containers_fields/keyboard_dismissible.dart';
@@ -24,7 +27,7 @@ class AddressPrompt extends StatefulWidget {
 }
 
 class _AddressPromptState extends State<AddressPrompt> {
-  List<Location> _locations = [];
+  List<LivitLocation> _locations = [];
 
   final ScrollController _scrollController = ScrollController();
 
@@ -44,93 +47,107 @@ class _AddressPromptState extends State<AddressPrompt> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<LocationBloc, LocationState>(
+    return BlocBuilder<UserBloc, UserState>(
       builder: (context, state) {
-        if (state is! LocationsLoaded) {
-          return ErrorReauthScreen(exception: UserInformationCorruptedException());
+        if (state is! CurrentUser) {
+          return const SizedBox.shrink();
         }
-
-        final locationBloc = BlocProvider.of<LocationBloc>(context);
-        _locations = locationBloc.locations;
-        final isValid = locationBloc.areAllLocationsValidWithoutMedia && state.localUnsavedLocations.isNotEmpty;
-        final isCloudLoading = locationBloc.isCloudLoading && state.loadingStates.entries.any((entry) => entry.key != 'cloud');
-        final errorMessage = state.errorMessage ?? state.failedLocations?.toString();
-
-        return KeyboardDismissible(
-          child: Scaffold(
-            resizeToAvoidBottomInset: false,
-            body: SafeArea(
-              child: Center(
-                child: Padding(
-                  padding: LivitContainerStyle.paddingFromScreen,
-                  child: GlassContainer(
-                    hasPadding: false,
-                    titleBarText: 'Agrega tus ubicaciones',
-                    child: Flexible(
-                      child: Padding(
-                        padding: LivitContainerStyle.padding(padding: [0, 0, null, 0]),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Padding(
-                              padding: LivitContainerStyle.padding(padding: [0, null, 0, null]),
-                              child: LivitText(
-                                'Agrega todas las ubicaciones que desees, si no tienes un local físico o deseas completar esta información mas tarde, puedes continuar con el siguiente paso.',
-                              ),
-                            ),
-                            Flexible(
-                              child: Padding(
-                                padding: EdgeInsets.symmetric(vertical: LivitContainerStyle.verticalPadding / 2),
-                                child: LivitScrollbar(
-                                  thumbVisibility: true,
-                                  controller: _scrollController,
-                                  child: _locationsScroller(
-                                    scrollController: _scrollController,
+        final isUserLoading = state.isLoading;
+        String? errorMessage = state.exception?.toString();
+        return BlocBuilder<LocationBloc, LocationState>(
+          builder: (context, state) {
+            if (state is! LocationsLoaded) {
+              return ErrorReauthScreen(exception: UserInformationCorruptedException());
+            }
+            final locationBloc = BlocProvider.of<LocationBloc>(context);
+            _locations = locationBloc.locations;
+            final isValid = locationBloc.areAllLocationsValidWithoutMedia &&
+                (state.localUnsavedLocations.isNotEmpty || state.localSavedLocations.isNotEmpty || state.cloudLocations.isNotEmpty);
+            final isCloudLoading =
+                locationBloc.isCloudLoading && (state.localUnsavedLocations.isNotEmpty || state.localSavedLocations.isNotEmpty);
+            errorMessage = errorMessage != null || state.failedLocations?.isNotEmpty == true ? 'Error al crear las ubicaciones' : null;
+            return KeyboardDismissible(
+              child: Scaffold(
+                resizeToAvoidBottomInset: false,
+                body: SafeArea(
+                  child: Center(
+                    child: Padding(
+                      padding: LivitContainerStyle.paddingFromScreen,
+                      child: GlassContainer(
+                        hasPadding: false,
+                        titleBarText: 'Agrega tus ubicaciones',
+                        child: Flexible(
+                          child: Padding(
+                            padding: LivitContainerStyle.padding(padding: [0, 0, null, 0]),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Padding(
+                                  padding: LivitContainerStyle.padding(padding: [0, null, 0, null]),
+                                  child: LivitText(
+                                    'Agrega todas las ubicaciones que desees, si no tienes un local físico o deseas completar esta información mas tarde, puedes continuar con el siguiente paso.',
                                   ),
                                 ),
-                              ),
-                            ),
-                            if (errorMessage != null) ...[
-                              LivitSpaces.s,
-                              LivitText(errorMessage),
-                              LivitSpaces.s,
-                            ],
-                            Padding(
-                              padding: EdgeInsets.only(right: LivitContainerStyle.horizontalPadding),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                mainAxisSize: MainAxisSize.max,
-                                children: [
-                                  Button.grayText(
-                                    deactivateSplash: true,
-                                    isActive: true,
-                                    text: isCloudLoading ? 'Completando' : 'Completar más tarde',
-                                    isLoading: isCloudLoading,
-                                    rightIcon: Icons.arrow_forward_ios,
-                                    onPressed: () {
-                                      // TODO: Implement this
-                                    },
+                                Flexible(
+                                  child: Padding(
+                                    padding: EdgeInsets.symmetric(vertical: LivitContainerStyle.verticalPadding / 2),
+                                    child: LivitScrollbar(
+                                      thumbVisibility: true,
+                                      controller: _scrollController,
+                                      child: _locationsScroller(
+                                        scrollController: _scrollController,
+                                      ),
+                                    ),
                                   ),
-                                  Button.main(
-                                    isActive: isValid,
-                                    text: isCloudLoading ? 'Continuando' : 'Continuar',
-                                    isLoading: isCloudLoading,
-                                    onPressed: () {
-                                      // TODO: Implement this
-                                    },
-                                  ),
+                                ),
+                                if (errorMessage != null) ...[
+                                  LivitSpaces.s,
+                                  LivitText(errorMessage!),
+                                  LivitSpaces.s,
                                 ],
-                              ),
+                                Padding(
+                                  padding: EdgeInsets.only(right: LivitContainerStyle.horizontalPadding),
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    mainAxisSize: MainAxisSize.max,
+                                    children: [
+                                      Button.grayText(
+                                        deactivateSplash: true,
+                                        isActive: true,
+                                        text: isUserLoading ? 'Completando' : 'Completar más tarde',
+                                        isLoading: isUserLoading,
+                                        rightIcon: Icons.arrow_forward_ios,
+                                        onPressed: () {
+                                          BlocProvider.of<UserBloc>(context).add(
+                                            SetPromoterUserNoLocations(context),
+                                          );
+                                        },
+                                      ),
+                                      Button.main(
+                                        isActive: isValid,
+                                        text: isCloudLoading ? 'Continuando' : 'Continuar',
+                                        isLoading: isCloudLoading,
+                                        onPressed: () {
+                                          debugPrint('📤 [AddressPrompt] Creating locations to cloud from local');
+                                          BlocProvider.of<LocationBloc>(context).add(
+                                            CreateLocationsToCloudFromLocal(context),
+                                          );
+                                        },
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
                             ),
-                          ],
+                          ),
                         ),
                       ),
                     ),
                   ),
                 ),
               ),
-            ),
-          ),
+            );
+          },
         );
       },
     );
@@ -145,7 +162,7 @@ class _AddressPromptState extends State<AddressPrompt> {
       itemBuilder: (context, index) {
         if (index == _locations.length) {
           return Padding(
-            padding: LivitContainerStyle.padding(padding: [0, null, null, null]),
+            padding: LivitContainerStyle.padding(padding: [index != 0 ? 0 : null, null, null, null]),
             child: SizedBox(
               width: double.infinity,
               child: Button.secondary(
@@ -153,7 +170,8 @@ class _AddressPromptState extends State<AddressPrompt> {
                 onPressed: () {
                   BlocProvider.of<LocationBloc>(context).add(
                     CreateLocationLocally(
-                      location: Location.empty(),
+                      context,
+                      location: LivitLocation.empty(),
                     ),
                   );
                 },

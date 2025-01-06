@@ -76,5 +76,9 @@
     <string>This app needs microphone access to record videos</string>
     <key>NSPhotoLibraryUsageDescription</key>
     <string>This app needs photos access to select photos and videos</string>
+	<key>FirebaseCrashlyticsCollectionEnabled</key>
+	<true/>
+	<key>FirebaseCrashlyticsNativeReportsUploadEnabled</key>
+	<true/>
 </dict>
 </plist>

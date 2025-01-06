@@ -290,30 +290,13 @@ class _SignInState extends State<SignIn> {
               }
               _isSigningIn = false;
               if (state.exception != null) {
-                switch (state.exception.runtimeType) {
-                  case const (NetworkRequesFailed):
-                    passwordCaptionText = 'Error de red';
-                    break;
-                  case const (InvalidCredentialsAuthException):
-                    passwordCaptionText = 'Email no registrado o contraseña incorrecta';
-                    break;
-                  case const (GenericAuthException):
-                    passwordCaptionText = 'Algo salio mal, intentalo de nuevo mas tarde';
-                    break;
-                  case const (TooManyRequestsAuthException):
-                    passwordCaptionText = 'Demasiados intentos, espera unos minutos';
-                    break;
-                  case const (NotVerifiedEmailAuthException):
-                    emailToVerify = _emailController.text;
-                    context.read<AuthBloc>().add(
-                          AuthEventSendEmailVerification(email: _emailController.text),
-                        );
-                    break;
-                  case const (UserNotLoggedInAuthException):
-                    break;
-                  default:
-                    passwordCaptionText = 'Error: ${state.exception.toString()}';
+                if (state.exception is NotVerifiedEmailAuthException) {
+                  emailToVerify = _emailController.text;
+                  context.read<AuthBloc>().add(
+                        AuthEventSendEmailVerification(context, email: _emailController.text),
+                      );
                 }
+                passwordCaptionText = state.exception?.showToUser ?? false ? state.exception?.message : 'Algo salió mal, intenta de nuevo';
               }
             }
           }
@@ -348,6 +331,7 @@ class _SignInState extends State<SignIn> {
                 onPressed: () {
                   context.read<AuthBloc>().add(
                         AuthEventLogInWithEmailAndPassword(
+                          context,
                           email: _emailController.text,
                           password: _passwordController.text,
                           userType: widget.userType,
@@ -455,23 +439,10 @@ class _RegisterState extends State<Register> {
       builder: (context, state) {
         if (state is AuthStateRegisterError) {
           _isRegistering = false;
-          switch (state.exception.runtimeType) {
-            case const (NetworkRequesFailed):
-              confirmPasswordCaptionText = 'Error de red';
-              break;
-            case const (EmailAlreadyInUseAuthException):
-              emailCaptionText = 'Este email ya se encuentra registrado';
-              break;
-            case const (WeakPasswordAuthException):
-              passwordCaptionText = 'Contraseña debil';
-              break;
-            case const (InvalidEmailAuthException):
-              emailCaptionText = 'Email no valido';
-              break;
-            case const (GenericAuthException):
-              confirmPasswordCaptionText = 'Algo salio mal, intentalo de nuevo mas tarde';
-              break;
-          }
+          final exception = state.exception as AuthException;
+
+              confirmPasswordCaptionText = exception.showToUser ? exception.message : 'Algo salió mal, intenta de nuevo';
+          
         } else if (state is AuthStateRegistering) {
           _isRegistering = true;
         } else if (state is AuthStateRegistered) {
@@ -547,6 +518,7 @@ class _RegisterState extends State<Register> {
 
                 context.read<AuthBloc>().add(
                       AuthEventRegister(
+                        context,
                         email: _emailController.text,
                         password: _passwordController.text,
                       ),
@@ -635,7 +607,7 @@ class _VerifyEmail extends State<VerifyEmail> {
                       isLoading: _isSendingCode,
                       onPressed: () async {
                         context.read<AuthBloc>().add(
-                              AuthEventSendEmailVerification(email: widget.email),
+                              AuthEventSendEmailVerification(context, email: widget.email),
                             );
                       },
                     ),
@@ -753,41 +725,23 @@ class _ForgotPassword extends State<ForgotPassword> {
         } else if (state is AuthStatePasswordResetSentError) {
           _isSendingEmail = false;
           _isEmailSent = false;
-          if (state.exception.runtimeType == NetworkRequesFailed) {
-            emailCaptionWidget = Column(
-              children: [
-                LivitSpaces.s,
-                const Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  mainAxisSize: MainAxisSize.max,
-                  children: [
-                    LivitText(
-                      'Error de conexión',
-                      textAlign: TextAlign.center,
-                    ),
-                  ],
-                ),
-                LivitSpaces.m,
-              ],
-            );
-          } else if (state.exception.runtimeType == GenericAuthException) {
-            emailCaptionWidget = Column(
-              children: [
-                LivitSpaces.s,
-                const Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  mainAxisSize: MainAxisSize.max,
-                  children: [
-                    LivitText(
-                      'Algo salio mal, intenta mas tarde',
-                      textAlign: TextAlign.center,
-                    ),
-                  ],
-                ),
-                LivitSpaces.m,
-              ],
-            );
-          }
+          final exception = state.exception;
+          emailCaptionWidget = Column(
+            children: [
+              LivitSpaces.s,
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisSize: MainAxisSize.max,
+                children: [
+                  LivitText(
+                    exception.message,
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              ),
+              LivitSpaces.m,
+            ],
+          );
         }
         return GlassContainer(
           child: Padding(
@@ -835,7 +789,7 @@ class _ForgotPassword extends State<ForgotPassword> {
                           isLoading: _isSendingEmail,
                           onPressed: () async {
                             context.read<AuthBloc>().add(
-                                  AuthEventSendPasswordReset(email: _emailController.text),
+                                  AuthEventSendPasswordReset(context, email: _emailController.text),
                                 );
                           },
                         ),

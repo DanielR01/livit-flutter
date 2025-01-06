@@ -1,5 +1,7 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:livit/constants/colors.dart';
+import 'package:livit/constants/styles/button_style.dart';
 
 class LoadingScreen extends StatefulWidget {
   const LoadingScreen({super.key});
@@ -11,11 +13,12 @@ class LoadingScreen extends StatefulWidget {
 class _LoadingScreenState extends State<LoadingScreen> {
   @override
   Widget build(BuildContext context) {
-    return const Stack(
+    return Stack(
       children: [
         Center(
-          child: CircularProgressIndicator(
+          child: CupertinoActivityIndicator(
             color: LivitColors.whiteActive,
+            radius: LivitButtonStyle.iconSize,
           ),
         ),
       ],
@@ -33,11 +36,12 @@ class LoadingScreenWithBackground extends StatefulWidget {
 class _LoadingScreenWithBackgroundState extends State<LoadingScreenWithBackground> {
   @override
   Widget build(BuildContext context) {
-    return const Stack(
+    return Stack(
       children: [
         Center(
-          child: CircularProgressIndicator(
-            color: LivitColors.whiteInactive,
+          child: CupertinoActivityIndicator(
+            color: LivitColors.whiteActive,
+            radius: LivitButtonStyle.iconSize,
           ),
         ),
       ],

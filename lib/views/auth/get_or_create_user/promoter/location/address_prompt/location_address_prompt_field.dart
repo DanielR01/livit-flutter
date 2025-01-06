@@ -18,8 +18,9 @@ import 'package:livit/utilities/buttons/button.dart';
 import 'package:livit/utilities/buttons/livit_dropdown_button.dart';
 
 class LocationAddressPromptField extends StatefulWidget {
-  final Location location;
-  const LocationAddressPromptField({super.key, required this.location});
+  final LivitLocation location;
+  final String? errorMessage;
+  const LocationAddressPromptField({super.key, required this.location, this.errorMessage});
 
   @override
   State<LocationAddressPromptField> createState() => _LocationAddressPromptFieldState();
@@ -48,41 +49,63 @@ class _LocationAddressPromptFieldState extends State<LocationAddressPromptField>
   @override
   void initState() {
     super.initState();
-    _addressController = TextEditingController(text: widget.location.address);
-    _nameController = TextEditingController(text: widget.location.name);
-    _descriptionController = TextEditingController(text: widget.location.description);
-
-    _addressController.addListener(() {
-      BlocProvider.of<LocationBloc>(context).add(
-        UpdateLocationLocally(
-          location: widget.location.copyWith(address: _addressController.text),
-        ),
-      );
-    });
-
-    _nameController.addListener(() {
-      BlocProvider.of<LocationBloc>(context).add(
-        UpdateLocationLocally(
-          location: widget.location.copyWith(name: _nameController.text),
-        ),
-      );
-    });
-
-    _descriptionController.addListener(() {
-      BlocProvider.of<LocationBloc>(context).add(
-        UpdateLocationLocally(
-          location: widget.location.copyWith(description: _descriptionController.text),
-        ),
-      );
-    });
-
+    debugPrint('🔄 [LAPF_${widget.location.name}] Initializing field...');
+    locationBloc = BlocProvider.of<LocationBloc>(context);
+    _initControllers();
     _loadStatesAndCityData();
-
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _calculateAddressContainerHeight();
     });
+  }
 
-    locationBloc = BlocProvider.of<LocationBloc>(context);
+  void _initControllers() {
+    _addressController = TextEditingController(text: widget.location.address);
+    _nameController = TextEditingController(text: widget.location.name);
+    _descriptionController = TextEditingController(text: widget.location.description);
+    _addressController.addListener(() {
+      _updateLocation(widget.location.copyWith(address: _addressController.text));
+    });
+    _nameController.addListener(() {
+      _updateLocation(widget.location.copyWith(name: _nameController.text));
+    });
+    _descriptionController.addListener(() {
+      _updateLocation(widget.location.copyWith(description: _descriptionController.text));
+    });
+  }
+
+  void _onDelete() {
+    debugPrint('🗑️ [LAPF_${widget.location.name}] Deleting location');
+    final currentFocus = FocusScope.of(context);
+    if (!currentFocus.hasPrimaryFocus) {
+      currentFocus.unfocus();
+    }
+    BlocProvider.of<LocationBloc>(context).add(
+      DeleteLocationLocally(
+        context,
+        location: widget.location,
+      ),
+    );
+  }
+
+  void _toggleEditing() {
+    final currentFocus = FocusScope.of(context);
+    if (!currentFocus.hasPrimaryFocus) {
+      currentFocus.unfocus();
+    }
+    debugPrint('🔄 [LAPF_${widget.location.name}] ${isEditing ? 'Hiding' : 'Showing'} edit form');
+    setState(() {
+      isEditing = !isEditing;
+    });
+  }
+
+  void _updateLocation(LivitLocation updatedLocation) {
+    debugPrint('💾 [LAPF_${widget.location.name}] Updating location data');
+    BlocProvider.of<LocationBloc>(context).add(
+      UpdateLocationLocally(
+        context,
+        location: updatedLocation,
+      ),
+    );
   }
 
   @override
@@ -177,17 +200,18 @@ class _LocationAddressPromptFieldState extends State<LocationAddressPromptField>
                 onSelected: (value) {
                   BlocProvider.of<LocationBloc>(context).add(
                     UpdateLocationLocally(
-                      location: widget.location.copyWith(department: value, city: ''),
+                      context,
+                      location: widget.location.copyWith(state: value, city: ''),
                     ),
                   );
                 },
                 defaultText: 'Departamento',
                 isActive: true,
-                selectedValue: widget.location.department == '' ? null : widget.location.department,
+                selectedValue: widget.location.state == '' ? null : widget.location.state,
               ),
               LivitSpaces.s,
               LivitDropdownButton(
-                entries: (citiesByState[widget.location.department] ?? [])
+                entries: (citiesByState[widget.location.state] ?? [])
                     .map(
                       (city) => DropdownMenuEntry<String>(
                         value: city,
@@ -198,12 +222,13 @@ class _LocationAddressPromptFieldState extends State<LocationAddressPromptField>
                 onSelected: (value) {
                   BlocProvider.of<LocationBloc>(context).add(
                     UpdateLocationLocally(
+                      context,
                       location: widget.location.copyWith(city: value),
                     ),
                   );
                 },
                 defaultText: 'Ciudad',
-                isActive: (widget.location.department != ''),
+                isActive: (widget.location.state != ''),
                 selectedValue: widget.location.city == '' ? null : widget.location.city,
               ),
             ],
@@ -215,6 +240,7 @@ class _LocationAddressPromptFieldState extends State<LocationAddressPromptField>
 
   @override
   Widget build(BuildContext context) {
+    debugPrint('🎨 [LAPF_${widget.location.name}] Building field widget');
     isLocationValid = locationBloc.isLocationValid(widget.location);
     return LivitBar(
       noPadding: true,
@@ -222,18 +248,14 @@ class _LocationAddressPromptFieldState extends State<LocationAddressPromptField>
       child: Column(
         children: [
           LivitBar(
-            shadowType: isEditing ? ShadowType.weak : ShadowType.strong,
+            shadowType: isEditing
+                ? ShadowType.weak
+                : isLocationValid['isValidWithoutMedia'] as bool
+                    ? ShadowType.weak
+                    : ShadowType.strong,
             noPadding: true,
             child: InkWell(
-              onTap: () {
-                setState(() {
-                  isEditing = !isEditing;
-                });
-                final currentFocus = FocusScope.of(context);
-                if (!currentFocus.hasPrimaryFocus) {
-                  currentFocus.unfocus();
-                }
-              },
+              onTap: _toggleEditing,
               child: Column(
                 children: [
                   Padding(
@@ -270,7 +292,7 @@ class _LocationAddressPromptFieldState extends State<LocationAddressPromptField>
                                       overflow: TextOverflow.ellipsis,
                                     ),
                                     LivitText(
-                                      '${widget.location.city == '' ? 'Sin ciudad' : widget.location.city}, ${widget.location.department == '' ? 'sin departamento' : widget.location.department}',
+                                      '${widget.location.city == '' ? 'Sin ciudad' : widget.location.city}, ${widget.location.state == '' ? 'sin departamento' : widget.location.state}',
                                       color: LivitColors.whiteInactive,
                                       textAlign: TextAlign.left,
                                       overflow: TextOverflow.ellipsis,
@@ -284,13 +306,7 @@ class _LocationAddressPromptFieldState extends State<LocationAddressPromptField>
                         Row(
                           children: [
                             GestureDetector(
-                              onTap: () {
-                                BlocProvider.of<LocationBloc>(context).add(
-                                  DeleteLocationLocally(
-                                    location: widget.location,
-                                  ),
-                                );
-                              },
+                              onTap: _onDelete,
                               child: Container(
                                 color: Colors.transparent,
                                 child: Padding(
@@ -360,7 +376,7 @@ class _LocationAddressPromptFieldState extends State<LocationAddressPromptField>
           mainAxisSize: MainAxisSize.max,
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
-            LivitText('$charCount/50 caracteres', textType: LivitTextType.regular, color: LivitColors.whiteInactive),
+            LivitText('$charCount/100 caracteres', textType: LivitTextType.regular, color: LivitColors.whiteInactive),
           ],
         ),
       ],

@@ -117,15 +117,9 @@ class _ConfirmOTPCodeViewState extends State<ConfirmOTPCodeView> {
       },
       builder: (context, state) {
         if (state is AuthStateLoggedOut) {
-          if (state.exception != null) {
-            if (state.exception is InvalidVerificationCodeAuthException) {
-              invalidCode = 'Codigo invalido';
-            } else if (state.exception is NetworkRequesFailed) {
-              invalidCode = 'Error de red';
-            } else {
-              invalidCode = 'Error desconocido';
-            }
-          }
+          
+            invalidCode = state.exception?.message;
+          
           if (state.loginMethod == LoginMethod.phoneAndOtp) {
             _isVerifyingCode = true;
           } else {
@@ -233,6 +227,7 @@ class _ConfirmOTPCodeViewState extends State<ConfirmOTPCodeView> {
                                                   onPressed: () {
                                                     context.read<AuthBloc>().add(
                                                           AuthEventSendOtpCode(
+                                                            context,
                                                             isResending: true,
                                                             phoneCode: widget.phoneCode,
                                                             phoneNumber: widget.phoneNumber,
@@ -246,9 +241,9 @@ class _ConfirmOTPCodeViewState extends State<ConfirmOTPCodeView> {
                                                   isActive: isOtpCodeValid,
                                                   isLoading: _isVerifyingCode,
                                                   onPressed: () {
-                                                    print('verifying');
                                                     context.read<AuthBloc>().add(
                                                           AuthEventLogInWithPhoneAndOtp(
+                                                            context,
                                                             userType: widget.userType,
                                                             verificationId: verificationId,
                                                             otpCode: otpController.text,

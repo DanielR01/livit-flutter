@@ -9,12 +9,13 @@ class LocationUninitialized extends LocationState {
 }
 
 class LocationsLoaded extends LocationState {
-  final List<Location> cloudLocations;
-  final List<Location> localSavedLocations;
-  final List<Location> localUnsavedLocations;
-  final Map<Location, String>? failedLocations;
+  final List<LivitLocation> cloudLocations;
+  final List<LivitLocation> localSavedLocations;
+  final List<LivitLocation> localUnsavedLocations;
+  final Map<LivitLocation, String>? failedLocations;
   final Map<String, LoadingState> loadingStates;
   final String? errorMessage;
+  final Exception? exception;
 
   const LocationsLoaded(
       {required this.cloudLocations,
@@ -22,12 +23,14 @@ class LocationsLoaded extends LocationState {
       required this.localUnsavedLocations,
       this.failedLocations,
       this.errorMessage,
-      this.loadingStates = const {
-        
-      }});
+      this.loadingStates = const {},
+      this.exception});
 }
 
 enum LoadingState {
+  skipping,
+  verifying,
+  uploading,
   loading,
   loaded,
   error,

@@ -1,8 +1,6 @@
 // import 'package:cloud_firestore/cloud_firestore.dart';
 // import 'package:cloud_functions/cloud_functions.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-import 'package:livit/firebase_options.dart';
 import 'package:livit/services/auth/auth_user.dart';
 import 'package:livit/services/auth/auth_exceptions.dart';
 import 'package:livit/services/auth/auth_provider.dart';
@@ -11,20 +9,6 @@ import 'package:firebase_auth/firebase_auth.dart'
     show FirebaseAuth, FirebaseAuthException, GoogleAuthProvider, PhoneAuthCredential, PhoneAuthProvider;
 
 class FirebaseAuthProvider implements AuthProvider {
-  @override
-  Future<void> initialize() async {
-    await Firebase.initializeApp(
-      options: DefaultFirebaseOptions.currentPlatform,
-    );
-    // try {
-    //   FirebaseFirestore.instance.useFirestoreEmulator('localhost', 8080);
-    //   FirebaseFunctions.instance.useFunctionsEmulator('localhost', 5001);
-    //   await FirebaseAuth.instance.useAuthEmulator('localhost', 9099);
-    // } catch (e) {
-    //   // ignore: avoid_print
-    //   print(e);
-    // }
-  }
 
   @override
   Future<void> registerEmail({
@@ -38,24 +22,22 @@ class FirebaseAuthProvider implements AuthProvider {
       );
       final user = FirebaseAuth.instance.currentUser;
       if (user == null) {
-        throw GenericAuthException();
+        throw GenericAuthException(details: 'User is null after registration');
       }
       await sendEmailVerification();
-    } on FirebaseAuthException catch (error) {
-      switch (error.code) {
+    } on FirebaseAuthException catch (e) {
+      switch (e.code) {
         case "weak-password":
-          throw WeakPasswordAuthException();
+          throw WeakPasswordAuthException(details: e.message);
         case "email-already-in-use":
-          throw EmailAlreadyInUseAuthException();
+          throw EmailAlreadyInUseAuthException(details: e.message);
         case "invalid-email":
-          throw InvalidEmailAuthException();
+          throw InvalidEmailAuthException(details: e.message);
         default:
-          throw GenericAuthException();
+          throw GenericAuthException(details: '${e.code}: ${e.message}');
       }
-    } on GenericAuthException {
-      rethrow;
-    } catch (_) {
-      throw GenericAuthException();
+    } catch (e) {
+      throw GenericAuthException(details: e.toString());
     }
   }
 
@@ -63,16 +45,15 @@ class FirebaseAuthProvider implements AuthProvider {
   AuthUser get currentUser {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) {
-      throw UserNotLoggedInAuthException();
+      throw UserNotLoggedInAuthException(details: 'No current user found');
     }
     if (user.phoneNumber != null) {
       return AuthUser.fromFirebase(user);
     } else if (user.email != null) {
       if (!user.emailVerified) {
-        throw NotVerifiedEmailAuthException();
-      } else {
-        return AuthUser.fromFirebase(user);
+        throw NotVerifiedEmailAuthException(details: 'Email ${user.email} not verified');
       }
+      return AuthUser.fromFirebase(user);
     }
     return AuthUser.fromFirebase(user);
   }
@@ -80,22 +61,20 @@ class FirebaseAuthProvider implements AuthProvider {
   @override
   Future<void> sendEmailVerification() async {
     final user = FirebaseAuth.instance.currentUser;
-    if (user != null) {
-      if (user.emailVerified) {
-        throw EmailAlreadyVerified();
-      } else {
-        try {
-          await user.sendEmailVerification();
-        } on FirebaseAuthException catch (e) {
-          if (e.code == 'too-many-requests') {
-            throw TooManyRequestsAuthException();
-          } else {
-            throw GenericAuthException();
-          }
-        }
+    if (user == null) {
+      throw UserNotLoggedInAuthException(details: 'Cannot send verification to null user');
+    }
+    if (user.emailVerified) {
+      throw EmailAlreadyVerifiedException(details: 'Email ${user.email} already verified');
+    }
+
+    try {
+      await user.sendEmailVerification();
+    } on FirebaseAuthException catch (e) {
+      if (e.code == 'too-many-requests') {
+        throw TooManyRequestsAuthException(details: e.message);
       }
-    } else {
-      throw UserNotLoggedInAuthException();
+      throw GenericAuthException(details: '${e.code}: ${e.message}');
     }
   }
 
@@ -142,38 +121,32 @@ class FirebaseAuthProvider implements AuthProvider {
         email: email,
         password: password,
       );
-      final user = currentUser;
-      return user;
+      return currentUser;
     } on FirebaseAuthException catch (e) {
       switch (e.code) {
         case 'invalid-credential':
-          throw InvalidCredentialsAuthException();
+          throw InvalidCredentialsAuthException(details: e.message);
         case 'network-request-failed':
-          throw NetworkRequesFailed();
+          throw NetworkRequestFailedAuthException(details: e.message);
         case 'too-many-requests':
-          throw TooManyRequestsAuthException();
+          throw TooManyRequestsAuthException(details: e.message);
         default:
-          throw GenericAuthException();
+          throw GenericAuthException(details: '${e.code}: ${e.message}');
       }
-    } on GenericAuthException {
+    } on AuthException {
       rethrow;
-    } on UserNotLoggedInAuthException {
-      rethrow;
-    } on NotVerifiedEmailAuthException {
-      rethrow;
-    } catch (_) {
-      throw GenericAuthException();
+    } catch (e) {
+      throw GenericAuthException(details: e.toString());
     }
   }
 
   @override
   Future<void> logOut() async {
     final user = FirebaseAuth.instance.currentUser;
-    if (user != null) {
-      await FirebaseAuth.instance.signOut();
-    } else {
-      throw UserNotLoggedInAuthException();
+    if (user == null) {
+      throw UserNotLoggedInAuthException(details: 'Cannot logout null user');
     }
+    await FirebaseAuth.instance.signOut();
   }
 
   @override
@@ -183,12 +156,12 @@ class FirebaseAuthProvider implements AuthProvider {
     } on FirebaseAuthException catch (e) {
       switch (e.code) {
         case 'network-request-failed':
-          throw NetworkRequesFailed();
+          throw NetworkRequestFailedAuthException(details: e.message);
         default:
-          throw GenericAuthException();
+          throw GenericAuthException(details: '${e.code}: ${e.message}');
       }
     } catch (e) {
-      throw GenericAuthException();
+      throw GenericAuthException(details: e.toString());
     }
   }
 
@@ -206,14 +179,14 @@ class FirebaseAuthProvider implements AuthProvider {
       rethrow;
     } on FirebaseAuthException catch (e) {
       if (e.code == 'invalid-verification-code') {
-        throw InvalidVerificationCodeAuthException();
+        throw InvalidVerificationCodeAuthException(details: e.message);
       } else if (e.code == 'network-request-failed') {
-        throw NetworkRequesFailed();
+        throw NetworkRequestFailedAuthException(details: e.message);
       } else {
-        throw GenericAuthException();
+        throw GenericAuthException(details: '${e.code}: ${e.message}');
       }
     } catch (e) {
-      throw GenericAuthException();
+      throw GenericAuthException(details: e.toString());
     }
   }
 

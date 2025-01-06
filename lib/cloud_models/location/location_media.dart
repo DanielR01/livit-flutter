@@ -1,4 +1,6 @@
+import 'package:flutter/material.dart';
 import 'package:livit/cloud_models/location/location_media_file.dart';
+import 'package:livit/services/firestore_storage/firestore_storage/exceptions/locations_exceptions.dart';
 
 class LivitLocationMedia {
   final LivitLocationMediaFile? mainFile;
@@ -14,10 +16,18 @@ class LivitLocationMedia {
   }
 
   factory LivitLocationMedia.fromMap(Map<String, dynamic> map) {
-    return LivitLocationMedia(
-      mainFile: map['mainFile'] != null ? LivitLocationMediaFile.fromMap(map['mainFile'] as Map<String, dynamic>) : null,
-      secondaryFiles: map['secondaryFiles'] != null ? (map['secondaryFiles'] as List<dynamic>).map((file) => LivitLocationMediaFile.fromMap(file as Map<String, dynamic>)).toList() : null,
-    );
+    try {
+      debugPrint('📥 [LivitLocationMedia] Creating location media from map');
+      return LivitLocationMedia(
+        mainFile: map['mainFile'] != null ? LivitLocationMediaFile.fromMap(map['mainFile'] as Map<String, dynamic>) : null,
+        secondaryFiles: map['secondaryFiles'] != null
+            ? (map['secondaryFiles'] as List<dynamic>).map((file) => LivitLocationMediaFile.fromMap(file as Map<String, dynamic>)).toList()
+            : null,
+      );
+    } catch (e) {
+      debugPrint('❌ [LivitLocationMedia] Failed to create location media from map: $e');
+      throw CouldNotCreateLocationMediaFromMapException(details: e.toString());
+    }
   }
 
   LivitLocationMedia copyWith({LivitLocationMediaFile? mainFile, List<LivitLocationMediaFile?>? secondaryFiles}) {

@@ -1,46 +1,60 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:livit/cloud_models/location/location.dart';
+import 'package:flutter/material.dart';
 import 'package:livit/constants/enums.dart';
 
 abstract class UserEvent {
-  const UserEvent();
+  final BuildContext context;
+  UserEvent(this.context);
+}
+
+class GetUser extends UserEvent {
+  GetUser(super.context);
 }
 
 class GetUserWithPrivateData extends UserEvent {
-  const GetUserWithPrivateData();
+  GetUserWithPrivateData(super.context);
 }
 
 class SetUserType extends UserEvent {
   final UserType userType;
-  SetUserType({required this.userType});
+  SetUserType(super.context, {required this.userType});
 }
 
 class CreateUser extends UserEvent {
-  final String name;
   final String username;
+  final String name;
   final UserType userType;
-  final String? phoneNumber;
-  final String? email;
-  CreateUser({required this.name, required this.username, required this.userType, this.phoneNumber, this.email});
+
+  CreateUser(
+    super.context, {
+    required this.username,
+    required this.name,
+    required this.userType,
+  });
 }
 
 class SetUserInterests extends UserEvent {
   final List<String> interests;
-
-  SetUserInterests({required this.interests});
+  SetUserInterests(super.context, {required this.interests});
 }
 
 class SetPromoterUserDescription extends UserEvent {
   final String description;
+  SetPromoterUserDescription(super.context, {required this.description});
+}
 
-  SetPromoterUserDescription({required this.description});
+class SetPromoterUserNoLocations extends UserEvent {
+  SetPromoterUserNoLocations(super.context);
 }
 
 class UpdateState extends UserEvent {
-  const UpdateState();
+  UpdateState(super.context);
 }
 
-// class SetPromoterUserLocations extends UserEvent {
-//   final List<Location?> locations;
-//   SetPromoterUserLocations({required this.locations});
-// }
+class OnError extends UserEvent {
+  final Exception exception;
+  OnError(super.context, {required this.exception});
+}
+
+class SetUserProfileCompleted extends UserEvent {
+  SetUserProfileCompleted(super.context);
+}

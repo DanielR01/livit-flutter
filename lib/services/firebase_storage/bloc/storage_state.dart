@@ -1,5 +1,9 @@
 import 'dart:io';
 
+import 'package:livit/cloud_models/location/location_media.dart';
+import 'package:livit/services/exceptions/base_exception.dart';
+import 'package:livit/services/firebase_storage/bloc/storage_bloc_exception.dart';
+
 abstract class StorageState {
   const StorageState();
 }
@@ -13,13 +17,27 @@ class StorageUploading extends StorageState {
   const StorageUploading({this.progress = 0.0});
 }
 
-class StorageSuccess extends StorageState {
+class StorageDownloading extends StorageState {
+  final double progress;
+  const StorageDownloading({this.progress = 0.0});
+}
+
+class StorageDownloaded extends StorageState {
   final List<String> urls;
-  final List<File>? failedFiles;
-  const StorageSuccess({required this.urls, this.failedFiles});
+  const StorageDownloaded({required this.urls});
+}
+
+class StorageUploaded extends StorageState {
+  final LivitLocationMedia media;
+  const StorageUploaded({required this.media});
+}
+
+class StorageSignedUrlsObtained extends StorageState {
+  final LivitLocationMedia media;
+  const StorageSignedUrlsObtained({required this.media});
 }
 
 class StorageFailure extends StorageState {
-  final Exception exception;
+  final LivitException exception;
   const StorageFailure({required this.exception});
 }

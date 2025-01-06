@@ -1,5 +1,3 @@
-import 'dart:io';
-
 enum LivitLocationMediaType {
   image,
   video,
@@ -8,7 +6,7 @@ enum LivitLocationMediaType {
 class LivitLocationMediaFile {
   final LivitLocationMediaType type;
   final String? url;
-  final String? filePath  ;
+  final String? filePath;
 
   LivitLocationMediaFile({required this.type, required this.url, required this.filePath});
 
@@ -55,6 +53,11 @@ class LivitLocationMediaImage extends LivitLocationMediaFile {
   String toString() {
     return 'LivitLocationMediaImage(url: $url, filePath: $filePath)';
   }
+
+  @override
+  LivitLocationMediaImage copyWith({String? url, String? filePath}) {
+    return LivitLocationMediaImage(url: url ?? this.url, filePath: filePath ?? this.filePath);
+  }
 }
 
 class LivitLocationMediaVideo extends LivitLocationMediaFile {
@@ -81,5 +84,14 @@ class LivitLocationMediaVideo extends LivitLocationMediaFile {
   @override
   String toString() {
     return 'LivitLocationMediaVideo(url: $url, filePath: $filePath, cover: $cover)';
+  }
+
+  @override
+  LivitLocationMediaVideo copyWith({String? url, String? filePath, LivitLocationMediaImage? cover}) {
+    return LivitLocationMediaVideo(
+      url: url ?? this.url,
+      filePath: filePath ?? this.filePath,
+      cover: cover ?? this.cover,
+    );
   }
 }

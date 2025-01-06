@@ -8,6 +8,7 @@ import 'package:livit/services/firestore_storage/bloc/users/user_bloc.dart';
 import 'package:livit/services/firestore_storage/bloc/users/user_event.dart';
 import 'package:livit/services/firestore_storage/bloc/users/user_state.dart';
 import 'package:livit/utilities/bars_containers_fields/glass_container.dart';
+import 'package:livit/utilities/bars_containers_fields/keyboard_dismissible.dart';
 import 'package:livit/utilities/bars_containers_fields/livit_text_field.dart';
 import 'package:livit/utilities/bars_containers_fields/title_bar.dart';
 import 'package:livit/utilities/buttons/button.dart';
@@ -81,63 +82,66 @@ class _DescriptionPromptState extends State<DescriptionPrompt> {
           _isSkipLoading = false;
         }
 
-        return Scaffold(
-          backgroundColor: Colors.transparent,
-          body: Center(
-            child: Padding(
-              padding: LivitContainerStyle.paddingFromScreen,
-              child: GlassContainer(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const TitleBar(title: '¿Quien eres?'),
-                    Padding(
-                      padding: LivitContainerStyle.padding(padding: [0, null, null, null]),
-                      child: Column(
-                        children: [
-                          const LivitText(
-                            'Describe tu lugar o evento para que tus clientes puedan conocerte mejor y encontrarte fácilmente.',
-                          ),
-                          LivitSpaces.m,
-                          LivitTextField(
-                            controller: _descriptionController,
-                            hint: 'Escribe aquí...',
-                            isMultiline: true,
-                            lines: 3,
-                            bottomCaptionWidget: _buildBottomCaptionCharCount(),
-                            regExp: RegExp(r'^.{1,100}$'),
-                            disableCheckValidity: true,
-                          ),
-                          LivitSpaces.m,
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            mainAxisSize: MainAxisSize.max,
-                            children: [
-                              Button.grayText(
-                                text: _isSkipLoading ? 'Continuando' : 'Completar más tarde',
-                                onPressed: () {
-                                  BlocProvider.of<UserBloc>(context).add(SetPromoterUserDescription(description: ''));
-                                },
-                                isActive: true,
-                                isLoading: _isSkipLoading,
-                                rightIcon: Icons.arrow_forward_ios,
-                              ),
-                              Button.main(
-                                text: _isContinueLoading ? 'Continuando' : 'Continuar',
-                                onPressed: () {
-                                  BlocProvider.of<UserBloc>(context)
-                                      .add(SetPromoterUserDescription(description: _descriptionController.text));
-                                },
-                                isActive: _isContinuable,
-                                isLoading: _isContinueLoading,
-                              ),
-                            ],
-                          ),
-                        ],
+        return KeyboardDismissible(
+          child: Scaffold(
+            resizeToAvoidBottomInset: false,
+            backgroundColor: Colors.transparent,
+            body: Center(
+              child: Padding(
+                padding: LivitContainerStyle.paddingFromScreen,
+                child: GlassContainer(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const TitleBar(title: '¿Quien eres?'),
+                      Padding(
+                        padding: LivitContainerStyle.padding(padding: [0, null, null, null]),
+                        child: Column(
+                          children: [
+                            const LivitText(
+                              'Describe tu lugar o evento para que tus clientes puedan conocerte mejor y encontrarte fácilmente.',
+                            ),
+                            LivitSpaces.m,
+                            LivitTextField(
+                              controller: _descriptionController,
+                              hint: 'Escribe aquí...',
+                              isMultiline: true,
+                              lines: 3,
+                              bottomCaptionWidget: _buildBottomCaptionCharCount(),
+                              regExp: RegExp(r'^.{1,100}$'),
+                              disableCheckValidity: true,
+                            ),
+                            LivitSpaces.m,
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              mainAxisSize: MainAxisSize.max,
+                              children: [
+                                Button.grayText(
+                                  text: _isSkipLoading ? 'Continuando' : 'Completar más tarde',
+                                  onPressed: () {
+                                    BlocProvider.of<UserBloc>(context).add(SetPromoterUserDescription(context, description: ''));
+                                  },
+                                  isActive: true,
+                                  isLoading: _isSkipLoading,
+                                  rightIcon: Icons.arrow_forward_ios,
+                                ),
+                                Button.main(
+                                  text: _isContinueLoading ? 'Continuando' : 'Continuar',
+                                  onPressed: () {
+                                    BlocProvider.of<UserBloc>(context)
+                                        .add(SetPromoterUserDescription(context, description: _descriptionController.text));
+                                  },
+                                  isActive: _isContinuable,
+                                  isLoading: _isContinueLoading,
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ),

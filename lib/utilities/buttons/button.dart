@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:livit/constants/colors.dart';
@@ -600,87 +601,83 @@ class _ButtonState extends State<Button> with SingleTickerProviderStateMixin {
             boxShadow: boxShadow,
           ),
           child: IntrinsicWidth(
-            child: ConstrainedBox(
-              constraints: BoxConstraints(
-                minWidth: widget.text != null ? _calculateMinWidth(context, textColor) : 0,
+            child: Material(
+              color: backgroundColor,
+              shape: RoundedRectangleBorder(
+                borderRadius: LivitButtonStyle.radius,
               ),
-              child: Material(
-                color: backgroundColor,
-                shape: RoundedRectangleBorder(
-                  borderRadius: LivitButtonStyle.radius,
-                ),
-                child: InkWell(
-                  splashColor: widget.deactivateSplash ? Colors.transparent : null,
-                  highlightColor: widget.deactivateSplash ? Colors.transparent : null,
-                  borderRadius: LivitButtonStyle.radius,
-                  onTap: (widget.forceOnPressed ?? false)
-                      ? widget.onPressed
-                      : (widget.isActive && !widget.isLoading)
-                          ? widget.onPressed
-                          : null,
-                  child: Padding(
-                    padding: LivitButtonStyle.padding,
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      mainAxisAlignment: widget.isLoading ? MainAxisAlignment.start : MainAxisAlignment.center,
-                      children: [
-                        if (widget.leftIcon != null)
-                          Padding(
-                            padding: EdgeInsets.only(right: 4.sp),
-                            child: Icon(
-                              widget.leftIcon,
-                              color: textColor,
-                              size: widget.isIconBig ? LivitButtonStyle.bigIconSize : LivitButtonStyle.iconSize,
-                            ),
+              child: InkWell(
+                splashColor: widget.deactivateSplash ? Colors.transparent : null,
+                highlightColor: widget.deactivateSplash ? Colors.transparent : null,
+                borderRadius: LivitButtonStyle.radius,
+                onTap: (widget.forceOnPressed ?? false)
+                    ? widget.onPressed
+                    : (widget.isActive && !widget.isLoading)
+                        ? widget.onPressed
+                        : null,
+                child: Padding(
+                  padding: LivitButtonStyle.padding,
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    mainAxisAlignment: widget.isLoading ? MainAxisAlignment.start : MainAxisAlignment.center,
+                    children: [
+                      if (widget.leftIcon != null)
+                        Padding(
+                          padding: EdgeInsets.only(right: 4.sp),
+                          child: Icon(
+                            widget.leftIcon,
+                            color: textColor,
+                            size: widget.isIconBig ? LivitButtonStyle.bigIconSize : LivitButtonStyle.iconSize,
                           ),
-                        if (widget.text != null)
-                          if (!widget.isLoading)
-                            Flexible(
-                              child: LivitText(
-                                widget.text!,
-                                textType: LivitTextType.regular,
-                                color: textColor,
-                                fontWeight: widget.bold ? FontWeight.bold : null,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            )
-                          else
-                            Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                LivitText(
-                                  widget.text!,
-                                  textType: LivitTextType.regular,
-                                  color: textColor,
-                                  fontWeight: widget.bold ? FontWeight.bold : null,
-                                ),
-                                AnimatedBuilder(
-                                  animation: _dotsAnimation,
-                                  builder: (context, child) {
-                                    return LivitText(
-                                      '.' * _dotsAnimation.value,
-                                      textType: LivitTextType.regular,
-                                      color: textColor,
-                                      fontWeight: widget.bold ? FontWeight.bold : null,
-                                    );
-                                  },
-                                ),
-                              ],
-                            ),
-                        if (widget.rightIcon != null)
-                          Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              if (widget.text != null) LivitSpaces.xs,
+                        ),
+                      if (widget.text != null)
+                        Flexible(
+                          child: LivitText(
+                            widget.text!,
+                            textType: LivitTextType.regular,
+                            color: textColor,
+                            fontWeight: widget.bold ? FontWeight.bold : null,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      if (widget.rightIcon != null)
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            if (widget.text != null) LivitSpaces.xs,
+                            if (!widget.isLoading)
                               Icon(
                                 widget.rightIcon,
                                 color: textColor,
                                 size: widget.isIconBig ? LivitButtonStyle.bigIconSize : LivitButtonStyle.iconSize,
+                              )
+                            else
+                              SizedBox(
+                                width: (widget.isIconBig ? LivitButtonStyle.bigIconSize : LivitButtonStyle.iconSize) / 2,
+                                height: (widget.isIconBig ? LivitButtonStyle.bigIconSize : LivitButtonStyle.iconSize) / 2,
+                                child: CupertinoActivityIndicator(
+                                  color: textColor,
+                                  radius: (widget.isIconBig ? LivitButtonStyle.bigIconSize : LivitButtonStyle.iconSize) / 2,
+                                ),
+                              )
+                          ],
+                        )
+                      else if (widget.isLoading)
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            if (widget.text != null) LivitSpaces.s,
+                            SizedBox(
+                              width: (widget.isIconBig ? LivitButtonStyle.bigIconSize : LivitButtonStyle.iconSize) / 2,
+                              height: (widget.isIconBig ? LivitButtonStyle.bigIconSize : LivitButtonStyle.iconSize) / 2,
+                              child: CupertinoActivityIndicator(
+                                color: textColor,
+                                radius: (widget.isIconBig ? LivitButtonStyle.bigIconSize : LivitButtonStyle.iconSize) / 2,
                               ),
-                            ],
-                          ),
-                      ],
-                    ),
+                            ),
+                          ],
+                        )
+                    ],
                   ),
                 ),
               ),
@@ -689,25 +686,5 @@ class _ButtonState extends State<Button> with SingleTickerProviderStateMixin {
         );
       },
     );
-  }
-
-  double _calculateMinWidth(BuildContext context, Color textColor) {
-    final TextPainter textPainter = TextPainter(
-      text: TextSpan(
-        text: '${widget.text}...',
-        style: TextStyle(
-          fontSize: LivitTextStyle.regularFontSize,
-          fontWeight: widget.bold ? FontWeight.bold : FontWeight.normal,
-          color: textColor,
-        ),
-      ),
-      maxLines: 1,
-      textDirection: TextDirection.ltr,
-    )..layout(minWidth: 0, maxWidth: double.infinity);
-
-    return textPainter.width +
-        LivitButtonStyle.paddingValue * 2 +
-        (widget.leftIcon != null ? 16 + LivitSpaces.xsDouble : 0) +
-        (widget.rightIcon != null ? 16 + LivitSpaces.xsDouble : 0);
   }
 }

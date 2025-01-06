@@ -91,7 +91,7 @@ class _UserTypeInputState extends State<UserTypeInput> {
                             text: 'Continuar',
                             isActive: _selectedUserType != null,
                             onPressed: () => BlocProvider.of<UserBloc>(context).add(
-                              SetUserType(userType: _selectedUserType!),
+                              SetUserType(context, userType: _selectedUserType!),
                             ),
                           ),
                         ],

@@ -1,10 +1,15 @@
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:livit/constants/routes.dart';
 import 'package:livit/constants/styles/spaces.dart';
 import 'package:livit/constants/styles/livit_text.dart';
 import 'package:livit/constants/enums.dart';
+import 'package:livit/services/background/background_bloc.dart';
+import 'package:livit/services/background/background_events.dart';
+import 'package:livit/services/error_reporting/error_reporter.dart';
 import 'package:livit/utilities/buttons/button.dart';
 
 class WelcomeView extends StatefulWidget {
@@ -18,71 +23,82 @@ class _WelcomeViewState extends State<WelcomeView> {
   bool displayContent = false;
   bool displayLivit = false;
   bool animationsCompleted = false;
-
+  
   @override
   void initState() {
     super.initState();
+
     Future.delayed(1.seconds, () {
-      setState(() {
-        displayLivit = true;
-      });
+      if (mounted) {
+        setState(() {
+          displayLivit = true;
+        });
+      }
     });
     Future.delayed(4.seconds, () {
-      setState(() {
-        displayContent = true;
-      });
+      if (mounted) {
+        setState(() {
+          displayContent = true;
+        });
+      }
     });
     Future.delayed(4.seconds, () {
-      setState(() {
-        animationsCompleted = true;
-      });
+      if (mounted) {
+        setState(() {
+          animationsCompleted = true;
+        });
+      }
     });
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+
+    debugPrint('🔄 [WelcomeView] Disposing WelcomeView');
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.transparent,
-      body: 
- 
-              
-              Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    if (displayLivit)
-                      Animate(
-                        effects: [
-                          FadeEffect(duration: 500.ms, curve: Curves.easeOut),
-                        ],
-                        child: const LivitText(
-                          'LIVIT',
-                          textType: LivitTextType.bigTitle,
-                        ),
-                      ),
-                    if (displayContent)
-                      Animate(
-                        effects: [
-                          FadeEffect(duration: 500.ms, curve: Curves.easeOut),
-                          SlideEffect(
-                            begin: const Offset(0, 0.05),
-                            end: Offset.zero,
-                            duration: 500.ms,
-                            curve: Curves.easeOut,
-                          ),
-                        ],
-                        child: WelcomeMessage(animationsCompleted: animationsCompleted),
-                      ),
-                  ],
-                      ),
-                    ),
-          
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            if (displayLivit)
+              Animate(
+                effects: [
+                  FadeEffect(duration: 500.ms, curve: Curves.easeOut),
+                ],
+                child: const LivitText(
+                  'LIVIT',
+                  textType: LivitTextType.bigTitle,
+                ),
+              ),
+            if (displayContent)
+              Animate(
+                effects: [
+                  FadeEffect(duration: 500.ms, curve: Curves.easeOut),
+                  SlideEffect(
+                    begin: const Offset(0, 0.05),
+                    end: Offset.zero,
+                    duration: 500.ms,
+                    curve: Curves.easeOut,
+                  ),
+                ],
+                child: WelcomeMessage(animationsCompleted: animationsCompleted),
+              ),
+          ],
+        ),
+      ),
     );
   }
 }
 
 class WelcomeMessage extends StatelessWidget {
   final bool animationsCompleted;
+  static final errorReporter = ErrorReporter();
 
   const WelcomeMessage({super.key, required this.animationsCompleted});
 
@@ -99,7 +115,7 @@ class WelcomeMessage extends StatelessWidget {
           Button.main(
             text: 'Comenzar',
             isActive: animationsCompleted,
-            onPressed: () {
+            onPressed: () async {              
               Navigator.of(context).pushNamedAndRemoveUntil(
                 Routes.authRoute,
                 (route) => false,

@@ -138,17 +138,14 @@ class _LivitDropdownButtonState extends State<LivitDropdownButton> {
                       onChanged: (value) => _filterEntries(_searchController.text, dialogSetState),
                     ),
                     LivitSpaces.xs,
-                    NotificationListener<ScrollNotification>(
-                      onNotification: (notification) {
-                        if (notification is ScrollUpdateNotification) {
-                          _lastScrollOffset = _scrollController.offset;
-                        }
-                        return true;
-                      },
-                      child: ConstrainedBox(
-                        constraints: BoxConstraints(
-                          maxHeight: MediaQuery.of(context).size.height * 0.4,
-                        ),
+                    Flexible(
+                      child: NotificationListener<ScrollNotification>(
+                        onNotification: (notification) {
+                          if (notification is ScrollUpdateNotification) {
+                            _lastScrollOffset = _scrollController.offset;
+                          }
+                          return true;
+                        },
                         child: SingleChildScrollView(
                           controller: _scrollController,
                           child: Column(

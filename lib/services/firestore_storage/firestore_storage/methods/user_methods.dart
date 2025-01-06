@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/material.dart';
 import 'package:livit/cloud_models/user/cloud_user.dart';
 import 'package:livit/services/firestore_storage/firestore_storage/collections.dart';
 import 'package:livit/services/firestore_storage/firestore_storage/exceptions/firestore_exceptions.dart';
@@ -11,32 +12,26 @@ class UserMethods {
   final Collections _collections = Collections();
 
   Future<CloudUser> getUser({required String userId}) async {
-    try {
-      final doc = await _collections.usersCollection.doc(userId).get();
-      if (doc.exists) {
-        try {
-          return doc.data()!;
-        } catch (e) {
-          throw CouldNotGetUserException();
-        }
-      } else {
-        throw UserNotFoundException();
+    final doc = await _collections.usersCollection.doc(userId).get();
+    if (doc.exists) {
+      try {
+        return doc.data()!;
+      } catch (e) {
+        throw UserInformationCorruptedException(details: e.toString());
       }
-    } on FirebaseException {
-      throw CouldNotGetUserException();
-    } catch (e) {
-      if (e is UserNotFoundException) {
-        rethrow;
-      }
-      throw CouldNotGetUserException();
+    } else {
+      throw UserNotFoundException();
     }
   }
 
   Future<void> updateUser({required CloudUser user}) async {
     try {
+      debugPrint('🔄 [UserMethods] Updating user ${user.id}');
       await _collections.usersCollection.doc(user.id).update(user.toMap());
+      debugPrint('🔄 [UserMethods] User updated');
     } catch (e) {
-      throw CouldNotUpdateUserException(message: e.toString());
+      debugPrint('❌ [UserMethods] Could not update user: $e');
+      throw CouldNotUpdateUserException(details: e.toString());
     }
   }
 }

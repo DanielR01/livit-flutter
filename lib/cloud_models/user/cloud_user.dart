@@ -1,5 +1,4 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:livit/cloud_models/cloud_models_exceptions.dart';
 import 'package:livit/constants/enums.dart';
 
 class CloudUser {
@@ -7,8 +6,9 @@ class CloudUser {
   final String username;
   final UserType userType;
   final String name;
-  final DateTime createdAt;
+  final Timestamp createdAt;
   final List<String?>? interests;
+  final bool isProfileCompleted;
 
   CloudUser({
     required this.id,
@@ -17,6 +17,7 @@ class CloudUser {
     required this.name,
     required this.createdAt,
     required this.interests,
+    required this.isProfileCompleted,
   });
 
   Map<String, dynamic> toMap() {
@@ -26,6 +27,7 @@ class CloudUser {
       'name': name,
       'interests': interests,
       'createdAt': createdAt,
+      'isProfileCompleted': isProfileCompleted,
     };
   }
 
@@ -35,7 +37,8 @@ class CloudUser {
     UserType? userType,
     String? name,
     List<String?>? interests,
-    DateTime? createdAt,
+    Timestamp? createdAt,
+    bool? isProfileCompleted,
   }) {
     return CloudUser(
       id: id ?? this.id,
@@ -44,18 +47,8 @@ class CloudUser {
       name: name ?? this.name,
       createdAt: createdAt ?? this.createdAt,
       interests: interests ?? this.interests,
+      isProfileCompleted: isProfileCompleted ?? this.isProfileCompleted,
     );
-  }
-
-  factory CloudUser.fromDocument(DocumentSnapshot doc) {
-    final data = doc.data() as Map<String, dynamic>;
-
-    if (data['userType'] == UserType.customer.name) {
-      return CloudCustomer.fromDocument(doc);
-    } else if (data['userType'] == UserType.promoter.name) {
-      return CloudPromoter.fromDocument(doc);
-    }
-    throw InvalidUserTypeException();
   }
 }
 
@@ -67,6 +60,7 @@ class CloudCustomer extends CloudUser {
     required super.name,
     required super.createdAt,
     required super.interests,
+    required super.isProfileCompleted,
   });
 
   factory CloudCustomer.fromDocument(DocumentSnapshot doc) {
@@ -77,7 +71,8 @@ class CloudCustomer extends CloudUser {
       userType: UserType.values.firstWhere((e) => e.name == data['userType'] as String),
       name: data['name'] as String,
       interests: (data['interests'] as List<dynamic>?)?.cast<String>(),
-      createdAt: (data['createdAt'] as Timestamp).toDate(),
+      createdAt: (data['createdAt'] as Timestamp),
+      isProfileCompleted: data['isProfileCompleted'] as bool,
     );
   }
 
@@ -89,6 +84,7 @@ class CloudCustomer extends CloudUser {
       'name': name,
       'interests': interests,
       'createdAt': createdAt,
+      'isProfileCompleted': isProfileCompleted,
     };
   }
 
@@ -99,7 +95,8 @@ class CloudCustomer extends CloudUser {
     UserType? userType,
     String? name,
     List<String?>? interests,
-    DateTime? createdAt,
+    Timestamp? createdAt,
+    bool? isProfileCompleted,
   }) {
     return CloudCustomer(
       id: id ?? this.id,
@@ -108,18 +105,19 @@ class CloudCustomer extends CloudUser {
       name: name ?? this.name,
       interests: interests ?? this.interests,
       createdAt: createdAt ?? this.createdAt,
+      isProfileCompleted: isProfileCompleted ?? this.isProfileCompleted,
     );
   }
 
   @override
   String toString() {
-    return 'CloudCustomer(id: $id, username: $username, userType: $userType, name: $name, interests: $interests, createdAt: $createdAt)';
+    return 'CloudCustomer(id: $id, username: $username, userType: $userType, name: $name, interests: $interests, createdAt: $createdAt, isProfileCompleted: $isProfileCompleted)';
   }
 }
 
 class CloudPromoter extends CloudUser {
   final String? description;
-
+  final List<String>? locations;
   CloudPromoter({
     required super.id,
     required super.username,
@@ -127,7 +125,9 @@ class CloudPromoter extends CloudUser {
     required super.name,
     required super.createdAt,
     required super.interests,
+    required this.locations,
     required this.description,
+    required super.isProfileCompleted,
   });
 
   @override
@@ -137,8 +137,10 @@ class CloudPromoter extends CloudUser {
     UserType? userType,
     String? name,
     List<String?>? interests,
-    DateTime? createdAt,
+    Timestamp? createdAt,
     String? description,
+    List<String>? locations,
+    bool? isProfileCompleted,
   }) {
     return CloudPromoter(
       id: id ?? this.id,
@@ -148,13 +150,14 @@ class CloudPromoter extends CloudUser {
       interests: interests ?? this.interests,
       createdAt: createdAt ?? this.createdAt,
       description: description ?? this.description,
-    
+      locations: locations ?? this.locations,
+      isProfileCompleted: isProfileCompleted ?? this.isProfileCompleted,
     );
   }
 
   @override
   String toString() {
-    return 'CloudPromoter(id: $id, username: $username, userType: $userType, name: $name, interests: $interests, createdAt: $createdAt, description: $description)';
+    return 'CloudPromoter(id: $id, username: $username, userType: $userType, name: $name, interests: $interests, createdAt: $createdAt, description: $description, locations: $locations, isProfileCompleted: $isProfileCompleted)';
   }
 
   factory CloudPromoter.fromDocument(DocumentSnapshot doc) {
@@ -165,10 +168,10 @@ class CloudPromoter extends CloudUser {
     final userType = UserType.values.firstWhere((e) => e.name == data['userType'] as String);
     final name = data['name'] as String;
     final interests = (data['interests'] as List<dynamic>?)?.cast<String>();
-    final createdAt = (data['createdAt'] as Timestamp).toDate();
+    final createdAt = (data['createdAt'] as Timestamp);
     final description = data['description'] as String?;
-    
-
+    final locations = (data['locations'] as List<dynamic>?)?.cast<String>();
+    final isProfileCompleted = data['isProfileCompleted'] as bool;
     return CloudPromoter(
       id: id,
       username: username,
@@ -177,7 +180,8 @@ class CloudPromoter extends CloudUser {
       interests: interests,
       createdAt: createdAt,
       description: description,
-      
+      locations: locations,
+      isProfileCompleted: isProfileCompleted,
     );
   }
 
@@ -190,6 +194,8 @@ class CloudPromoter extends CloudUser {
       'interests': interests,
       'createdAt': createdAt,
       'description': description,
+      'locations': locations,
+      'isProfileCompleted': isProfileCompleted,
     };
   }
 }

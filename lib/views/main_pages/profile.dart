@@ -20,7 +20,7 @@ class ProfileView extends StatefulWidget {
 
 class _ProfileViewState extends State<ProfileView> {
   void _handleLogOut() {
-    context.read<AuthBloc>().add(const AuthEventLogOut());
+    context.read<AuthBloc>().add(AuthEventLogOut(context));
   }
 
   @override

@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 class LocationSearchService {
@@ -6,9 +7,9 @@ class LocationSearchService {
 
   static Future<Map<String, double>> searchLocation(String address) async {
     try {
-      print('address: $address');
+      debugPrint('🔍 [LocationSearchService] Searching location for address: $address');
       final result = await _channel.invokeMethod('searchLocation', address);
-      print('result: $result');
+      debugPrint('🔍 [LocationSearchService] Result: $result');
       if (result != null) {
         final Map<dynamic, dynamic> locationData = result;
         return {

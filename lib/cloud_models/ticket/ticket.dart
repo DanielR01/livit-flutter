@@ -19,7 +19,7 @@ class Ticket {
   final Timestamp scanExpiryTime;
   final Timestamp minActivationTime; // Time after which the ticket can be activated, only after activation it can be scanned
   final Timestamp activatedAt; // Time at which the ticket was activated
-  final Location entranceLocation;
+  final LivitLocation entranceLocation;
 
   Ticket({
     required this.ticketId,
@@ -57,7 +57,7 @@ class Ticket {
       scanExpiryTime: map['scanExpiryTime'],
       minActivationTime: map['minActivationTime'],
       activatedAt: map['activatedAt'],
-      entranceLocation: Location.fromMap(map['entranceLocation']),
+      entranceLocation: LivitLocation.fromMap(map['entranceLocation']),
     );
   }
 }

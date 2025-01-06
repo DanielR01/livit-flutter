@@ -2,17 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:livit/cloud_models/location/location.dart';
 import 'package:livit/cloud_models/location/location_media.dart';
-import 'package:livit/cloud_models/location/location_media_file.dart';
 import 'package:livit/constants/styles/container_style.dart';
 import 'package:livit/constants/styles/livit_text.dart';
 import 'package:livit/constants/styles/spaces.dart';
-import 'package:livit/services/files/file_cleanup_service.dart';
 import 'package:livit/services/firestore_storage/bloc/locations/location_bloc.dart';
 import 'package:livit/services/firestore_storage/bloc/locations/location_event.dart';
 import 'package:livit/services/firestore_storage/bloc/locations/location_state.dart';
+import 'package:livit/services/firestore_storage/firestore_storage/exceptions/firestore_exceptions.dart';
 import 'package:livit/utilities/bars_containers_fields/glass_container.dart';
 import 'package:livit/utilities/buttons/button.dart';
-import 'package:livit/utilities/error_screens/error_reauth_screen.dart';
 import 'package:livit/utilities/livit_scrollbar.dart';
 import 'package:livit/views/auth/get_or_create_user/promoter/location/media_prompt/location_media_prompt_field.dart';
 
@@ -27,68 +25,65 @@ class _MediaPromptState extends State<MediaPrompt> {
   final ScrollController _scrollController = ScrollController();
 
   @override
+  void initState() {
+    super.initState();
+    _locationBloc = BlocProvider.of<LocationBloc>(context);
+    _locations = _locationBloc.locations;
+  }
+
+  @override
   void dispose() {
     super.dispose();
     _scrollController.dispose();
-    FileCleanupService().cleanupTempFiles();
   }
 
-  List<Location> _locations = [];
-
-  void _onMainSelected(LivitLocationMediaFile file, Location location) {
-    final index = _locations.indexWhere((element) => element.id == location.id);
-    if (index != -1) {
-      final locationToUpdate = _locations[index];
-      final updatedLocation =
-          locationToUpdate.copyWith(media: locationToUpdate.media?.copyWith(mainFile: file) ?? LivitLocationMedia(mainFile: file));
-      setState(() {
-        _locations[index] = updatedLocation;
-      });
-    }
-  }
-
-  void _onSecondarySelected(LivitLocationMediaFile file, Location location) {
-    final index = _locations.indexWhere((element) => element.id == location.id);
-    if (index != -1) {
-      final locationToUpdate = _locations[index];
-      final updatedLocation = locationToUpdate.copyWith(
-          media: locationToUpdate.media?.copyWith(secondaryFiles: [...(locationToUpdate.media?.secondaryFiles ?? []), file]) ??
-              LivitLocationMedia(secondaryFiles: [file]));
-      setState(() {
-        _locations[index] = updatedLocation;
-      });
-    }
-  }
-
-  void _onMediaReset(Location location) {
-    final index = _locations.indexWhere((element) => element.id == location.id);
-    if (index != -1) {
-      setState(() {
-        _locations[index] = location.copyWith(media: null);
-      });
-    }
-  }
-
-  void _onMediaChanged(LivitLocationMedia media, Location location) {
-    final index = _locations.indexWhere((element) => element.id == location.id);
-    if (index != -1) {
-      setState(() {
-        _locations[index] = location.copyWith(media: media);
-      });
-    }
-  }
+  List<LivitLocation> _locations = [];
+  late final LocationBloc _locationBloc;
 
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<LocationBloc, LocationState>(
       builder: (context, state) {
+        _locations = _locationBloc.locations;
         try {
+          String? continueButtonText;
           if (state is LocationsLoaded) {
-            
-            _locations = LocationBloc().locations;
-            final isValid = _locations.every((location) => location.media?.mainFile?.filePath != null);
-            final isCloudLoading = LocationBloc().isCloudLoading;
-            final errorMessage = state.errorMessage ?? state.failedLocations?.toString();
+            final isValid = _locationBloc.areAllLocationsValid;
+            final isCloudLoading = state.loadingStates['cloud'] == LoadingState.loading;
+            late final String? errorMessage;
+            if (state.errorMessage != null) {
+              errorMessage = state.errorMessage;
+            } else {
+              if (state.failedLocations?.isNotEmpty == true) {
+                if (state.failedLocations!.length == 1) {
+                  errorMessage = 'No se pudo subir el video o imagen de una de tus locaciones';
+                } else {
+                  errorMessage = 'No se pudo subir el video o imagen de algunas de tus locaciones';
+                }
+              } else {
+                errorMessage = null;
+              }
+              int verifyingLocations = 0;
+              int uploadingLocations = 0;
+              int uploadedLocations = 0;
+              for (final location in state.loadingStates.entries) {
+                if (location.key == 'cloud') continue;
+                if (location.value == LoadingState.uploading) {
+                  uploadingLocations++;
+                } else if (location.value == LoadingState.verifying) {
+                  verifyingLocations++;
+                } else if (location.value == LoadingState.loaded) {
+                  uploadedLocations++;
+                }
+              }
+              if (verifyingLocations != 0) {
+                continueButtonText = 'Verificando ${_locations.length - uploadingLocations - verifyingLocations + 1} de ${_locations.length}';
+              } else if (uploadingLocations != 0) {
+                continueButtonText = 'Subiendo ${_locations.length - uploadingLocations - verifyingLocations + 1} de ${_locations.length}';
+              } else if (uploadedLocations == _locations.length) {
+                continueButtonText = 'Completando';
+              }
+            }
 
             return Scaffold(
               body: SafeArea(
@@ -117,13 +112,16 @@ class _MediaPromptState extends State<MediaPrompt> {
                                     controller: _scrollController,
                                     child: _locationsScroller(
                                       scrollController: _scrollController,
+                                      failedLocations: state.failedLocations,
                                     ),
                                   ),
                                 ),
                               ),
                               if (errorMessage != null) ...[
-                                LivitSpaces.s,
-                                LivitText(errorMessage),
+                                Padding(
+                                  padding: LivitContainerStyle.padding(padding: [0, null, 0, null]),
+                                  child: LivitText(errorMessage, fontWeight: FontWeight.bold),
+                                ),
                                 LivitSpaces.s,
                               ],
                               Padding(
@@ -135,20 +133,20 @@ class _MediaPromptState extends State<MediaPrompt> {
                                     Button.grayText(
                                       deactivateSplash: true,
                                       isActive: true,
-                                      text: isCloudLoading ? 'Completando' : 'Completar más tarde',
-                                      isLoading: isCloudLoading,
+                                      text: state.loadingStates['cloud'] == LoadingState.skipping ? 'Completando' : 'Completar más tarde',
+                                      isLoading: state.loadingStates['cloud'] == LoadingState.skipping,
                                       rightIcon: Icons.arrow_forward_ios,
                                       onPressed: () {
                                         _locations = _locations.map((location) => location.copyWith(media: LivitLocationMedia())).toList();
-                                        BlocProvider.of<LocationBloc>(context).add(UpdateLocationsMediaToCloud(locations: _locations));
+                                        BlocProvider.of<LocationBloc>(context).add(SkipUpdateLocationsMediaToCloud(context));
                                       },
                                     ),
                                     Button.main(
                                       isActive: isValid,
-                                      text: isCloudLoading ? 'Continuando' : 'Continuar',
-                                      isLoading: isCloudLoading,
+                                      text: continueButtonText ?? 'Continuar',
+                                      isLoading: continueButtonText != null,
                                       onPressed: () {
-                                        BlocProvider.of<LocationBloc>(context).add(UpdateLocationsMediaToCloud(locations: _locations));
+                                        BlocProvider.of<LocationBloc>(context).add(UpdateLocationsMediaToCloudFromLocal(context));
                                       },
                                     ),
                                   ],
@@ -164,16 +162,16 @@ class _MediaPromptState extends State<MediaPrompt> {
               ),
             );
           } else {
-            return ErrorReauthScreen();
+            throw GenericFirestoreException(details: 'State (${state.runtimeType}) is not a LocationsLoaded');
           }
         } catch (e) {
-          return ErrorReauthScreen();
+          throw GenericFirestoreException(details: 'Unknown error in MediaPrompt: $e');
         }
       },
     );
   }
 
-  Widget _locationsScroller({required ScrollController scrollController}) {
+  Widget _locationsScroller({required ScrollController scrollController, required Map<LivitLocation, String>? failedLocations}) {
     return ListView.builder(
       controller: scrollController,
       shrinkWrap: true,
@@ -182,14 +180,8 @@ class _MediaPromptState extends State<MediaPrompt> {
       itemBuilder: (context, index) {
         final location = _locations.elementAt(index);
         return Padding(
-          padding: LivitContainerStyle.padding(padding: [index != 0 ? 0 : null, null, null, null]),
-          child: LocationMediaInputField(
-              location: location,
-              onMainSelected: _onMainSelected,
-              onSecondarySelected: _onSecondarySelected,
-              onMediaChanged: _onMediaChanged,
-              onMediaReset: _onMediaReset),
-        );
+            padding: LivitContainerStyle.padding(padding: [index != 0 ? 0 : null, null, null, null]),
+            child: LocationMediaInputField(location: location, errorMessage: failedLocations?[location]));
       },
     );
   }

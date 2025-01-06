@@ -4,9 +4,13 @@ import 'package:livit/constants/enums.dart';
 import 'package:livit/constants/styles/container_style.dart';
 import 'package:livit/constants/styles/livit_text.dart';
 import 'package:livit/constants/styles/spaces.dart';
+import 'package:livit/services/background/background_bloc.dart';
+import 'package:livit/services/background/background_events.dart';
+import 'package:livit/services/background/background_states.dart';
 import 'package:livit/services/firestore_storage/bloc/users/user_bloc.dart';
 import 'package:livit/services/firestore_storage/bloc/users/user_event.dart';
 import 'package:livit/services/firestore_storage/bloc/users/user_state.dart';
+import 'package:livit/services/firestore_storage/firestore_storage/exceptions/firestore_exceptions.dart';
 import 'package:livit/utilities/bars_containers_fields/glass_container.dart';
 import 'package:livit/utilities/buttons/button.dart';
 import 'package:livit/utilities/error_screens/error_reauth_screen.dart';
@@ -22,6 +26,9 @@ class _WelcomeAndInterestsViewState extends State<WelcomeAndInterestsView> {
   bool _isShowingWelcome = true;
 
   void _onNext() {
+    debugPrint('🔄 [WelcomeAndInterestsView] Stopping animation');
+    BlocProvider.of<BackgroundBloc>(context, listen: false).add(BackgroundUnlockSpeed());
+    BlocProvider.of<BackgroundBloc>(context, listen: false).add(BackgroundStopTransitionAnimation());
     setState(
       () {
         _isShowingWelcome = false;
@@ -45,7 +52,7 @@ class _WelcomeAndInterestsViewState extends State<WelcomeAndInterestsView> {
             return const _InterestsView();
           }
         } else {
-          return const ErrorReauthScreen();
+          return ErrorReauthScreen(exception: UserInformationCorruptedException(details: 'No current user on WelcomeAndInterestsView'));
         }
       },
     );
@@ -76,7 +83,8 @@ class __WelcomeViewState extends State<_WelcomeView> with TickerProviderStateMix
   @override
   void initState() {
     super.initState();
-
+    debugPrint('🔄 [WelcomeAndInterestsView] Starting animation');
+    BlocProvider.of<BackgroundBloc>(context, listen: false).add(BackgroundLockSpeed(AnimationSpeed.normal, 0.05));
     _titleAnimationController = AnimationController(
       duration: const Duration(milliseconds: 300),
       vsync: this,
@@ -144,7 +152,7 @@ class __WelcomeViewState extends State<_WelcomeView> with TickerProviderStateMix
       case UserType.customer:
         return 'Con LIVIT podrás encontrar nuevos eventos y lugares en tu ciudad que se adapten a tus gustos.\nQueremos que compartas nuevas experiencias con tus amigos en tus eventos favoritos.';
       case UserType.promoter:
-        return 'Con LIVIT podrás promocionar tus eventos y lugares de una manera más efectiva.\nLlega a más personas y haz crecer tu negocio con nuestra plataforma.';
+        return 'Con LIVIT podrás promocionar tus eventos y lugares de una manera más efectiva. Llegarás a más personas y podrás administrar tus eventos y entradas de manera fácil.';
       default:
         return '';
     }
@@ -153,38 +161,42 @@ class __WelcomeViewState extends State<_WelcomeView> with TickerProviderStateMix
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       backgroundColor: Colors.transparent,
       body: Center(
         child: Padding(
           padding: LivitContainerStyle.paddingFromScreen,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              FadeTransition(
-                opacity: _titleAnimation,
-                child: LivitText(
-                  'Hola ${widget.name}',
-                  textType: LivitTextType.bigTitle,
+          child: Padding(
+            padding: LivitContainerStyle.padding(),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                FadeTransition(
+                  opacity: _titleAnimation,
+                  child: LivitText(
+                    'Hola ${widget.name}',
+                    textType: LivitTextType.bigTitle,
+                  ),
                 ),
-              ),
-              LivitSpaces.s,
-              FadeTransition(
-                opacity: _descriptionAnimation,
-                child: LivitText(
-                  _welcomeDescription,
+                LivitSpaces.s,
+                FadeTransition(
+                  opacity: _descriptionAnimation,
+                  child: LivitText(
+                    _welcomeDescription,
+                  ),
                 ),
-              ),
-              LivitSpaces.m,
-              FadeTransition(
-                opacity: _buttonAnimation,
-                child: Button.main(
-                  text: 'Continuar',
-                  isActive: _isAnimationFinished,
-                  onPressed: widget.onNext,
+                LivitSpaces.m,
+                FadeTransition(
+                  opacity: _buttonAnimation,
+                  child: Button.main(
+                    text: 'Continuar',
+                    isActive: _isAnimationFinished,
+                    onPressed: widget.onNext,
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -247,7 +259,7 @@ class _InterestsViewState extends State<_InterestsView> {
               : 'Escoge los temas que más se relacionen con tu negocio para que tus clientes puedan encontrarte fácilmente.';
           _isLoading = state.isLoading;
         } else {
-          return const ErrorReauthScreen();
+          return ErrorReauthScreen(exception: UserInformationCorruptedException(details: 'No current user on WelcomeAndInterestsView'));
         }
         return Scaffold(
           backgroundColor: Colors.transparent,
@@ -285,7 +297,7 @@ class _InterestsViewState extends State<_InterestsView> {
                       isLoading: _isLoading,
                       onPressed: () {
                         BlocProvider.of<UserBloc>(context).add(
-                          SetUserInterests(interests: selectedTopics.toList()),
+                          SetUserInterests(context, interests: selectedTopics.toList()),
                         );
                       },
                     ),

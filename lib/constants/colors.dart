@@ -9,4 +9,5 @@ class LivitColors {
   static const mainBlack = Color.fromARGB(255, 11, 11, 13);
   static const greenActive = Color.fromARGB(255, 25, 224, 57);
   static const red = Color.fromARGB(255, 246, 0, 46);
+  static const yellowError = Color.fromARGB(255, 255, 204, 0);
 }

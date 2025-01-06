@@ -16,6 +16,7 @@ class MediaFileCleanup {
 
   static Future<void> deleteFileByPath(String? filePath) async {
     if (filePath == null) return;
+    debugPrint('Deleting file: $filePath');
     await deleteFile(File(filePath));
   }
 

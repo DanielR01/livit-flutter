@@ -1,9 +1,11 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:livit/constants/colors.dart';
 import 'package:livit/constants/routes.dart';
 import 'package:livit/constants/styles/bar_style.dart';
+import 'package:livit/constants/styles/button_style.dart';
 import 'package:livit/constants/styles/livit_text.dart';
 import 'package:livit/constants/enums.dart';
 import 'package:livit/services/auth/bloc/auth_bloc.dart';
@@ -44,7 +46,7 @@ class _GoogleLoginBarState extends State<GoogleLoginBar> {
       },
       child: GestureDetector(
         onTap: () {
-          context.read<AuthBloc>().add(AuthEventLogInWithGoogle(userType: widget.userType));
+          context.read<AuthBloc>().add(AuthEventLogInWithGoogle(context, userType: widget.userType));
         },
         child: Container(
           height: 54.sp,
@@ -71,10 +73,11 @@ class _GoogleLoginBarState extends State<GoogleLoginBar> {
                   ? Positioned(
                       right: 16.sp,
                       child: SizedBox(
-                        height: 13.sp,
-                        width: 13.sp,
-                        child: const CircularProgressIndicator(
+                        height: LivitButtonStyle.iconSize,
+                        width: LivitButtonStyle.iconSize,
+                        child: CupertinoActivityIndicator(
                           color: LivitColors.mainBlack,
+                          radius: LivitButtonStyle.iconSize / 2,
                         ),
                       ),
                     )

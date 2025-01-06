@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:flutter/material.dart';
 
 class StorageService {
   static final StorageService _shared = StorageService._sharedInstance();
@@ -8,11 +9,28 @@ class StorageService {
 
   final FirebaseStorage _storage = FirebaseStorage.instance;
 
-  Future<String> uploadFile(File file, String locationId, String type) async {
-    final storageRef = _storage.ref();
-    final locationRef = storageRef.child('locations/$locationId/$type/${DateTime.now().millisecondsSinceEpoch}');
-    
-    await locationRef.putFile(file);
-    return await locationRef.getDownloadURL();
+  Future<String> uploadFileWithSignedUrl(String filePath, String signedUrl, String contentType) async {
+    try {
+      debugPrint('🔄 [StorageService] Uploading file');
+      final response = await HttpClient().putUrl(Uri.parse(signedUrl)).then((request) async {
+        request.headers.contentType = ContentType(contentType.split('/')[0], contentType.split('/')[1]);
+        //request.headers.contentLength = await file.length();
+        await request.addStream(File(filePath).openRead());
+        return request.close();
+      });
+
+      if (response.statusCode != 200) {
+        throw Exception('Failed to upload file: ${response.statusCode}, ${response.reasonPhrase}');
+      }
+      debugPrint('✅ [StorageService] File uploaded successfully');
+      return signedUrl.split('?')[0]; // Return the clean URL without query params
+    } catch (e) {
+      debugPrint('❌ [StorageService] Error uploading file: $e');
+      throw Exception('Error uploading file: $e');
+    }
+  }
+
+  Future<void> deleteFile(String url) async {
+    await _storage.refFromURL(url).delete();
   }
 }

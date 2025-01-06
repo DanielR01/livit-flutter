@@ -6,10 +6,11 @@ import 'package:image_picker/image_picker.dart';
 import 'package:livit/cloud_models/location/location_media_file.dart';
 import 'package:livit/constants/colors.dart';
 import 'package:livit/constants/styles/bar_style.dart';
+import 'package:livit/constants/styles/button_style.dart';
 import 'package:livit/constants/styles/container_style.dart';
 import 'package:livit/constants/styles/livit_text.dart';
 import 'package:livit/constants/styles/spaces.dart';
-import 'package:livit/services/files/file_cleanup_service.dart';
+import 'package:livit/services/firebase_storage/firebase_storage_constants.dart';
 import 'package:livit/services/video/export_video_service.dart';
 import 'package:livit/utilities/buttons/arrow_back_button.dart';
 import 'package:livit/utilities/buttons/button.dart';
@@ -63,7 +64,7 @@ class _LivitMediaEditorState extends State<LivitMediaEditor> with TickerProvider
   late final VideoEditorController _controller = VideoEditorController.file(
     File(widget.videoPath),
     minDuration: const Duration(seconds: 1),
-    maxDuration: const Duration(seconds: 10),
+    maxDuration: const Duration(seconds: FirebaseStorageConstants.maxVideoDurationInSeconds),
   );
 
   late final TabController _tabController;
@@ -87,7 +88,6 @@ class _LivitMediaEditorState extends State<LivitMediaEditor> with TickerProvider
     _controller.dispose();
     _tabController.dispose();
     ExportService.dispose();
-    FileCleanupService().cleanupTempFiles();
     super.dispose();
   }
 
@@ -104,8 +104,7 @@ class _LivitMediaEditorState extends State<LivitMediaEditor> with TickerProvider
     String? compressedFilePath;
 
     try {
-      final appDocDir = await getApplicationDocumentsDirectory();
-      final tempDir = Directory('${appDocDir.path}/temp');
+      final tempDir = await getTemporaryDirectory();
       await tempDir.create(recursive: true);
 
       final config = VideoFFmpegVideoEditorConfig(
@@ -118,34 +117,35 @@ class _LivitMediaEditorState extends State<LivitMediaEditor> with TickerProvider
       await ExportService.runFFmpegCommand(
         executeConfig,
         onProgress: (stats) {
-          _exportingProgress.value = config.getFFmpegProgress(stats.getTime().toInt());
+          _exportingProgress.value = config.getFFmpegProgress(stats.getTime().toInt()) / 2;
         },
         onError: (e, s) {
           _showErrorSnackBar("Error on export video :(");
         },
         onCompleted: (file) async {
-          trimmedFile = file;
           _exportingProgress.value = 0;
 
           compressedFilePath = await VideoCompressionService.compressVideo(
             inputFilePath: file.path,
-            onProgress: (progress) {
-              _exportingProgress.value = progress;
+            onProgress: (stats) {
+              _exportingProgress.value = config.getFFmpegProgress(stats.getTime().toInt());
+            },
+            onError: (e, s) {
+              _showErrorSnackBar("Error on export video :(");
+            },
+            onCompleted: (compressedFile) async {
+              debugPrint('📑 [LivitMediaEditor] compressedFilePath: ${compressedFile.path}');
+              debugPrint('📑 [LivitMediaEditor] compressedFilePath size: ${compressedFile.lengthSync() / 1024 / 1024} MB');
+              await MediaFileCleanup.deleteFileByPath(file.path);
+              await _exportCover(compressedFile.path);
+              _isExporting.value = false;
             },
           );
-
-          if (compressedFilePath != null) {
-            await file.delete();
-            await trimmedFile?.delete();
-            await _exportCover(compressedFilePath!);
-          }
-
-          _isExporting.value = false;
         },
       );
     } catch (e) {
       // Clean up any temporary files on error
-      await trimmedFile?.delete();
+      await MediaFileCleanup.deleteFile(trimmedFile);
       await MediaFileCleanup.deleteFileByPath(compressedFilePath);
       _isExporting.value = false;
       _showErrorSnackBar("Error processing video");
@@ -153,9 +153,8 @@ class _LivitMediaEditorState extends State<LivitMediaEditor> with TickerProvider
   }
 
   Future<void> _exportCover(String videoFilePath) async {
-          final appDocDir = await getApplicationDocumentsDirectory();
-      final tempDir = Directory('${appDocDir.path}/temp');
-      await tempDir.create(recursive: true);
+    final tempDir = await getTemporaryDirectory();
+    await tempDir.create(recursive: true);
 
     if (_coverPath != null) {
       final LivitLocationMediaImage coverImage = LivitLocationMediaImage(
@@ -170,12 +169,15 @@ class _LivitMediaEditorState extends State<LivitMediaEditor> with TickerProvider
       Navigator.pop(context, video);
       return;
     }
-    final config = CoverFFmpegVideoEditorConfig(_controller, outputDirectory: tempDir.path,);
+    final config = CoverFFmpegVideoEditorConfig(
+      _controller,
+      outputDirectory: tempDir.path,
+    );
     final execute = await config.getExecuteConfig();
     if (execute == null) {
       _showErrorSnackBar("Error on cover exportation initialization.");
       return;
-    } 
+    }
 
     await ExportService.runFFmpegCommand(
       execute,
@@ -184,7 +186,7 @@ class _LivitMediaEditorState extends State<LivitMediaEditor> with TickerProvider
         if (!mounted) return;
 
         final LivitLocationMediaImage coverImage = LivitLocationMediaImage(
-          filePath: cover.path  ,
+          filePath: cover.path,
           url: '',
         );
         final LivitLocationMediaVideo video = LivitLocationMediaVideo(
@@ -316,7 +318,7 @@ class _LivitMediaEditorState extends State<LivitMediaEditor> with TickerProvider
                                   title: ValueListenableBuilder(
                                     valueListenable: _exportingProgress,
                                     builder: (_, double value, __) => Text(
-                                      "Exporting video ${(value * 100).ceil()}%",
+                                      "Exportando video ${(value * 100).ceil()}%",
                                       style: const TextStyle(fontSize: 12),
                                     ),
                                   ),
@@ -330,7 +332,12 @@ class _LivitMediaEditorState extends State<LivitMediaEditor> with TickerProvider
                   ],
                 ),
               )
-            : const Center(child: CircularProgressIndicator()),
+            : Center(
+                child: CupertinoActivityIndicator(
+                  radius: LivitButtonStyle.iconSize / 2,
+                  color: LivitColors.whiteActive,
+                ),
+              ),
       ),
     );
   }
@@ -343,7 +350,6 @@ class _LivitMediaEditorState extends State<LivitMediaEditor> with TickerProvider
         child: Row(
           children: [
             ArrowBackButton(onPressed: () {
-              FileCleanupService().cleanupTempFiles();
               Navigator.pop(context);
             }),
             Expanded(
@@ -514,7 +520,7 @@ class _LivitMediaEditorState extends State<LivitMediaEditor> with TickerProvider
                     children: [
                       cover,
                       Icon(
-                        Icons.check_circle,
+                        CupertinoIcons.checkmark_circle,
                         color: const CoverSelectionStyle().selectedBorderColor,
                       )
                     ],

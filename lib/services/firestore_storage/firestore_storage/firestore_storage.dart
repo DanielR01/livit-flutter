@@ -15,30 +15,10 @@ class FirestoreStorage {
   FirestoreStorage._sharedInstance();
   factory FirestoreStorage() => _shared;
 
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final UserMethods userMethods = UserMethods();
   final UsernameMethods usernameMethods = UsernameMethods();
   final EventMethods eventMethods = EventMethods();
   final TicketMethods ticketMethods = TicketMethods();
   final PrivateDataMethods privateDataMethods = PrivateDataMethods();
   final LocationMethods locationMethods = LocationMethods();
-
-  final Collections _collections = Collections();
-
-  Future<void> updateUserAndPrivateDataInTransaction({
-    required CloudUser user,
-    required UserPrivateData privateData,
-  }) async {
-    try {
-      await _firestore.runTransaction((transaction) async {
-        final userRef = _collections.usersCollection.doc(user.id);
-        final privateDataRef = _collections.privateDataDocument(user.id);
-
-        transaction.update(userRef, user.toMap());
-        transaction.update(privateDataRef, privateData.toMap());
-      });
-    } catch (e) {
-      throw CouldNotUpdateUserException();
-    }
-  }
 }
