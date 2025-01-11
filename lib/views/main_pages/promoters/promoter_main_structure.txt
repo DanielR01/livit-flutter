@@ -1,0 +1,60 @@
+lib/
+└── views/
+    └── promoter/
+        ├── locations/
+        │   ├── location_list_view.dart        # Grid of locations with quick stats
+        │   ├── location_detail_view.dart      # Location profile & quick actions
+        │   ├── location_events_view.dart      # Calendar view of events
+        │   ├── edit_location/                 # Split into sections for better UX
+        │   │    ├── basic_info.dart           # Name, description, address
+        │   │    ├── media_gallery.dart        # Photos and videos
+        │   │    └── business_hours.dart       # Operating hours
+        │   └── functions: 
+        │        - create location
+        │        - edit location
+        │        - delete location
+        │        - view location (calendar, media, business hours ...)
+        │        - view all locations
+        │        - view location sales
+        │        - view location analytics
+        │        - view location reports
+        │
+        ├── events/
+        │   ├── event_dashboard.dart          # Overview of all events (active/upcoming)
+        │   ├── event_calendar.dart          # Calendar view with event stats
+        │   ├── event_detail/                # Detailed event management
+        │   │   ├── overview.dart           # Quick stats and actions
+        │   │   ├── ticket_management.dart  # Manage ticket types
+        │   │   └── event_settings.dart     # Event details and settings
+        │   │
+        │   └── create_event/               # Simplified event creation
+        │       ├── basic_info.dart         # Name, date, location
+        │       ├── ticket_setup.dart       # Quick ticket type setup
+        │       └── preview.dart            # Preview event before publishing
+        │
+        ├── tickets/
+        │   ├── ticket_templates/           # Reusable ticket configurations
+        │   │   ├── template_list.dart     # Saved ticket configurations
+        │   │   └── template_editor.dart   # Create/edit templates
+        │   │
+        │   ├── recurring_tickets/         # Automated ticket generation
+        │   │   ├── schedule_list.dart    # List of recurring schedules
+        │   │   └── schedule_editor.dart  # Set up recurring rules
+        │   │
+        │   ├── sales/
+        │   │   ├── sales_dashboard.dart  # Real-time sales overview
+        │   │   ├── analytics.dart       # Detailed sales analytics
+        │   │   └── reports.dart        # Generate custom reports
+        │   │
+        │   └── validation/
+        │       ├── quick_scan.dart     # Fast ticket validation
+        │       ├── manual_check.dart   # Manual ticket verification
+        │       └── validation_log.dart # History and issues
+        │
+        └── profile/
+            ├── dashboard.dart          # Promoter overview & quick actions
+            ├── business_profile.dart   # Public profile management
+            └── settings/              # App settings and preferences
+                ├── notifications.dart
+                ├── payment_info.dart
+                └── preferences.dart

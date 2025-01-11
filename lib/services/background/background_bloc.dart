@@ -11,7 +11,7 @@ class BackgroundBloc extends Bloc<BackgroundEvent, BackgroundState> {
   AnimationSpeed _lastActiveSpeed = AnimationSpeed.normal;
   bool isBackgroundGenerated = false;
   bool _isLockedSpeed = false;
-
+  bool _isStopped = false;
   BackgroundBloc()
       : super(BackgroundState(
           speed: AnimationSpeed.normal,
@@ -112,6 +112,7 @@ class BackgroundBloc extends Bloc<BackgroundEvent, BackgroundState> {
     if (_isLowEndDevice ?? true) return;
     debugPrint('🚀 [BackgroundBloc] Setting speed to maximum');
     _lastActiveSpeed = AnimationSpeed.veryFast;
+    _isStopped = false;
     emit(state.copyWith(
       speed: AnimationSpeed.veryFast,
       interpolationSpeed: 1.0,
@@ -127,11 +128,18 @@ class BackgroundBloc extends Bloc<BackgroundEvent, BackgroundState> {
     if (_isLowEndDevice ?? true) return;
     debugPrint('⚡ [BackgroundBloc] Speeding up animation');
     _lastActiveSpeed = AnimationSpeed.fast;
+    _isStopped = false;
     emit(state.copyWith(
       speed: AnimationSpeed.fast,
       isGoingToOrigin: false,
       interpolationSpeed: 1,
     ));
+    Future.delayed(const Duration(seconds: 2), () {
+      if (!_isStopped) {
+        debugPrint('🔄 [BackgroundBloc] Setting speed to normal');
+        add(BackgroundSpeedNormal());
+      }
+    });
   }
 
   void _onSpeedNormal(BackgroundSpeedNormal event, Emitter<BackgroundState> emit) {
@@ -142,6 +150,7 @@ class BackgroundBloc extends Bloc<BackgroundEvent, BackgroundState> {
     if (_isLowEndDevice ?? true) return;
     debugPrint('➡️ [BackgroundBloc] Setting normal speed');
     _lastActiveSpeed = AnimationSpeed.normal;
+    _isStopped = false;
     emit(state.copyWith(
       speed: AnimationSpeed.normal,
       interpolationSpeed: 0.2,
@@ -157,6 +166,7 @@ class BackgroundBloc extends Bloc<BackgroundEvent, BackgroundState> {
     if (_isLowEndDevice ?? true) return;
     debugPrint('🐢 [BackgroundBloc] Slowing down animation');
     _lastActiveSpeed = AnimationSpeed.slow;
+    _isStopped = false;
     emit(state.copyWith(
       speed: AnimationSpeed.slow,
       interpolationSpeed: 0.05,
@@ -172,6 +182,7 @@ class BackgroundBloc extends Bloc<BackgroundEvent, BackgroundState> {
     if (_isLowEndDevice ?? true) return;
     debugPrint('🦥 [BackgroundBloc] Setting minimum speed');
     _lastActiveSpeed = AnimationSpeed.verySlow;
+    _isStopped = false;
     emit(state.copyWith(
       speed: AnimationSpeed.verySlow,
       interpolationSpeed: 0.05,
@@ -190,6 +201,7 @@ class BackgroundBloc extends Bloc<BackgroundEvent, BackgroundState> {
     }
     _lastActiveSpeed = state.speed;
     debugPrint('⏹️ [BackgroundBloc] Stopping animation');
+    _isStopped = true;
     emit(state.copyWith(
       speed: AnimationSpeed.stopped,
       interpolationSpeed: 0.05,
@@ -215,6 +227,7 @@ class BackgroundBloc extends Bloc<BackgroundEvent, BackgroundState> {
       debugPrint('🚫 [BackgroundBloc] Animation is locked, not stopping');
       return;
     }
+    _isStopped = true;
     debugPrint('⏹️ [BackgroundBloc] Stopping transition animation');
     emit(state.copyWith(
       isGoingToOrigin: true,

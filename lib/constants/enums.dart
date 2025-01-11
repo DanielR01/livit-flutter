@@ -1,6 +1,7 @@
 enum UserType {
   customer,
   promoter,
+  scanner
 }
 
 enum LoginMethod {

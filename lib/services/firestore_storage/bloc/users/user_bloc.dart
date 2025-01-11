@@ -1,9 +1,7 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:livit/cloud_models/user/cloud_user.dart';
 import 'package:livit/cloud_models/user/private_data.dart';
-import 'package:livit/constants/enums.dart';
 import 'package:livit/services/background/background_events.dart';
 import 'package:livit/services/firestore_storage/cloud_functions/firestore_cloud_functions.dart';
 import 'package:livit/services/firestore_storage/firestore_storage/firestore_storage.dart';
@@ -62,7 +60,7 @@ class UserBloc extends Bloc<UserEvent, UserState> {
   Future<void> _onGetUser(GetUser event, Emitter<UserState> emit) async {
     debugPrint('👤 [UserBloc] Getting user...');
     debugPrint('🔄 [UserBloc] Emitting NoCurrentUser(isLoading: true)');
-    emit(NoCurrentUser(isLoading: true));
+    emit(state.copyWith(isLoading: true));
     _backgroundBloc.add(BackgroundStartLoadingAnimation());
 
     try {
@@ -273,10 +271,20 @@ class UserBloc extends Bloc<UserEvent, UserState> {
   }
 
   Future<void> _onSetUserProfileCompleted(SetUserProfileCompleted event, Emitter<UserState> emit) async {
+    debugPrint('🔄 [UserBloc] Setting user profile completed');
     if (_currentUser == null) {
       emit(NoCurrentUser(exception: NoCurrentUserException()));
       return;
     }
+    debugPrint('🔄 [UserBloc] Current user: ${_currentUser!}');
+    final updatedUser = _currentUser!.copyWith(
+      isProfileCompleted: true,
+    );
+    debugPrint('🔄 [UserBloc] Updated user: ${updatedUser}');
+    await _cloudStorage.userMethods.updateUser(user: updatedUser);
+    _currentUser = updatedUser;
+    debugPrint('🔄 [UserBloc] Emitting CurrentUser with updated user');
+    emit(CurrentUser(user: _currentUser!, privateData: _currentPrivateData!));
   }
 
   void _onOnError(OnError event, Emitter<UserState> emit) {

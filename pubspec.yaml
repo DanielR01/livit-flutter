@@ -50,6 +50,10 @@ dependencies:
     sdk: flutter
   firebase_crashlytics: ^4.2.0
   firebase_analytics: ^11.3.6
+  google_maps_flutter: ^2.10.0
+  geolocator: ^10.1.0
+  firebase_app_check: ^0.3.2
+  geocoding: ^3.0.0
 
 dev_dependencies:
   flutter_lints: ^5.0.0

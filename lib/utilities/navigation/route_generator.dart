@@ -8,6 +8,7 @@ import 'package:livit/constants/enums.dart';
 import 'package:livit/services/background/background_bloc.dart';
 import 'package:livit/services/background/background_events.dart';
 import 'package:livit/services/navigation/navigation_service.dart';
+import 'package:livit/utilities/loading_screen.dart';
 import 'package:livit/utilities/login/confirm_otp_code.dart';
 import 'package:livit/utilities/media/media_preview_player/location_media_preview_player.dart';
 import 'package:livit/views/auth/initial_router.dart';
@@ -17,7 +18,7 @@ import 'package:livit/views/auth/login/phone_login.dart';
 import 'package:livit/views/auth/login/welcome.dart';
 import 'package:livit/views/errors/error_route.dart';
 import 'package:livit/views/errors/splash.dart';
-import 'package:livit/views/main_pages/mainmenu.dart';
+import 'package:livit/views/main_pages/promoters/main_menu_promoter.dart';
 import 'package:livit/views/auth/get_or_create_user/get_or_create_user.dart';
 
 class CustomCupertinoPageRoute<T> extends CupertinoPageRoute<T> {
@@ -104,7 +105,23 @@ class RouteGenerator {
         page = const WelcomeView();
         break;
       case Routes.mainViewRoute:
-        page = const MainMenu();
+        if (args is Map<String, dynamic> && args.containsKey('userType')) {
+          final userType = args['userType'] as UserType;
+          switch (userType) {
+            // TODO: Add remaining views
+            case UserType.scanner:
+              page = const LoadingScreen();
+              break;
+            case UserType.promoter:
+              page = const MainMenuPromoter();
+              break;
+            case UserType.customer:
+              page = const LoadingScreen();
+              break;
+          }
+        } else {
+          page = const ErrorView(message: 'No se proporcionó el tipo de usuario.');
+        }
         break;
       case Routes.authRoute:
         _animateBackgroundSpeed();

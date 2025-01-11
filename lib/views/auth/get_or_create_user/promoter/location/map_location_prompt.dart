@@ -13,12 +13,10 @@ import 'package:livit/constants/styles/spaces.dart';
 import 'package:livit/services/firestore_storage/bloc/locations/location_bloc.dart';
 import 'package:livit/services/firestore_storage/bloc/locations/location_event.dart';
 import 'package:livit/services/firestore_storage/bloc/locations/location_state.dart';
-import 'package:livit/services/firestore_storage/firestore_storage/exceptions/firestore_exceptions.dart';
 import 'package:livit/services/location/location_search_service.dart';
 import 'package:livit/utilities/bars_containers_fields/bar.dart';
 import 'package:livit/utilities/bars_containers_fields/glass_container.dart';
 import 'package:livit/utilities/buttons/button.dart';
-import 'package:livit/utilities/error_screens/error_reauth_screen.dart';
 import 'package:livit/utilities/livit_scrollbar.dart';
 import 'package:livit/utilities/map_viewer.dart';
 
@@ -34,6 +32,7 @@ class _MapLocationPromptState extends State<MapLocationPrompt> {
     'latitude': null,
     'longitude': null,
   };
+  bool _shouldZoomToUserLocation = false;
 
   List<LivitLocation> _locations = [];
 
@@ -78,6 +77,7 @@ class _MapLocationPromptState extends State<MapLocationPrompt> {
         _coordinates['longitude'] = coordinates['longitude']!;
         _shouldUpdate = true;
         _shouldUseUserLocation = false;
+        _shouldZoomToUserLocation = true;
       });
     } catch (e) {
       debugPrint('⚠️ [MapLocationPrompt] Failed to find full address, trying city only');
@@ -93,6 +93,7 @@ class _MapLocationPromptState extends State<MapLocationPrompt> {
           _coordinates['longitude'] = cityCoordinates['longitude']!;
           _shouldUpdate = true;
           _shouldUseUserLocation = false;
+          _shouldZoomToUserLocation = false;
         });
       } catch (e) {
         debugPrint('❌ [MapLocationPrompt] Failed to find any coordinates, using default location');
@@ -102,6 +103,7 @@ class _MapLocationPromptState extends State<MapLocationPrompt> {
           _coordinates['longitude'] = 0;
           _shouldUpdate = true;
           _shouldUseUserLocation = true;
+          _shouldZoomToUserLocation = false;
         });
       }
     }
@@ -264,6 +266,9 @@ class _MapLocationPromptState extends State<MapLocationPrompt> {
 
   @override
   Widget build(BuildContext context) {
+    debugPrint('🎨 [MapLocationPrompt] Building view with shouldZoomToUserLocation: $_shouldZoomToUserLocation');
+    debugPrint('🎨 [MapLocationPrompt] Building view with coordinates: ${_coordinates['latitude']}, ${_coordinates['longitude']}');
+
     return BlocBuilder<LocationBloc, LocationState>(
       builder: (context, state) {
         debugPrint('🎨 [MapLocationPrompt] Building view with state: ${state.runtimeType}');
@@ -324,8 +329,7 @@ class _MapLocationPromptState extends State<MapLocationPrompt> {
                                   duration: const Duration(milliseconds: 400),
                                   curve: Curves.fastOutSlowIn,
                                   padding: EdgeInsets.symmetric(
-                                      vertical: _index == index ? 0.0 : LivitContainerStyle.verticalPadding / 2,
-                                      horizontal: LivitContainerStyle.horizontalPadding / 2),
+                                      vertical: _index == index ? 0.0 : 0, horizontal: LivitContainerStyle.horizontalPadding / 2),
                                   child: LivitBar(
                                     noPadding: true,
                                     child: Padding(
@@ -336,8 +340,8 @@ class _MapLocationPromptState extends State<MapLocationPrompt> {
                                           Positioned(
                                             left: 0,
                                             child: (_coordinates['latitude'] == null &&
-                                                        _coordinates['longitude'] == null &&
-                                                        _index == index)
+                                                    _coordinates['longitude'] == null &&
+                                                    _index == index)
                                                 ? SizedBox(
                                                     width: LivitButtonStyle.iconSize,
                                                     height: LivitButtonStyle.iconSize,
@@ -423,6 +427,7 @@ class _MapLocationPromptState extends State<MapLocationPrompt> {
                               clipBehavior: Clip.hardEdge,
                               decoration: LivitContainerStyle.decoration,
                               child: LivitMapView(
+                                zoom: _shouldZoomToUserLocation ? 15.0 : 12.0,
                                 shouldUpdate: _shouldUpdate,
                                 shouldReinitialize: _shouldReinitialize,
                                 shouldRemoveAnnotation: _locations[_index].geopoint == null,

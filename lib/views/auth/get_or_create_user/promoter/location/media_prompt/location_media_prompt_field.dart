@@ -45,6 +45,8 @@ class _LocationMediaInputFieldState extends State<LocationMediaInputField> {
   int secondaryTilesLength = 0;
 
   final Map<String, String> _videoThumbnails = {};
+  bool isUploading = false;
+  bool isUploadingAnimationVisible = false;
 
   @override
   void initState() {
@@ -83,7 +85,7 @@ class _LocationMediaInputFieldState extends State<LocationMediaInputField> {
     }
 
     final textHeight = textPainter.height;
-    final errorTextHeight = errorTextPainter?.height ?? 0 + (widget.errorMessage != null ? LivitSpaces.sDouble * 2 : 0);
+    final errorTextHeight = errorTextPainter?.height ?? 0 + (widget.errorMessage != null ? LivitSpaces.sDouble + LivitSpaces.mDouble : 0);
     _mediaDisplayContainerHeight =
         _mediaDisplayHeight + LivitSpaces.sDouble * 2 + LivitContainerStyle.padding().vertical + textHeight + errorTextHeight;
   }
@@ -138,11 +140,12 @@ class _LocationMediaInputFieldState extends State<LocationMediaInputField> {
           ),
         );
       } else {
+        debugPrint('🖼️ [LocationMediaPromptField] Image path: $path');
         return GestureDetector(
           onTap: () {
             _showMediaPreview(file, index);
           },
-          child: Image.asset(path),
+          child: Image.file(File(path)),
         );
       }
     } catch (_) {
@@ -158,6 +161,7 @@ class _LocationMediaInputFieldState extends State<LocationMediaInputField> {
 
   void _showMediaPreview(LivitLocationMediaFile currentMedia, int index) async {
     if (currentMedia.filePath == null || widget.location.media == null) return;
+    if (isUploading) return;
 
     Navigator.pushNamed(
       context,
@@ -180,11 +184,14 @@ class _LocationMediaInputFieldState extends State<LocationMediaInputField> {
 
     return BlocBuilder<LocationBloc, LocationState>(
       builder: (context, state) {
-        late final bool isUploading;
         if (state is LocationsLoaded) {
-          isUploading = state.loadingStates[widget.location.id] == LoadingState.loading;
+          isUploading = state.loadingStates['cloud'] == LoadingState.loading;
+          isUploadingAnimationVisible = state.loadingStates[widget.location.id] == LoadingState.loading ||
+              state.loadingStates[widget.location.id] == LoadingState.uploading ||
+              state.loadingStates[widget.location.id] == LoadingState.verifying;
         } else {
           isUploading = false;
+          isUploadingAnimationVisible = false;
         }
         return LivitBar(
           noPadding: true,
@@ -238,12 +245,12 @@ class _LocationMediaInputFieldState extends State<LocationMediaInputField> {
                         ),
                         Positioned(
                           left: 0,
-                          child: isUploading
+                          child: isUploadingAnimationVisible
                               ? SizedBox(
-                                  width: LivitButtonStyle.iconSize / 2,
-                                  height: LivitButtonStyle.iconSize / 2,
+                                  width: LivitButtonStyle.iconSize,
+                                  height: LivitButtonStyle.iconSize,
                                   child: CupertinoActivityIndicator(
-                                    radius: LivitButtonStyle.iconSize / 4,
+                                    radius: LivitButtonStyle.iconSize / 2,
                                     color: LivitColors.whiteInactive,
                                   ),
                                 )
@@ -278,7 +285,7 @@ class _LocationMediaInputFieldState extends State<LocationMediaInputField> {
                           LivitSpaces.s,
                           LivitText(widget.errorMessage!,
                               color: LivitColors.whiteActive, fontWeight: FontWeight.bold, textType: LivitTextType.small),
-                          LivitSpaces.s,
+                          LivitSpaces.m,
                         ]
                       ],
                     ),
@@ -338,6 +345,7 @@ class _LocationMediaInputFieldState extends State<LocationMediaInputField> {
                   child: index == secondaryTilesLength - 1 && secondaryFilesLength < FirebaseStorageConstants.maxFiles - 1
                       ? InkWell(
                           onTap: () {
+                            if (isUploading) return;
                             Navigator.pushNamed(
                               context,
                               Routes.locationMediaPreviewPlayerRoute,
@@ -385,6 +393,7 @@ class _LocationMediaInputFieldState extends State<LocationMediaInputField> {
           child: widget.location.media?.mainFile?.filePath == null
               ? InkWell(
                   onTap: () {
+                    if (isUploading) return;
                     Navigator.pushNamed(
                       context,
                       Routes.locationMediaPreviewPlayerRoute,

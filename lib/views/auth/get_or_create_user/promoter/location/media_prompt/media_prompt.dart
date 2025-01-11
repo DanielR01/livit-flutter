@@ -11,6 +11,7 @@ import 'package:livit/services/firestore_storage/bloc/locations/location_state.d
 import 'package:livit/services/firestore_storage/firestore_storage/exceptions/firestore_exceptions.dart';
 import 'package:livit/utilities/bars_containers_fields/glass_container.dart';
 import 'package:livit/utilities/buttons/button.dart';
+import 'package:livit/utilities/display/livit_display_area.dart';
 import 'package:livit/utilities/livit_scrollbar.dart';
 import 'package:livit/views/auth/get_or_create_user/promoter/location/media_prompt/location_media_prompt_field.dart';
 
@@ -63,33 +64,35 @@ class _MediaPromptState extends State<MediaPrompt> {
               } else {
                 errorMessage = null;
               }
-              int verifyingLocations = 0;
-              int uploadingLocations = 0;
-              int uploadedLocations = 0;
-              for (final location in state.loadingStates.entries) {
-                if (location.key == 'cloud') continue;
-                if (location.value == LoadingState.uploading) {
-                  uploadingLocations++;
-                } else if (location.value == LoadingState.verifying) {
-                  verifyingLocations++;
-                } else if (location.value == LoadingState.loaded) {
-                  uploadedLocations++;
-                }
+            }
+            int verifyingLocations = 0;
+            int uploadingLocations = 0;
+            int uploadedLocations = 0;
+            int errorLocations = 0;
+            debugPrint('🔄 [LocationBloc] Loading states: ${state.loadingStates}');
+            for (final location in state.loadingStates.entries) {
+              if (location.key == 'cloud') continue;
+              if (location.value == LoadingState.uploading) {
+                uploadingLocations++;
+              } else if (location.value == LoadingState.verifying) {
+                verifyingLocations++;
+              } else if (location.value == LoadingState.loaded) {
+                uploadedLocations++;
+              } else if (location.value == LoadingState.error) {
+                errorLocations++;
               }
-              if (verifyingLocations != 0) {
-                continueButtonText = 'Verificando ${_locations.length - uploadingLocations - verifyingLocations + 1} de ${_locations.length}';
-              } else if (uploadingLocations != 0) {
-                continueButtonText = 'Subiendo ${_locations.length - uploadingLocations - verifyingLocations + 1} de ${_locations.length}';
-              } else if (uploadedLocations == _locations.length) {
-                continueButtonText = 'Completando';
-              }
+            }
+            if (uploadingLocations == 0 && verifyingLocations != 0) {
+              continueButtonText = 'Verificando ${uploadedLocations + errorLocations + 1} de ${_locations.length}';
+            } else if (uploadingLocations != 0) {
+              continueButtonText = 'Subiendo ${uploadedLocations + 1} de ${_locations.length}';
+            } else if (uploadedLocations == _locations.length && isCloudLoading) {
+              continueButtonText = 'Completando';
             }
 
             return Scaffold(
-              body: SafeArea(
+              body: LivitDisplayArea(
                 child: Center(
-                  child: Padding(
-                    padding: LivitContainerStyle.paddingFromScreen,
                     child: GlassContainer(
                       hasPadding: false,
                       titleBarText: _locations.length > 1 ? 'Agrega multimedia de tus locaciones' : 'Agrega multimedia de tu locación',
@@ -102,7 +105,8 @@ class _MediaPromptState extends State<MediaPrompt> {
                               Padding(
                                 padding: LivitContainerStyle.padding(padding: [0, null, 0, null]),
                                 child: LivitText(
-                                    'Agrega videos o imagenes de tus locaciones para que tus clientes puedan verlos. La imagen o video principal sera la que se muestre como portada de tu locación.'),
+                                  'Agrega videos o imagenes de tus locaciones para que tus clientes puedan verlos. La imagen o video principal sera la que se muestre como portada de tu locación.',
+                                ),
                               ),
                               Flexible(
                                 child: Padding(
@@ -127,28 +131,35 @@ class _MediaPromptState extends State<MediaPrompt> {
                               Padding(
                                 padding: EdgeInsets.only(right: LivitContainerStyle.horizontalPadding),
                                 child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  mainAxisAlignment: continueButtonText == null
+                                      ? state.loadingStates['cloud'] == LoadingState.skipping
+                                          ? MainAxisAlignment.start
+                                          : MainAxisAlignment.spaceBetween
+                                      : MainAxisAlignment.end,
                                   mainAxisSize: MainAxisSize.max,
                                   children: [
-                                    Button.grayText(
-                                      deactivateSplash: true,
-                                      isActive: true,
-                                      text: state.loadingStates['cloud'] == LoadingState.skipping ? 'Completando' : 'Completar más tarde',
-                                      isLoading: state.loadingStates['cloud'] == LoadingState.skipping,
-                                      rightIcon: Icons.arrow_forward_ios,
-                                      onPressed: () {
-                                        _locations = _locations.map((location) => location.copyWith(media: LivitLocationMedia())).toList();
-                                        BlocProvider.of<LocationBloc>(context).add(SkipUpdateLocationsMediaToCloud(context));
-                                      },
-                                    ),
-                                    Button.main(
-                                      isActive: isValid,
-                                      text: continueButtonText ?? 'Continuar',
-                                      isLoading: continueButtonText != null,
-                                      onPressed: () {
-                                        BlocProvider.of<LocationBloc>(context).add(UpdateLocationsMediaToCloudFromLocal(context));
-                                      },
-                                    ),
+                                    if (continueButtonText == null)
+                                      Button.grayText(
+                                        deactivateSplash: true,
+                                        isActive: state.loadingStates['cloud'] != LoadingState.loading,
+                                        text: state.loadingStates['cloud'] == LoadingState.skipping ? 'Completando' : 'Completar más tarde',
+                                        isLoading: state.loadingStates['cloud'] == LoadingState.skipping,
+                                        rightIcon: Icons.arrow_forward_ios,
+                                        onPressed: () {
+                                          _locations =
+                                              _locations.map((location) => location.copyWith(media: LivitLocationMedia())).toList();
+                                          BlocProvider.of<LocationBloc>(context).add(SkipUpdateLocationsMediaToCloud(context));
+                                        },
+                                      ),
+                                    if (state.loadingStates['cloud'] != LoadingState.skipping)
+                                      Button.main(
+                                        isActive: isValid && state.loadingStates['cloud'] != LoadingState.skipping,
+                                        text: continueButtonText ?? 'Continuar',
+                                        isLoading: continueButtonText != null,
+                                        onPressed: () {
+                                          BlocProvider.of<LocationBloc>(context).add(UpdateLocationsMediaToCloudFromLocal(context));
+                                        },
+                                      ),
                                   ],
                                 ),
                               ),
@@ -158,7 +169,7 @@ class _MediaPromptState extends State<MediaPrompt> {
                       ),
                     ),
                   ),
-                ),
+                
               ),
             );
           } else {

@@ -26,9 +26,13 @@ class _SplashViewState extends State<SplashView> {
     debugPrint('🔄 [SplashView] Reinitializing app...');
 
     try {
-      // Reset Firebase
-      debugPrint('🔄 [SplashView] Reinitializing Firebase...');
-      await Firebase.initializeApp();
+      // Instead of reinitializing Firebase, check if it's initialized
+      debugPrint('🔄 [SplashView] Checking Firebase initialization...');
+      if (Firebase.apps.isEmpty) {
+        await Firebase.initializeApp();
+      } else {
+        debugPrint('✅ [SplashView] Firebase already initialized');
+      }
 
       if (!mounted) return;
 

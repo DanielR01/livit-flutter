@@ -199,3 +199,28 @@ class CloudPromoter extends CloudUser {
     };
   }
 }
+
+class CloudScanner extends CloudUser {
+  CloudScanner({
+    required super.id,
+    required super.username,
+    required super.userType,
+    required super.name,
+    required super.createdAt,
+    required super.interests,
+    required super.isProfileCompleted,
+  });
+
+  factory CloudScanner.fromDocument(DocumentSnapshot doc) {
+    final data = doc.data() as Map<String, dynamic>;
+    return CloudScanner(
+      id: doc.id,
+      username: data['username'] as String,
+      userType: UserType.values.firstWhere((e) => e.name == data['userType'] as String),
+      name: data['name'] as String,
+      createdAt: (data['createdAt'] as Timestamp),
+      interests: (data['interests'] as List<dynamic>?)?.cast<String>(),
+      isProfileCompleted: true,
+    );
+  }
+}

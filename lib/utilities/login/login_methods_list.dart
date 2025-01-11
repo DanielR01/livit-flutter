@@ -88,7 +88,7 @@ class _LoginMethodsListState extends State<LoginMethodsList> {
                   ],
                 ),
               ),
-              LivitSpaces.l,
+              LivitSpaces.s,
               widget.userType == UserType.customer
                   ? GlassContainer(
                       child: Padding(

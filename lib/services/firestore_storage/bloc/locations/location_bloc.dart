@@ -90,8 +90,12 @@ class LocationBloc extends Bloc<LocationEvent, LocationState> {
     InitializeLocationBloc event,
     Emitter<LocationState> emit,
   ) async {
-    debugPrint('🔄 [LocationBloc] Initializing bloc for user: ${event.userId}');
-    _userId = event.userId;
+    if (_userBloc.state is! CurrentUser) {
+      debugPrint('❌ [LocationBloc] UserBloc is not initialized');
+      return;
+    }
+    _userId = (_userBloc.state as CurrentUser).user.id;
+    debugPrint('🔄 [LocationBloc] Initializing bloc for user: $_userId');
     await _onGetUserLocations(GetUserLocations(event.context), emit);
   }
 
@@ -166,7 +170,7 @@ class LocationBloc extends Bloc<LocationEvent, LocationState> {
       debugPrint('📤 [LocationBloc] Creating ${event.locations.length} locations to cloud');
       _ensureInitialized();
       event.context.read<BackgroundBloc>().add(BackgroundStartLoadingAnimation());
-
+      _loadingStates = {};
       _loadingStates = {..._loadingStates, 'cloud': LoadingState.loading};
       emit(LocationsLoaded(
         cloudLocations: _cloudLocations,
@@ -389,7 +393,7 @@ class LocationBloc extends Bloc<LocationEvent, LocationState> {
     SkipUpdateLocationsMediaToCloud event,
     Emitter<LocationState> emit,
   ) async {
-    _loadingStates = {..._loadingStates, 'cloud': LoadingState.loading};
+    _loadingStates = {..._loadingStates, 'cloud': LoadingState.skipping};
     _backgroundBloc.add(BackgroundStartLoadingAnimation());
     emit(LocationsLoaded(
       cloudLocations: _cloudLocations,
@@ -412,14 +416,7 @@ class LocationBloc extends Bloc<LocationEvent, LocationState> {
           _loadingStates = {..._loadingStates, location.id: LoadingState.error};
         }
       }
-      _loadingStates = {..._loadingStates, 'cloud': LoadingState.loaded};
-      emit(LocationsLoaded(
-        cloudLocations: _cloudLocations,
-        localSavedLocations: _localSavedLocations,
-        localUnsavedLocations: _localUnsavedLocations,
-        loadingStates: _loadingStates,
-        failedLocations: failedLocations,
-      ));
+      add(GetUserLocations(event.context));
     } catch (e) {
       debugPrint('❌ [LocationBloc] Failed to skip updating media for locations: $e');
       for (var location in locationsToUpload) {
@@ -491,8 +488,9 @@ class LocationBloc extends Bloc<LocationEvent, LocationState> {
   ) async {
     debugPrint('📤 [LocationBloc] Updating media for ${event.locations.length} locations');
     _ensureInitialized();
+    _loadingStates = {};
     for (final location in event.locations) {
-      _loadingStates = {..._loadingStates, location.id: LoadingState.verifying};
+      _loadingStates = {..._loadingStates, location.id: LoadingState.loading};
     }
     _loadingStates = {..._loadingStates, 'cloud': LoadingState.loading};
     emit(LocationsLoaded(
@@ -533,17 +531,28 @@ class LocationBloc extends Bloc<LocationEvent, LocationState> {
         }
       }
 
+      emit(LocationsLoaded(
+        cloudLocations: _cloudLocations,
+        localSavedLocations: _localSavedLocations,
+        localUnsavedLocations: _localUnsavedLocations,
+        loadingStates: _loadingStates,
+      ));
+
       for (final location in event.locations) {
         if (failedLocations.containsKey(location)) {
           debugPrint('⏭️ [LocationBloc] Skipping location ${location.id} because it has failed');
           continue;
         }
-        debugPrint('💾 [LocationBloc] Location: ${location.id} with ${location.media}');
-        _storageBloc.add(SetLocationMedia(locationId: location.id, media: location.media!));
+        debugPrint('📞 [LocationBloc] Calling get signed urls for ${location.id}');
+        _storageBloc.add(GetSignedUrls(locationId: location.id, media: location.media!));
         await for (final state in _storageBloc.stream) {
           if (state is StorageSignedUrlsObtained) {
-            debugPrint('💾 [LocationBloc] Location ${location.id} media signed urls obtained');
-            _loadingStates = {..._loadingStates, location.id: LoadingState.uploading};
+            debugPrint('📥 [LocationBloc] Location ${location.id} media signed urls obtained');
+            break;
+          }
+          if (state is StorageGettingSignedUrls) {
+            debugPrint('🔄 [LocationBloc] Location ${location.id} media getting signed urls');
+            _loadingStates = {..._loadingStates, location.id: LoadingState.verifying};
             emit(LocationsLoaded(
               cloudLocations: _cloudLocations,
               localSavedLocations: _localSavedLocations,
@@ -551,34 +560,110 @@ class LocationBloc extends Bloc<LocationEvent, LocationState> {
               loadingStates: _loadingStates,
             ));
           }
-          if (state is StorageUploaded) {
-            debugPrint('💾 [LocationBloc] Location ${location.id} media uploaded');
-            _loadingStates = {..._loadingStates, location.id: LoadingState.loaded};
-            break;
-          } else if (state is StorageFailure) {
-            debugPrint('❌ [LocationBloc] Location ${location.id} media upload failed: ${state.exception}');
+          if (state is StorageFailure) {
+            debugPrint('❌ [LocationBloc] Location ${location.id} media getting signed urls failed: ${state.exception}');
             failedLocations[location] = state.exception.toString();
             _loadingStates = {..._loadingStates, location.id: LoadingState.error};
+            emit(LocationsLoaded(
+              cloudLocations: _cloudLocations,
+              localSavedLocations: _localSavedLocations,
+              localUnsavedLocations: _localUnsavedLocations,
+              loadingStates: _loadingStates,
+            ));
+            break;
+          }
+        }
+        if (failedLocations.containsKey(location)) {
+          debugPrint('⏭️ [LocationBloc] Skipping location ${location.id} because it has failed');
+          continue;
+        }
+        debugPrint('📞 [LocationBloc] Calling delete location media for ${location.id}');
+        _storageBloc.add(DeleteLocationMedia(locationId: location.id));
+        await for (final state in _storageBloc.stream) {
+          if (state is StorageDeleted) {
+            debugPrint('🗑️[LocationBloc] Location ${location.id} media deleted');
+            break;
+          } else if (state is StorageFailure) {
+            debugPrint('❌ [LocationBloc] Location ${location.id} media deleting failed: ${state.exception}');
+            failedLocations[location] = state.exception.toString();
+            _loadingStates = {..._loadingStates, location.id: LoadingState.error};
+            emit(LocationsLoaded(
+              cloudLocations: _cloudLocations,
+              localSavedLocations: _localSavedLocations,
+              localUnsavedLocations: _localUnsavedLocations,
+              loadingStates: _loadingStates,
+            ));
+            break;
+          } else if (state is StorageDeleting) {
+            debugPrint('🔄 [LocationBloc] Location ${location.id} media deleting');
+          }
+        }
+        if (failedLocations.containsKey(location)) {
+          debugPrint('⏭️ [LocationBloc] Skipping location ${location.id} because it has failed');
+          continue;
+        }
+        _storageBloc.add(SetLocationMedia());
+        await for (final state in _storageBloc.stream) {
+          if (state is StorageUploaded) {
+            debugPrint('✅ [LocationBloc] Location ${location.id} media uploaded');
+            _loadingStates = {..._loadingStates, location.id: LoadingState.loaded};
+            emit(LocationsLoaded(
+              cloudLocations: _cloudLocations,
+              localSavedLocations: _localSavedLocations,
+              localUnsavedLocations: _localUnsavedLocations,
+              loadingStates: _loadingStates,
+            ));
+            break;
+          }
+          if (state is StorageUploading) {
+            _loadingStates = {..._loadingStates, location.id: LoadingState.uploading};
+            debugPrint('🔄 [LocationBloc] Location ${location.id} media uploading');
+            emit(LocationsLoaded(
+              cloudLocations: _cloudLocations,
+              localSavedLocations: _localSavedLocations,
+              localUnsavedLocations: _localUnsavedLocations,
+              loadingStates: _loadingStates,
+            ));
+          }
+          if (state is StorageFailure) {
+            debugPrint('❌ [LocationBloc] Location ${location.id} media uploading failed: ${state.exception}');
+            failedLocations[location] = state.exception.toString();
+            _loadingStates = {..._loadingStates, location.id: LoadingState.error};
+            emit(LocationsLoaded(
+              cloudLocations: _cloudLocations,
+              localSavedLocations: _localSavedLocations,
+              localUnsavedLocations: _localUnsavedLocations,
+              loadingStates: _loadingStates,
+            ));
             break;
           }
         }
       }
-      debugPrint('✅ [LocationBloc] Finished updating locations media to cloud');
-      debugPrint('📥 [LocationBloc] Getting user data from cloud');
-      await Future.delayed(const Duration(seconds: 1));
-      // ignore: use_build_context_synchronously
-      _userBloc.add(GetUser(event.context));
-      await for (final state in _userBloc.stream) {
-        if (state is CurrentUser) {
-          debugPrint('✅ [LocationBloc] User data loaded');
+      bool atLeastOneLoaded = false;
+      for (final loadingState in _loadingStates.values) {
+        if (loadingState == LoadingState.loaded) {
+          atLeastOneLoaded = true;
           break;
-        } else if (state is NoCurrentUser && state.exception != null && state.isLoading == false) {
-          debugPrint('❌ [LocationBloc] Failed to get user data: ${state.exception}');
-          navigatorKey.currentState?.pushNamedAndRemoveUntil(Routes.splashRoute, (route) => false);
         }
       }
-      debugPrint('📥 [LocationBloc] Getting locations from cloud');
-      add(GetUserLocations(event.context));
+      if (atLeastOneLoaded) {
+        debugPrint('✅ [LocationBloc] Finished updating locations media to cloud');
+        debugPrint('📥 [LocationBloc] Getting user data from cloud');
+        await Future.delayed(const Duration(seconds: 1));
+        // ignore: use_build_context_synchronously
+        _userBloc.add(GetUser(event.context));
+        await for (final state in _userBloc.stream) {
+          if (state is CurrentUser) {
+            debugPrint('✅ [LocationBloc] User data loaded');
+            break;
+          } else if (state is NoCurrentUser && state.exception != null && state.isLoading == false) {
+            debugPrint('❌ [LocationBloc] Failed to get user data: ${state.exception}');
+            navigatorKey.currentState?.pushNamedAndRemoveUntil(Routes.splashRoute, (route) => false);
+          }
+        }
+        debugPrint('📥 [LocationBloc] Getting locations from cloud');
+        add(GetUserLocations(event.context));
+      }
       _loadingStates = {..._loadingStates, 'cloud': LoadingState.loaded};
       emit(LocationsLoaded(
         cloudLocations: _cloudLocations,
@@ -736,10 +821,12 @@ class LocationBloc extends Bloc<LocationEvent, LocationState> {
       final List<String?> filePathsToDelete = removedFilePaths.where((path) => !allOldSavedLocationMediaFilesPaths.contains(path)).toList();
 
       for (var filePath in filePathsToDelete) {
+        debugPrint('🗑️ [LocationBloc] Deleting old saved location media file: $filePath');
         MediaFileCleanup.deleteFileByPath(filePath);
       }
     } else {
       for (var filePath in removedFilePaths) {
+        debugPrint('🗑️ [LocationBloc] Deleting old unsaved location media file: $filePath');
         MediaFileCleanup.deleteFileByPath(filePath);
       }
     }
@@ -804,8 +891,6 @@ class LocationBloc extends Bloc<LocationEvent, LocationState> {
 
       _localUnsavedLocations = [];
       debugPrint('✅ [LocationBloc] Saved changes locally');
-      debugPrint('💾 [LocationBloc] Local saved locations: $_localSavedLocations');
-      debugPrint('💾 [LocationBloc] Local unsaved locations: $_localUnsavedLocations');
       emit(LocationsLoaded(
         cloudLocations: _cloudLocations,
         localSavedLocations: _localSavedLocations,

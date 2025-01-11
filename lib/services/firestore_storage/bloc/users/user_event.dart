@@ -12,6 +12,9 @@ class GetUser extends UserEvent {
 
 class GetUserWithPrivateData extends UserEvent {
   GetUserWithPrivateData(super.context);
+
+  @override
+  String toString() => 'GetUserWithPrivateData';
 }
 
 class SetUserType extends UserEvent {

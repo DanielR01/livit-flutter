@@ -32,12 +32,23 @@ class StorageUploaded extends StorageState {
   const StorageUploaded({required this.media});
 }
 
+class StorageGettingSignedUrls extends StorageState {
+  const StorageGettingSignedUrls();
+}
+
 class StorageSignedUrlsObtained extends StorageState {
-  final LivitLocationMedia media;
-  const StorageSignedUrlsObtained({required this.media});
+  const StorageSignedUrlsObtained();
 }
 
 class StorageFailure extends StorageState {
   final LivitException exception;
   const StorageFailure({required this.exception});
+}
+
+class StorageDeleting extends StorageState {
+  const StorageDeleting();
+}
+
+class StorageDeleted extends StorageState {
+  const StorageDeleted();
 }

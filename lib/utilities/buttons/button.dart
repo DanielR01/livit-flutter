@@ -546,26 +546,14 @@ class Button extends StatefulWidget {
   State<Button> createState() => _ButtonState();
 }
 
-class _ButtonState extends State<Button> with SingleTickerProviderStateMixin {
-  late AnimationController _dotsAnimationController;
-  late Animation<int> _dotsAnimation;
-
+class _ButtonState extends State<Button> {
   @override
   void initState() {
     super.initState();
-    _dotsAnimationController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 900),
-    )..repeat();
-
-    _dotsAnimation = IntTween(begin: 0, end: 3).animate(
-      CurvedAnimation(parent: _dotsAnimationController, curve: Curves.easeInOut),
-    );
   }
 
   @override
   void dispose() {
-    _dotsAnimationController.dispose();
     super.dispose();
   }
 
@@ -652,13 +640,19 @@ class _ButtonState extends State<Button> with SingleTickerProviderStateMixin {
                                 size: widget.isIconBig ? LivitButtonStyle.bigIconSize : LivitButtonStyle.iconSize,
                               )
                             else
-                              SizedBox(
-                                width: (widget.isIconBig ? LivitButtonStyle.bigIconSize : LivitButtonStyle.iconSize) / 2,
-                                height: (widget.isIconBig ? LivitButtonStyle.bigIconSize : LivitButtonStyle.iconSize) / 2,
-                                child: CupertinoActivityIndicator(
-                                  color: textColor,
-                                  radius: (widget.isIconBig ? LivitButtonStyle.bigIconSize : LivitButtonStyle.iconSize) / 2,
-                                ),
+                              Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  LivitSpaces.xs,
+                                  SizedBox(
+                                    width: (widget.isIconBig ? LivitButtonStyle.bigIconSize : LivitButtonStyle.iconSize) / 2,
+                                    height: (widget.isIconBig ? LivitButtonStyle.bigIconSize : LivitButtonStyle.iconSize) / 2,
+                                    child: CupertinoActivityIndicator(
+                                      color: textColor,
+                                      radius: (widget.isIconBig ? LivitButtonStyle.bigIconSize : LivitButtonStyle.iconSize) / 2,
+                                    ),
+                                  ),
+                                ],
                               )
                           ],
                         )

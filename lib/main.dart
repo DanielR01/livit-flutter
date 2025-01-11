@@ -1,7 +1,10 @@
+import 'dart:io';
 import 'dart:ui';
 
+import 'package:firebase_app_check/firebase_app_check.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -15,7 +18,7 @@ import 'package:livit/services/error_reporting/error_reporter.dart';
 import 'package:livit/services/files/file_cleanup_manager.dart';
 import 'package:livit/services/files/storage_monitor.dart';
 import 'package:livit/services/firebase_storage/bloc/storage_bloc.dart';
-import 'package:livit/services/firebase_storage/storage_service.dart';
+import 'package:livit/services/firebase_storage/storage_service/storage_service.dart';
 import 'package:livit/services/firestore_storage/bloc/locations/location_bloc.dart';
 import 'package:livit/services/firestore_storage/bloc/users/user_bloc.dart';
 import 'package:livit/services/firestore_storage/cloud_functions/firestore_cloud_functions.dart';
@@ -27,9 +30,12 @@ import 'package:livit/services/background/background_bloc.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  if (Firebase.apps.isEmpty) {
+    await Firebase.initializeApp(
+      name: 'Livit',
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+  }
 
   // Enable Crashlytics and add debug prints
   await FirebaseCrashlytics.instance.setCrashlyticsCollectionEnabled(true);
@@ -56,12 +62,73 @@ void main() async {
   FileCleanupManager().startPeriodicCleanup();
   StorageMonitor().startPeriodicMonitoring();
 
+  await initializeAppCheck();
+
   SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]).then((value) => runApp(
         BlocProvider(
           create: (context) => BackgroundBloc(),
           child: _StartPage(),
         ),
       ));
+}
+
+Future<void> initializeAppCheck() async {
+  try {
+    if (Platform.isIOS) {
+      await _initializeIOSAppCheck();
+    } else if (Platform.isAndroid) {
+      await _initializeAndroidAppCheck();
+    }
+  } catch (e) {
+    debugPrint('❌ [Main] Error initializing App Check: $e');
+    if (kDebugMode) {
+      await FirebaseAppCheck.instance.activate(
+        androidProvider: AndroidProvider.debug,
+        appleProvider: AppleProvider.debug,
+      );
+    }
+  }
+}
+
+Future<void> _initializeIOSAppCheck() async {
+  debugPrint('✅ [Main] Initializing iOS App Check');
+  if (kDebugMode) {
+    await FirebaseAppCheck.instance.activate(
+      appleProvider: AppleProvider.debug,
+    );
+    debugPrint('✅ [Main] iOS App Check initialized successfully (debug mode)');
+    return;
+  }
+  try {
+    await FirebaseAppCheck.instance.activate(
+      appleProvider: AppleProvider.appAttestWithDeviceCheckFallback,
+    );
+    debugPrint('✅ [Main] iOS App Check initialized successfully');
+  } catch (e) {
+    debugPrint('❌ [Main] Error initializing iOS App Check: $e');
+    rethrow;
+  }
+}
+
+Future<void> _initializeAndroidAppCheck() async {
+  debugPrint('✅ [Main] Initializing Android App Check');
+  if (kDebugMode) {
+    await FirebaseAppCheck.instance.activate(
+      androidProvider: AndroidProvider.debug,
+    );
+    debugPrint('✅ [Main] Android App Check initialized successfully (debug mode)');
+    return;
+  }
+
+  try {
+    await FirebaseAppCheck.instance.activate(
+      androidProvider: AndroidProvider.playIntegrity,
+    );
+    debugPrint('✅ [Main] Android App Check initialized successfully');
+  } catch (e) {
+    debugPrint('❌ [Main] Error initializing Android App Check: $e');
+    rethrow;
+  }
 }
 
 class _StartPage extends StatefulWidget {
@@ -87,7 +154,7 @@ class _StartPageState extends State<_StartPage> with WidgetsBindingObserver {
     if (state == AppLifecycleState.paused) {
       debugPrint('App paused');
       FileCleanupManager().cleanupOnAppPause();
-      context.read<BackgroundBloc>().add(BackgroundStopLoadingAnimation());
+      context.read<BackgroundBloc>().add(BackgroundStopLoadingAnimation(overrideLock: true));
     } else if (state == AppLifecycleState.resumed) {
       debugPrint('App resumed');
     }

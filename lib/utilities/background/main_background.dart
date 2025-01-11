@@ -192,7 +192,10 @@ class _MainBackgroundState extends State<MainBackground> with TickerProviderStat
 
   void _handleOriginTransition(Timer timer) {
     final avgDistance = 1 - _mainController.value;
-    _currentSpeed = lerpDouble(_currentSpeed, min(_maxTransitionSpeed, max(_minTransitionSpeed, (_maxTransitionSpeed - _minTransitionSpeed) * avgDistance + _minTransitionSpeed)),
+    _currentSpeed = lerpDouble(
+            _currentSpeed,
+            min(_maxTransitionSpeed,
+                max(_minTransitionSpeed, (_maxTransitionSpeed - _minTransitionSpeed) * avgDistance + _minTransitionSpeed)),
             _backgroundBloc.state.interpolationSpeed) ??
         min(_maxTransitionSpeed, max(_minTransitionSpeed, (_maxTransitionSpeed - _minTransitionSpeed) * avgDistance + _minTransitionSpeed));
     _currentSpeed = min(_currentSpeed, _lastSpeed.value);
@@ -323,7 +326,7 @@ class _MainBackgroundState extends State<MainBackground> with TickerProviderStat
       if (mounted) {
         overlay.insert(overlayEntry);
         debugPrint('✅ [MainBackground] Overlay inserted');
-      } 
+      }
       final maxAttempts = 100;
       final minAttempts = _isLowEndDevice ?? false ? 10 : 3;
       int attempts = 0;

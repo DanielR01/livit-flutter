@@ -30,27 +30,37 @@ class LivitMediaEditor extends StatefulWidget {
   State<LivitMediaEditor> createState() => _LivitMediaEditorState();
 
   static Future<String?> cropImage(String sourcePath) async {
-    final croppedFile = await ImageCropper().cropImage(
-      sourcePath: sourcePath,
-      aspectRatio: const CropAspectRatio(ratioX: 9, ratioY: 16),
-      uiSettings: [
-        AndroidUiSettings(
-          toolbarTitle: 'Ajustar imagen',
-          toolbarColor: LivitColors.mainBlack,
-          toolbarWidgetColor: Colors.white,
-          initAspectRatio: CropAspectRatioPreset.ratio16x9,
-          lockAspectRatio: true,
-        ),
-        IOSUiSettings(
-          title: 'Ajustar imagen',
-          aspectRatioLockEnabled: true,
-          resetAspectRatioEnabled: false,
-          rotateButtonsHidden: true,
-        ),
-      ],
-    );
-
-    return croppedFile?.path;
+    try {
+      debugPrint('🔥 [LivitMediaEditor] Copying image to temp directory');
+      final directory = await getTemporaryDirectory();
+      final timestamp = DateTime.now().millisecondsSinceEpoch;
+      final tempFilePath = '${directory.path}/temp_$timestamp.${sourcePath.split('.').last}';
+      await File(sourcePath).copy(tempFilePath);
+      debugPrint('📝 [LivitMediaEditor] Cropping image');
+      final croppedFile = await ImageCropper().cropImage(
+        sourcePath: tempFilePath,
+        aspectRatio: const CropAspectRatio(ratioX: 9, ratioY: 16),
+        uiSettings: [
+          AndroidUiSettings(
+            toolbarTitle: 'Ajustar imagen',
+            toolbarColor: LivitColors.mainBlack,
+            toolbarWidgetColor: Colors.white,
+            initAspectRatio: CropAspectRatioPreset.ratio16x9,
+            lockAspectRatio: true,
+          ),
+          IOSUiSettings(
+            title: 'Ajustar imagen',
+            aspectRatioLockEnabled: true,
+            resetAspectRatioEnabled: false,
+            rotateButtonsHidden: true,
+          ),
+        ],
+      );
+      return croppedFile?.path;
+    } catch (e) {
+      debugPrint('🔥 [LivitMediaEditor] Error on cropImage: $e');
+      return null;
+    }
   }
 }
 
@@ -362,12 +372,15 @@ class _LivitMediaEditorState extends State<LivitMediaEditor> with TickerProvider
                     text: '',
                     leftIcon: Icons.rotate_left,
                     isActive: true,
-                    onPressed: () => Navigator.push(
-                      context,
-                      MaterialPageRoute<void>(
-                        builder: (context) => CropPage(controller: _controller),
-                      ),
-                    ),
+                    onPressed: () {
+                      if (_isExporting.value == true) return;
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute<void>(
+                          builder: (context) => CropPage(controller: _controller),
+                        ),
+                      );
+                    },
                   ),
                   Button.whiteText(
                     isIconBig: true,
@@ -375,12 +388,15 @@ class _LivitMediaEditorState extends State<LivitMediaEditor> with TickerProvider
                     text: '',
                     leftIcon: Icons.crop,
                     isActive: true,
-                    onPressed: () => Navigator.push(
-                      context,
-                      MaterialPageRoute<void>(
-                        builder: (context) => CropPage(controller: _controller),
-                      ),
-                    ),
+                    onPressed: () {
+                      if (_isExporting.value == true) return;
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute<void>(
+                          builder: (context) => CropPage(controller: _controller),
+                        ),
+                      );
+                    },
                   ),
                   Button.whiteText(
                     isIconBig: true,
@@ -388,12 +404,15 @@ class _LivitMediaEditorState extends State<LivitMediaEditor> with TickerProvider
                     text: '',
                     leftIcon: Icons.rotate_right,
                     isActive: true,
-                    onPressed: () => Navigator.push(
-                      context,
-                      MaterialPageRoute<void>(
-                        builder: (context) => CropPage(controller: _controller),
-                      ),
-                    ),
+                    onPressed: () {
+                      if (_isExporting.value == true) return;
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute<void>(
+                          builder: (context) => CropPage(controller: _controller),
+                        ),
+                      );
+                    },
                   ),
                 ],
               ),
@@ -401,6 +420,7 @@ class _LivitMediaEditorState extends State<LivitMediaEditor> with TickerProvider
             Button.main(
               isActive: true,
               onPressed: () async {
+                if (_isExporting.value == true) return;
                 await _exportVideo();
               },
               text: 'Continuar',
@@ -493,6 +513,7 @@ class _LivitMediaEditorState extends State<LivitMediaEditor> with TickerProvider
               child: Button.secondary(
                 isActive: true,
                 onPressed: () async {
+                  if (_isExporting.value == true) return;
                   final XFile? cover = await ImagePicker().pickImage(source: ImageSource.gallery);
                   if (cover == null) return;
                   final String? croppedFilePath = await LivitMediaEditor.cropImage(cover.path);
@@ -501,7 +522,7 @@ class _LivitMediaEditorState extends State<LivitMediaEditor> with TickerProvider
                   setState(() {});
                 },
                 text: 'Subir portada',
-                rightIcon: CupertinoIcons.upload_circle,
+                rightIcon: CupertinoIcons.arrow_up_circle,
               ),
             ),
             LivitSpaces.s,

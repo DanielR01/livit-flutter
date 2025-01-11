@@ -1,8 +1,8 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:flutter/material.dart';
 import 'package:livit/cloud_models/location/location.dart';
 import 'package:livit/services/firestore_storage/cloud_functions/cloud_functions_exceptions.dart';
-
 
 class FirestoreCloudFunctions {
   final FirebaseFunctions _functions = FirebaseFunctions.instance;
@@ -29,7 +29,7 @@ class FirestoreCloudFunctions {
       if (response.data['status'] != "success") {
         debugPrint('❌ [FirestoreCloudFunctions] Could not create user $username: ${response.data['error']}');
         throw GenericCloudFunctionException(details: response.data['error']);
-      } 
+      }
       debugPrint('✅ [FirestoreCloudFunctions] User $username created');
       return;
     } on FirebaseFunctionsException catch (e) {
@@ -77,7 +77,7 @@ class FirestoreCloudFunctions {
     }
   }
 
-  Future<List<String>> getLocationMediaUploadUrls({
+  Future<Map<String, List<dynamic>>> getLocationMediaUploadUrls({
     required String locationId,
     required List<int> fileSizes,
     required List<String> fileTypes,
@@ -92,20 +92,26 @@ class FirestoreCloudFunctions {
         'fileTypes': fileTypes,
         'names': names,
       });
-      final List<dynamic> responseList = response.data as List<dynamic>;
-      final List<Map<String, dynamic>> responseData = responseList.map((element) {
-        final map = Map<String, dynamic>.from(element as Map);
-        return map;
-      }).toList();
+      debugPrint('📥 [FirestoreCloudFunctions] Got a response');
+      debugPrint('📥 [FirestoreCloudFunctions] Response: ${response.data}');
+      final Map<String, dynamic> responseData = Map<String, dynamic>.from(response.data);
+      final List<String> signedUrls = List<String>.from(responseData['signedUrls']);
+      final List<Map<String, dynamic>> timestampsAsSecondsAndNanos =
+          (responseData['timestamps'] as List).map((item) => Map<String, dynamic>.from(item as Map)).toList();
+      final List<Timestamp> timestamps =
+          timestampsAsSecondsAndNanos.map((e) => Timestamp(e['_seconds'] as int, e['_nanoseconds'] as int)).toList();
 
-      if (responseData.isEmpty || responseData.any((element) => element['signedUrl'] == null)) {
-        debugPrint('❌ [FirestoreCloudFunctions] Signed URL is null after getting location media upload URL');
-        throw GenericCloudFunctionException(details: 'Signed URL is null after getting location media upload URL');
+      if (signedUrls.isEmpty || timestamps.isEmpty) {
+        debugPrint('❌ [FirestoreCloudFunctions] Signed URL or timestamps is null after getting location media upload URL');
+        throw GenericCloudFunctionException(details: 'Signed URL or timestamps is null after getting location media upload URL');
       }
 
-      final List<String> signedUrls = responseData.map((element) => element['signedUrl'] as String).toList();
       debugPrint('✅ [FirestoreCloudFunctions] Signed URLs for location media upload for $locationId received');
-      return signedUrls;
+      debugPrint('📥 [FirestoreCloudFunctions] Timestamps: $timestamps');
+      return {
+        'signedUrls': signedUrls,
+        'timestamps': timestamps,
+      };
     } on FirebaseFunctionsException catch (e) {
       if (e.message == 'file-size-limit') {
         debugPrint('❌ [FirestoreCloudFunctions] File size exceeds limit, throwing LocationMediaFileSizeExceedsLimitException');
@@ -143,7 +149,7 @@ class FirestoreCloudFunctions {
   }) async {
     debugPrint('📥 [FirestoreCloudFunctions] Updating promoter user no locations for $userId');
     final HttpsCallable callable = _functions.httpsCallable('updatePromoterUserNoLocations');
-    final response = await callable.call({ 'userId': userId });
+    final response = await callable.call({'userId': userId});
     if (response.data['status'] != "success") {
       debugPrint('❌ [FirestoreCloudFunctions] Could not update promoter user no locations: ${response.data['error']}');
       throw GenericCloudFunctionException(details: response.data['error']);
@@ -151,4 +157,3 @@ class FirestoreCloudFunctions {
     debugPrint('✅ [FirestoreCloudFunctions] Promoter user no locations updated');
   }
 }
-

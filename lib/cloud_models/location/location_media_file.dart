@@ -18,11 +18,12 @@ class LivitLocationMediaFile {
   }
 
   factory LivitLocationMediaFile.fromMap(Map<String, dynamic> map) {
-    return LivitLocationMediaFile(
-      type: LivitLocationMediaType.values.firstWhere((e) => e.name == map['type']),
-      url: map['url'],
-      filePath: null,
-    );
+    if (map['type'] == LivitLocationMediaType.image.name) {
+      return LivitLocationMediaImage.fromMap(map);
+    } else if (map['type'] == LivitLocationMediaType.video.name) {
+      return LivitLocationMediaVideo.fromMap(map);
+    }
+    throw Exception('Invalid media type: ${map['type']}');
   }
 
   LivitLocationMediaFile copyWith({String? url, String? filePath}) {
@@ -77,7 +78,7 @@ class LivitLocationMediaVideo extends LivitLocationMediaFile {
     return LivitLocationMediaVideo(
       url: map['url'],
       filePath: null,
-      cover: LivitLocationMediaImage.fromMap(map['cover']),
+      cover: LivitLocationMediaImage(url: map['coverUrl'], filePath: null),
     );
   }
 

@@ -1,12 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:livit/cloud_models/user/cloud_user.dart';
-import 'package:livit/cloud_models/user/private_data.dart';
 import 'package:livit/constants/enums.dart';
 import 'package:livit/constants/routes.dart';
-import 'package:livit/services/auth/bloc/auth_bloc.dart';
-import 'package:livit/services/auth/bloc/auth_event.dart';
-import 'package:livit/services/error_reporting/error_reporter.dart';
 import 'package:livit/services/firestore_storage/bloc/locations/location_bloc.dart';
 import 'package:livit/services/firestore_storage/bloc/locations/location_event.dart';
 import 'package:livit/services/firestore_storage/bloc/locations/location_state.dart';
@@ -42,6 +38,30 @@ class _GetOrCreateUserViewState extends State<GetOrCreateUserView> {
     debugPrint('🔄 [GetOrCreateUserView] Initializing view...');
     BlocProvider.of<UserBloc>(context).add(GetUserWithPrivateData(context));
     // BlocProvider.of<AuthBloc>(context).add(AuthEventLogOut(context));
+  }
+
+  bool _isProfileCompleted(UserState userState, LocationState? locationState) {
+    debugPrint('🔄 [GetOrCreateUserView] Checking if profile is completed');
+    if (userState is! CurrentUser) return false;
+    if (userState.user.userType == UserType.promoter && locationState is! LocationsLoaded) return false;
+    if (userState.user.userType == UserType.promoter &&
+        locationState is LocationsLoaded &&
+        locationState.loadingStates['cloud'] == LoadingState.loaded) {
+      final promoter = userState.user as CloudPromoter;
+      final locations = locationState.cloudLocations;
+      final bool isCompleted = promoter.description != null &&
+          promoter.interests != null &&
+          promoter.locations != null &&
+          locations.every((location) => location.geopoint != null && location.media != null);
+      debugPrint('🔄 [GetOrCreateUserView] Profile is completed: $isCompleted');
+      return isCompleted;
+    } else if (userState.user.userType == UserType.customer) {
+      final bool isCompleted = userState.user.interests != null;
+      debugPrint('🔄 [GetOrCreateUserView] Profile is completed: $isCompleted');
+      return isCompleted;
+    }
+    debugPrint('🔄 [GetOrCreateUserView] Profile is not completed');
+    return false;
   }
 
   Widget _handleNoCurrentUser(NoCurrentUser noCurrentUser) {
@@ -100,15 +120,19 @@ class _GetOrCreateUserViewState extends State<GetOrCreateUserView> {
           debugPrint('📝 [GetOrCreateUserView] Customer needs to set interests');
           _isFirstTime = true;
           return const WelcomeAndInterestsView();
+        } else if (_isProfileCompleted(currentUser, null)) {
+          debugPrint('🔄 [GetOrCreateUserView] Customer profile completed, showing loading screen');
+          BlocProvider.of<UserBloc>(context).add(SetUserProfileCompleted(context));
+          return const LoadingScreen();
         } else {
-          debugPrint('❌ [GetOrCreateUserView] Customer profile corrupted');
+          debugPrint('🔄 [GetOrCreateUserView] Customer profile data is corrupted');
           throw UserInformationCorruptedException();
         }
       case UserType.promoter:
         debugPrint('🏢 [GetOrCreateUserView] Handling promoter profile setup');
         if (BlocProvider.of<LocationBloc>(context).state is LocationUninitialized) {
           debugPrint('🔄 [GetOrCreateUserView] Initializing location bloc');
-          BlocProvider.of<LocationBloc>(context).add(InitializeLocationBloc(context, userId: currentUser.user.id));
+          BlocProvider.of<LocationBloc>(context).add(InitializeLocationBloc(context));
         }
         final promoter = currentUser.user as CloudPromoter;
 
@@ -143,6 +167,10 @@ class _GetOrCreateUserViewState extends State<GetOrCreateUserView> {
                     debugPrint('📝 [GetOrCreateUserView] Showing media prompt');
                     return const MediaPrompt();
                   } else {
+                    if (_isProfileCompleted(currentUser, locationState)) {
+                      BlocProvider.of<UserBloc>(context).add(SetUserProfileCompleted(context));
+                    }
+                    debugPrint('🔄 [GetOrCreateUserView] Showing loading screen');
                     return const LoadingScreen();
                   }
                 default:
@@ -151,6 +179,8 @@ class _GetOrCreateUserViewState extends State<GetOrCreateUserView> {
             },
           );
         }
+      case UserType.scanner:
+        return const LoadingScreen();
     }
   }
 
@@ -188,7 +218,7 @@ class _GetOrCreateUserViewState extends State<GetOrCreateUserView> {
             Navigator.of(context).pushNamedAndRemoveUntil(
               Routes.mainViewRoute,
               (route) => false,
-              arguments: state.user,
+              arguments: {'userType': state.user.userType},
             );
           }
         }

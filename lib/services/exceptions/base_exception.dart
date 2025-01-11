@@ -20,3 +20,7 @@ abstract class LivitException implements Exception {
   @override
   String toString() => showToUser ? message : '$runtimeType: $message${technicalDetails != null ? ' ($technicalDetails)' : ''}';
 }
+
+class BadStateException extends LivitException {
+  BadStateException(super.message, {super.showToUser = true, super.severity = ErrorSeverity.high});
+}

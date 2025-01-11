@@ -1,12 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:livit/constants/enums.dart';
 import 'package:livit/constants/styles/container_style.dart';
 import 'package:livit/constants/styles/livit_text.dart';
 import 'package:livit/constants/styles/spaces.dart';
 import 'package:livit/services/background/background_bloc.dart';
 import 'package:livit/services/background/background_events.dart';
 import 'package:livit/services/background/background_states.dart';
+import 'package:livit/services/exceptions/base_exception.dart';
+import 'package:livit/services/firestore_storage/bloc/users/user_bloc.dart';
+import 'package:livit/services/firestore_storage/bloc/users/user_state.dart';
 import 'package:livit/utilities/buttons/button.dart';
+import 'package:livit/utilities/error_screens/error_reauth_screen.dart';
 
 class FinalWelcomeMessage extends StatefulWidget {
   final VoidCallback onPressed;
@@ -124,39 +129,55 @@ class _FinalWelcomeMessageState extends State<FinalWelcomeMessage> with TickerPr
           padding: LivitContainerStyle.paddingFromScreen,
           child: Padding(
             padding: LivitContainerStyle.padding(),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                FadeTransition(
-                  opacity: _titleAnimation,
-                  child: LivitText(
-                    '¡Todo listo!',
-                    textType: LivitTextType.bigTitle,
-                  ),
-                ),
-                LivitSpaces.s,
-                FadeTransition(
-                  opacity: _descriptionAnimation,
-                  child: const LivitText('Disfruta de nuevas experiencias con LIVIT. Estamos trabajando para mejorar constantemente.'),
-                ),
-                LivitSpaces.s,
-                FadeTransition(
-                  opacity: _secondDescriptionAnimation,
-                  child: const LivitText(
-                      'Actualmente puedes comprar entradas para tus discotecas favoritas. Pronto podrás descubrir nuevos lugares y eventos que te encantarán.',
-                      fontWeight: FontWeight.bold),
-                ),
-                LivitSpaces.m,
-                FadeTransition(
-                  opacity: _buttonAnimation,
-                  child: Button.main(
-                    text: 'Comenzar a usar LIVIT',
-                    isActive: _animationsCompleted,
-                    onPressed: widget.onPressed,
-                  ),
-                ),
-              ],
+            child: BlocBuilder<UserBloc, UserState>(
+              builder: (context, state) {
+                if (state is! CurrentUser) {
+                  debugPrint('🔄 [FinalWelcomeMessage] User state is not current user');
+                  return ErrorReauthScreen(
+                    exception: BadStateException('User state is not current user at final_welcome_message.dart'),
+                  );
+                }
+                final String mainText = state.user.userType == UserType.promoter
+                    ? 'Empieza a promocionar tus eventos y lugares con LIVIT. Estamos trabajando para mejorar constantemente.'
+                    : 'Disfruta de nuevas experiencias con LIVIT. Estamos trabajando para mejorar constantemente.';
+                final String secondText = state.user.userType == UserType.promoter
+                    ? 'Actualmente algunas funcionalidades estan en desarrollo, pero pronto estarán disponibles.'
+                    : 'Actualmente puedes comprar entradas para tus discotecas favoritas. Pronto podrás descubrir nuevos lugares y eventos que te encantarán.';
+                return Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    FadeTransition(
+                      opacity: _titleAnimation,
+                      child: LivitText(
+                        '¡Todo listo!',
+                        textType: LivitTextType.bigTitle,
+                      ),
+                    ),
+                    LivitSpaces.s,
+                    FadeTransition(
+                      opacity: _descriptionAnimation,
+                      child: LivitText(mainText),
+                    ),
+                    LivitSpaces.s,
+                    FadeTransition(
+                      opacity: _secondDescriptionAnimation,
+                      child: LivitText(secondText, fontWeight: FontWeight.bold),
+                    ),
+                    LivitSpaces.m,
+                    FadeTransition(
+                      opacity: _buttonAnimation,
+                      child: Button.main(
+                          text: 'Comenzar a usar LIVIT',
+                          isActive: _animationsCompleted,
+                          onPressed: () {
+                            BlocProvider.of<BackgroundBloc>(context).add(BackgroundStopLoadingAnimation(overrideLock: true));
+                            widget.onPressed();
+                          }),
+                    ),
+                  ],
+                );
+              },
             ),
           ),
         ),

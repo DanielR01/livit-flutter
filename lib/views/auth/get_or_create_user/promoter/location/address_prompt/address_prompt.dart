@@ -15,6 +15,7 @@ import 'package:livit/services/firestore_storage/firestore_storage/exceptions/fi
 import 'package:livit/utilities/bars_containers_fields/glass_container.dart';
 import 'package:livit/utilities/bars_containers_fields/keyboard_dismissible.dart';
 import 'package:livit/utilities/buttons/button.dart';
+import 'package:livit/utilities/display/livit_display_area.dart';
 import 'package:livit/utilities/error_screens/error_reauth_screen.dart';
 import 'package:livit/utilities/livit_scrollbar.dart';
 import 'package:livit/views/auth/get_or_create_user/promoter/location/address_prompt/location_address_prompt_field.dart';
@@ -69,76 +70,73 @@ class _AddressPromptState extends State<AddressPrompt> {
             return KeyboardDismissible(
               child: Scaffold(
                 resizeToAvoidBottomInset: false,
-                body: SafeArea(
+                body: LivitDisplayArea(
                   child: Center(
-                    child: Padding(
-                      padding: LivitContainerStyle.paddingFromScreen,
-                      child: GlassContainer(
-                        hasPadding: false,
-                        titleBarText: 'Agrega tus ubicaciones',
-                        child: Flexible(
-                          child: Padding(
-                            padding: LivitContainerStyle.padding(padding: [0, 0, null, 0]),
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Padding(
-                                  padding: LivitContainerStyle.padding(padding: [0, null, 0, null]),
-                                  child: LivitText(
-                                    'Agrega todas las ubicaciones que desees, si no tienes un local físico o deseas completar esta información mas tarde, puedes continuar con el siguiente paso.',
-                                  ),
+                    child: GlassContainer(
+                      hasPadding: false,
+                      titleBarText: 'Agrega tus ubicaciones',
+                      child: Flexible(
+                        child: Padding(
+                          padding: LivitContainerStyle.padding(padding: [0, 0, null, 0]),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Padding(
+                                padding: LivitContainerStyle.padding(padding: [0, null, 0, null]),
+                                child: LivitText(
+                                  'Agrega todas las ubicaciones que desees, si no tienes un local físico o deseas completar esta información mas tarde, puedes continuar con el siguiente paso.',
                                 ),
-                                Flexible(
-                                  child: Padding(
-                                    padding: EdgeInsets.symmetric(vertical: LivitContainerStyle.verticalPadding / 2),
-                                    child: LivitScrollbar(
-                                      thumbVisibility: true,
-                                      controller: _scrollController,
-                                      child: _locationsScroller(
-                                        scrollController: _scrollController,
-                                      ),
+                              ),
+                              Flexible(
+                                child: Padding(
+                                  padding: EdgeInsets.symmetric(vertical: LivitContainerStyle.verticalPadding / 2),
+                                  child: LivitScrollbar(
+                                    thumbVisibility: true,
+                                    controller: _scrollController,
+                                    child: _locationsScroller(
+                                      scrollController: _scrollController,
                                     ),
                                   ),
                                 ),
-                                if (errorMessage != null) ...[
-                                  LivitSpaces.s,
-                                  LivitText(errorMessage!),
-                                  LivitSpaces.s,
-                                ],
-                                Padding(
-                                  padding: EdgeInsets.only(right: LivitContainerStyle.horizontalPadding),
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                    mainAxisSize: MainAxisSize.max,
-                                    children: [
-                                      Button.grayText(
-                                        deactivateSplash: true,
-                                        isActive: true,
-                                        text: isUserLoading ? 'Completando' : 'Completar más tarde',
-                                        isLoading: isUserLoading,
-                                        rightIcon: Icons.arrow_forward_ios,
-                                        onPressed: () {
-                                          BlocProvider.of<UserBloc>(context).add(
-                                            SetPromoterUserNoLocations(context),
-                                          );
-                                        },
-                                      ),
-                                      Button.main(
-                                        isActive: isValid,
-                                        text: isCloudLoading ? 'Continuando' : 'Continuar',
-                                        isLoading: isCloudLoading,
-                                        onPressed: () {
-                                          debugPrint('📤 [AddressPrompt] Creating locations to cloud from local');
-                                          BlocProvider.of<LocationBloc>(context).add(
-                                            CreateLocationsToCloudFromLocal(context),
-                                          );
-                                        },
-                                      ),
-                                    ],
-                                  ),
-                                ),
+                              ),
+                              if (errorMessage != null) ...[
+                                LivitSpaces.s,
+                                LivitText(errorMessage!),
+                                LivitSpaces.s,
                               ],
-                            ),
+                              Padding(
+                                padding: EdgeInsets.only(right: LivitContainerStyle.horizontalPadding),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  mainAxisSize: MainAxisSize.max,
+                                  children: [
+                                    Button.grayText(
+                                      deactivateSplash: true,
+                                      isActive: true,
+                                      text: isUserLoading ? 'Completando' : 'Completar más tarde',
+                                      isLoading: isUserLoading,
+                                      rightIcon: Icons.arrow_forward_ios,
+                                      onPressed: () {
+                                        BlocProvider.of<UserBloc>(context).add(
+                                          SetPromoterUserNoLocations(context),
+                                        );
+                                      },
+                                    ),
+                                    Button.main(
+                                      isActive: isValid,
+                                      text: isCloudLoading ? 'Continuando' : 'Continuar',
+                                      isLoading: isCloudLoading,
+                                      onPressed: () {
+                                        debugPrint('📤 [AddressPrompt] Creating locations to cloud from local');
+                                        BlocProvider.of<LocationBloc>(context).add(
+                                          CreateLocationsToCloudFromLocal(context),
+                                        );
+                                      },
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ),

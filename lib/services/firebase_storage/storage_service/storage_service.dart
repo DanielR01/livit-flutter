@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
+import 'package:livit/services/firebase_storage/storage_service/storage_service_exceptions.dart';
 
 class StorageService {
   static final StorageService _shared = StorageService._sharedInstance();
@@ -32,5 +33,20 @@ class StorageService {
 
   Future<void> deleteFile(String url) async {
     await _storage.refFromURL(url).delete();
+  }
+
+  Future<void> deleteLocationMedia(String locationId) async {
+    try {
+      debugPrint('🔄 [StorageService] Deleting location media');
+      await _storage.refFromURL('gs://thelivitapp.appspot.com/locations/$locationId').delete();
+      debugPrint('✅ [StorageService] Location media deleted');
+    } on FirebaseException catch (e) {
+      if (e.code == 'object-not-found') {
+        throw ObjectNotFoundStorageException('Object not found');
+      }
+    } catch (e) {
+      debugPrint('❌ [StorageService] Error deleting location media: $e');
+      throw Exception('Error deleting location media: $e');
+    }
   }
 }

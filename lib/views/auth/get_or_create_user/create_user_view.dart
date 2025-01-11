@@ -11,6 +11,7 @@ import 'package:livit/services/firestore_storage/bloc/users/user_event.dart';
 import 'package:livit/services/firestore_storage/bloc/users/user_state.dart';
 import 'package:livit/services/firestore_storage/bloc/users/user_bloc.dart';
 import 'package:livit/services/firestore_storage/firestore_storage/exceptions/firestore_exceptions.dart';
+import 'package:livit/utilities/bars_containers_fields/keyboard_dismissible.dart';
 import 'package:livit/utilities/buttons/button.dart';
 import 'package:livit/utilities/bars_containers_fields/glass_container.dart';
 import 'package:livit/utilities/bars_containers_fields/title_bar.dart';
@@ -143,85 +144,87 @@ class _CreateUserViewState extends State<CreateUserView> with TickerProviderStat
           }
         }
 
-        return Scaffold(
-          resizeToAvoidBottomInset: false,
-          backgroundColor: Colors.transparent,
-          body: Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                if (!_showContainer)
-                  FadeTransition(
-                    opacity: _titleAnimation,
-                    child: const LivitText(
-                      'Bienvenido a\n LIVIT',
-                      textType: LivitTextType.bigTitle,
+        return KeyboardDismissible(
+          child: Scaffold(
+            resizeToAvoidBottomInset: false,
+            backgroundColor: Colors.transparent,
+            body: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  if (!_showContainer)
+                    FadeTransition(
+                      opacity: _titleAnimation,
+                      child: const LivitText(
+                        'Bienvenido a\n LIVIT',
+                        textType: LivitTextType.bigTitle,
+                      ),
                     ),
-                  ),
-                if (_showContainer)
-                  Container(
-                    clipBehavior: Clip.hardEdge,
-                    decoration: BoxDecoration(
-                      borderRadius: LivitContainerStyle.borderRadius,
-                    ),
-                    child: SlideTransition(
-                      position: _containerAnimation,
-                      child: Padding(
-                        padding: LivitContainerStyle.paddingFromScreen,
-                        child: GlassContainer(
-                          child: Column(
-                            children: [
-                              const TitleBar(title: 'Define tu nombre y usuario'),
-                              Padding(
-                                padding: LivitContainerStyle.padding(padding: [0, null, null, null]),
-                                child: Column(
-                                  mainAxisSize: MainAxisSize.min,
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    LivitTextField(
-                                      controller: _nameController,
-                                      hint: _nameHint,
-                                      onChanged: _onNameChange,
-                                      regExp: RegExp(r'^[a-zA-Z_ ]{3,30}$'),
-                                    ),
-                                    LivitSpaces.m,
-                                    LivitText(
-                                      _nameDescription,
-                                      textType: LivitTextType.small,
-                                      color: LivitColors.whiteInactive,
-                                    ),
-                                    LivitSpaces.m,
-                                    LivitTextField(
-                                      controller: _usernameController,
-                                      hint: 'Nombre de usuario',
-                                      onChanged: _onUsernameChange,
-                                      regExp: RegExp(r'^[a-z0-9_]{6,15}$'),
-                                      notCapitalize: true,
-                                      bottomCaptionText: _bottomCaptionText,
-                                    ),
-                                    LivitSpaces.m,
-                                    const LivitText(
-                                      'El nombre de usuario debe tener entre 6 y 15 caracteres y solo puede contener minusculas, números y guiones bajos. Intenta que sea facil de recordar.',
-                                      textType: LivitTextType.small,
-                                      color: LivitColors.whiteInactive,
-                                    ),
-                                    LivitSpaces.m,
-                                    Button.main(
-                                      text: _isLoading ? 'Creando usuario' : 'Crear usuario',
-                                      isLoading: _isLoading,
-                                      isActive: _isNameValid && _isUsernameValid,
-                                      onPressed: () => _onContinue(),
-                                    ),
-                                  ],
+                  if (_showContainer)
+                    Container(
+                      clipBehavior: Clip.hardEdge,
+                      decoration: BoxDecoration(
+                        borderRadius: LivitContainerStyle.borderRadius,
+                      ),
+                      child: SlideTransition(
+                        position: _containerAnimation,
+                        child: Padding(
+                          padding: LivitContainerStyle.paddingFromScreen,
+                          child: GlassContainer(
+                            child: Column(
+                              children: [
+                                const TitleBar(title: 'Define tu nombre y usuario'),
+                                Padding(
+                                  padding: LivitContainerStyle.padding(padding: [0, null, null, null]),
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      LivitTextField(
+                                        controller: _nameController,
+                                        hint: _nameHint,
+                                        onChanged: _onNameChange,
+                                        regExp: RegExp(r'^[a-zA-Z_ ]{3,30}$'),
+                                      ),
+                                      LivitSpaces.m,
+                                      LivitText(
+                                        _nameDescription,
+                                        textType: LivitTextType.small,
+                                        color: LivitColors.whiteInactive,
+                                      ),
+                                      LivitSpaces.m,
+                                      LivitTextField(
+                                        controller: _usernameController,
+                                        hint: 'Nombre de usuario',
+                                        onChanged: _onUsernameChange,
+                                        regExp: RegExp(r'^[a-z0-9_]{6,15}$'),
+                                        notCapitalize: true,
+                                        bottomCaptionText: _bottomCaptionText,
+                                      ),
+                                      LivitSpaces.m,
+                                      const LivitText(
+                                        'El nombre de usuario debe tener entre 6 y 15 caracteres y solo puede contener minusculas, números y guiones bajos. Intenta que sea facil de recordar.',
+                                        textType: LivitTextType.small,
+                                        color: LivitColors.whiteInactive,
+                                      ),
+                                      LivitSpaces.m,
+                                      Button.main(
+                                        text: _isLoading ? 'Creando usuario' : 'Crear usuario',
+                                        isLoading: _isLoading,
+                                        isActive: _isNameValid && _isUsernameValid,
+                                        onPressed: () => _onContinue(),
+                                      ),
+                                    ],
+                                  ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
                         ),
                       ),
                     ),
-                  ),
-              ],
+                ],
+              ),
             ),
           ),
         );

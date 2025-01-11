@@ -5,11 +5,17 @@ abstract class StorageEvent {
 }
 
 class SetLocationMedia extends StorageEvent {
+  const SetLocationMedia();
+}
+
+class GetSignedUrls extends StorageEvent {
   final String locationId;
   final LivitLocationMedia media;
 
-  const SetLocationMedia({
-    required this.locationId,
-    required this.media,
-  });
+  const GetSignedUrls({required this.locationId, required this.media});
+}
+
+class DeleteLocationMedia extends StorageEvent {
+  final String locationId;
+  const DeleteLocationMedia({required this.locationId});
 }

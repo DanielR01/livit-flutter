@@ -1,7 +1,10 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:livit/constants/colors.dart';
 import 'package:livit/constants/styles/bar_style.dart';
+import 'package:livit/constants/styles/button_style.dart';
+import 'package:livit/constants/styles/container_style.dart';
 
 List<String> navIcons = [
   "assets/icons/home.svg",
@@ -10,79 +13,66 @@ List<String> navIcons = [
   "assets/icons/profile.svg",
 ];
 
-class CustomNavigationBar extends StatelessWidget {
+class LivitNavigationBar extends StatelessWidget {
   final int currentIndex;
   final ValueChanged<int> onItemTapped;
+  final List<IconData> iconList;
 
-  const CustomNavigationBar({
+  LivitNavigationBar.promoter({
     super.key,
     required this.currentIndex,
     required this.onItemTapped,
-  });
+  }) : iconList = [
+          CupertinoIcons.building_2_fill,
+          CupertinoIcons.calendar,
+          CupertinoIcons.tickets_fill,
+          CupertinoIcons.person_fill,
+        ];
+
+  //TODO: Add customer icons
+  LivitNavigationBar.customer({
+    super.key,
+    required this.currentIndex,
+    required this.onItemTapped,
+  }) : iconList = [
+          CupertinoIcons.building_2_fill,
+          CupertinoIcons.calendar,
+          CupertinoIcons.tickets_fill,
+          CupertinoIcons.person_fill,
+        ];
 
   @override
   Widget build(BuildContext context) {
     return Container(
       height: LivitBarStyle.height,
-      margin: const EdgeInsets.only(
-        right: 10,
-        left: 10,
-        bottom: 16,
+      margin: EdgeInsets.only(
+        right: LivitContainerStyle.paddingFromScreen.right,
+        left: LivitContainerStyle.paddingFromScreen.left,
+        bottom: LivitContainerStyle.verticalPadding,
       ),
       decoration: BoxDecoration(
         color: LivitColors.mainBlack,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: LivitContainerStyle.borderRadius,
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: navIcons.map(
-          (icon) {
-            int index = navIcons.indexOf(icon);
-            bool isSelected = currentIndex == index;
-            return Material(
-              color: Colors.transparent,
-              child: GestureDetector(
-                onTap: () => onItemTapped(index),
+        children: iconList
+            .map(
+              (icon) => GestureDetector(
+                onTap: () => onItemTapped(iconList.indexOf(icon)),
                 child: Container(
-                  height: 40,
-                  width: 40,
-                  alignment: Alignment.center,
                   color: Colors.transparent,
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      SizedBox(
-                        height: 17,
-                        child: SvgPicture.asset(
-                          icon,
-                          colorFilter: ColorFilter.mode(
-                              isSelected
-                                  ? LivitColors.whiteActive
-                                  : LivitColors.whiteInactive,
-                              BlendMode.srcIn),
-                          height: 17,
-                        ),
-                      ),
-                      // const SizedBox(
-                      //   height: 4,
-                      // ),
-                      // SizedBox(
-                      //   child: SvgPicture.asset(
-                      //     "assets/icons/line.svg",
-                      //     colorFilter: ColorFilter.mode(
-                      //         isSelected
-                      //             ? LivitColors.whiteActive
-                      //             : Colors.transparent,
-                      //         BlendMode.srcIn),
-                      //   ),
-                      // ),
-                    ],
+                  height: LivitBarStyle.height,
+                  width: LivitBarStyle.height,
+                  child: Icon(
+                    icon,
+                    color: currentIndex == iconList.indexOf(icon) ? LivitColors.whiteActive : LivitColors.whiteInactive,
+                    size: LivitButtonStyle.bigIconSize,
                   ),
                 ),
               ),
-            );
-          },
-        ).toList(),
+            )
+            .toList(),
       ),
     );
   }

@@ -8,8 +8,7 @@ abstract class LocationEvent {
 }
 
 class InitializeLocationBloc extends LocationEvent {
-  final String userId;
-  InitializeLocationBloc(super.context, {required this.userId});
+  InitializeLocationBloc(super.context);
 }
 
 // Cloud Events

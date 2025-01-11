@@ -2,7 +2,9 @@ import 'package:livit/cloud_models/user/cloud_user.dart';
 import 'package:livit/cloud_models/user/private_data.dart';
 import 'package:livit/constants/enums.dart';
 
-abstract class UserState {}
+abstract class UserState {
+  UserState copyWith({bool? isLoading});
+}
 
 class NoCurrentUser extends UserState {
   final Exception? exception;
@@ -16,6 +18,17 @@ class NoCurrentUser extends UserState {
   String toString() {
     return 'Exception: $exception, usertype: $userType, isLoading: $isLoading, isCreating: $isCreating, isInitialized: $isInitialized';
   }
+
+  @override
+  NoCurrentUser copyWith({bool? isLoading}) {
+    return NoCurrentUser(
+      exception: exception,
+      userType: userType,
+      isLoading: isLoading ?? this.isLoading,
+      isCreating: isCreating,
+      isInitialized: isInitialized,
+    );
+  }
 }
 
 class CurrentUser extends UserState {
@@ -25,4 +38,14 @@ class CurrentUser extends UserState {
   final bool isLoading;
 
   CurrentUser({required this.user, required this.privateData, this.exception, this.isLoading = false});
+
+  @override
+  CurrentUser copyWith({bool? isLoading}) {
+    return CurrentUser(
+      user: user,
+      privateData: privateData,
+      exception: exception,
+      isLoading: isLoading ?? this.isLoading,
+    );
+  }
 }

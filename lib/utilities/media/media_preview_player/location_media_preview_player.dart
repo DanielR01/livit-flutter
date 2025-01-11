@@ -21,6 +21,7 @@ import 'package:livit/utilities/background/main_background.dart';
 import 'package:livit/utilities/bars_containers_fields/bar.dart';
 import 'package:livit/utilities/bars_containers_fields/glass_container.dart';
 import 'package:livit/utilities/buttons/button.dart';
+import 'package:livit/utilities/display/livit_display_area.dart';
 import 'package:livit/utilities/media/video_editor/video_editor.dart';
 import 'package:video_player/video_player.dart';
 import 'package:livit/constants/colors.dart';
@@ -504,6 +505,7 @@ class _LocationMediaPreviewPlayerState extends State<LocationMediaPreviewPlayer>
       } else {
         final croppedFilePath = await LivitMediaEditor.cropImage(pickedFile.path);
         if (croppedFilePath == null) return null;
+        debugPrint('🖼️ [LocationMediaPreviewPlayer] Cropped image path: $croppedFilePath');
         return LivitLocationMediaImage(filePath: croppedFilePath, url: '');
       }
     } finally {}
@@ -748,85 +750,76 @@ class _LocationMediaPreviewPlayerState extends State<LocationMediaPreviewPlayer>
         return PopScope(
           canPop: !_locationBloc.areUnsavedChanges && !_isAddingMedia && !_isReplacingMedia,
           child: Scaffold(
-            body: SafeArea(
+            body: LivitDisplayArea(
               child: Center(
                 child: Column(
                   children: [
-                    Padding(
-                      padding: LivitContainerStyle.paddingFromScreen,
-                      child: _buildTopBar(state is LocationsLoaded ? state.errorMessage : null),
-                    ),
+                    _buildTopBar(state is LocationsLoaded ? state.errorMessage : null),
                     LivitSpaces.s,
                     Flexible(
-                      child: Padding(
-                        padding: LivitContainerStyle.paddingFromScreen,
-                        child: GlassContainer(
-                          opacity: 1,
-                          child: Padding(
-                            padding: LivitContainerStyle.padding(padding: null),
-                            child: Column(
-                              children: [
-                                Flexible(
-                                  child: LayoutBuilder(
-                                    builder: (context, constraints) {
-                                      return Container(
-                                        constraints: BoxConstraints(maxWidth: constraints.maxHeight * 9 / 16),
-                                        child: PageView.builder(
-                                          controller: _pageController,
-                                          onPageChanged: (index) {
-                                            setState(() {
-                                              _currentIndex = index;
-                                              _displayedIndex = index;
-                                            });
-                                          },
-                                          itemCount: _allMedia.length + (_isAddingMedia ? 1 : 0),
-                                          itemBuilder: (context, index) {
-                                            if (index == _allMedia.length && _isAddingMedia) {
-                                              return Center(
-                                                child: Column(
-                                                  mainAxisSize: MainAxisSize.min,
-                                                  children: [
-                                                    SizedBox(
-                                                      width: LivitButtonStyle.bigIconSize,
-                                                      height: LivitButtonStyle.bigIconSize,
-                                                      child: CupertinoActivityIndicator(
-                                                        color: LivitColors.whiteActive,
-                                                        radius: LivitButtonStyle.bigIconSize / 2,
-                                                      ),
+                      child: GlassContainer(
+                        opacity: 1,
+                        child: Padding(
+                          padding: LivitContainerStyle.padding(padding: null),
+                          child: Column(
+                            children: [
+                              Flexible(
+                                child: LayoutBuilder(
+                                  builder: (context, constraints) {
+                                    return Container(
+                                      constraints: BoxConstraints(maxWidth: constraints.maxHeight * 9 / 16),
+                                      child: PageView.builder(
+                                        controller: _pageController,
+                                        onPageChanged: (index) {
+                                          setState(() {
+                                            _currentIndex = index;
+                                            _displayedIndex = index;
+                                          });
+                                        },
+                                        itemCount: _allMedia.length + (_isAddingMedia ? 1 : 0),
+                                        itemBuilder: (context, index) {
+                                          if (index == _allMedia.length && _isAddingMedia) {
+                                            return Center(
+                                              child: Column(
+                                                mainAxisSize: MainAxisSize.min,
+                                                children: [
+                                                  SizedBox(
+                                                    width: LivitButtonStyle.bigIconSize,
+                                                    height: LivitButtonStyle.bigIconSize,
+                                                    child: CupertinoActivityIndicator(
+                                                      color: LivitColors.whiteActive,
+                                                      radius: LivitButtonStyle.bigIconSize / 2,
                                                     ),
-                                                    LivitSpaces.s,
-                                                    const LivitText(
-                                                      'Estamos obteniendo el archivo...\nA veces puede tardar un poco',
-                                                    ),
-                                                  ],
-                                                ),
-                                              );
-                                            }
-                                            final LivitLocationMediaFile media = _allMedia[index];
-                                            if (media is LivitLocationMediaVideo) {
-                                              return _buildVideoView(media);
-                                            } else {
-                                              return _buildImageView(media as LivitLocationMediaImage);
-                                            }
-                                          },
-                                        ),
-                                      );
-                                    },
-                                  ),
+                                                  ),
+                                                  LivitSpaces.s,
+                                                  const LivitText(
+                                                    'Estamos obteniendo el archivo...\nA veces puede tardar un poco',
+                                                  ),
+                                                ],
+                                              ),
+                                            );
+                                          }
+                                          final LivitLocationMediaFile media = _allMedia[index];
+                                          if (media is LivitLocationMediaVideo) {
+                                            return _buildVideoView(media);
+                                          } else {
+                                            return _buildImageView(media as LivitLocationMediaImage);
+                                          }
+                                        },
+                                      ),
+                                    );
+                                  },
                                 ),
-                                LivitSpaces.s,
-                                _buildThumbnailView(),
-                              ],
-                            ),
+                              ),
+                              LivitSpaces.s,
+                              _buildThumbnailView(),
+                            ],
                           ),
                         ),
                       ),
                     ),
                     LivitSpaces.s,
-                    Padding(
-                      padding: LivitContainerStyle.paddingFromScreen,
-                      child: _buildBottomBar(),
-                    ),
+                    _buildBottomBar(),
                   ],
                 ),
               ),
