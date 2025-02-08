@@ -2,7 +2,7 @@ import 'dart:io' show Platform;
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:livit/cloud_models/location/location.dart';
+import 'package:livit/models/location/location.dart';
 import 'package:livit/constants/routes.dart';
 import 'package:livit/constants/enums.dart';
 import 'package:livit/services/background/background_bloc.dart';

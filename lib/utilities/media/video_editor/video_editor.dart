@@ -3,13 +3,15 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:livit/cloud_models/location/location_media_file.dart';
+import 'package:livit/models/media/location_media_file.dart';
 import 'package:livit/constants/colors.dart';
 import 'package:livit/constants/styles/bar_style.dart';
 import 'package:livit/constants/styles/button_style.dart';
 import 'package:livit/constants/styles/container_style.dart';
 import 'package:livit/constants/styles/livit_text.dart';
 import 'package:livit/constants/styles/spaces.dart';
+import 'package:livit/services/error_reporting/error_reporter.dart';
+import 'package:livit/services/files/temp_file_manager.dart';
 import 'package:livit/services/firebase_storage/firebase_storage_constants.dart';
 import 'package:livit/services/video/export_video_service.dart';
 import 'package:livit/utilities/buttons/arrow_back_button.dart';
@@ -19,6 +21,15 @@ import 'package:livit/utilities/media/video_editor/crop_page.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:video_editor/video_editor.dart';
 import 'package:livit/services/video/video_compression_service.dart';
+
+enum LivitMediaEditorProcess {
+  idle,
+  exporting,
+  exportingCover,
+  compressing,
+  finished,
+  error,
+}
 
 class LivitMediaEditor extends StatefulWidget {
   final String videoPath;
@@ -66,6 +77,7 @@ class LivitMediaEditor extends StatefulWidget {
 
 class _LivitMediaEditorState extends State<LivitMediaEditor> with TickerProviderStateMixin {
   final _exportingProgress = ValueNotifier<double>(0.0);
+  final _exportingProcess = ValueNotifier<LivitMediaEditorProcess>(LivitMediaEditorProcess.idle);
   final _isExporting = ValueNotifier<bool>(false);
   final double height = LivitBarStyle.height;
 
@@ -78,6 +90,8 @@ class _LivitMediaEditorState extends State<LivitMediaEditor> with TickerProvider
   );
 
   late final TabController _tabController;
+
+  final ErrorReporter _errorReporter = ErrorReporter();
 
   @override
   void initState() {
@@ -94,10 +108,15 @@ class _LivitMediaEditorState extends State<LivitMediaEditor> with TickerProvider
   @override
   void dispose() async {
     _exportingProgress.dispose();
+    _exportingProcess.dispose();
     _isExporting.dispose();
     _controller.dispose();
     _tabController.dispose();
     ExportService.dispose();
+    MediaFileCleanup.deleteFileByPath(widget.videoPath);
+    if (_coverPath != null) {
+      MediaFileCleanup.deleteFileByPath(_coverPath!);
+    }
     super.dispose();
   }
 
@@ -127,38 +146,49 @@ class _LivitMediaEditorState extends State<LivitMediaEditor> with TickerProvider
       await ExportService.runFFmpegCommand(
         executeConfig,
         onProgress: (stats) {
-          _exportingProgress.value = config.getFFmpegProgress(stats.getTime().toInt()) / 2;
+          _exportingProgress.value = config.getFFmpegProgress(stats.getTime().toInt());
+          _exportingProcess.value = LivitMediaEditorProcess.exporting;
         },
         onError: (e, s) {
-          _showErrorSnackBar("Error on export video :(");
+          debugPrint('❌ [LivitMediaEditor] Error on export video: $e');
+          if (e is Exception) {
+            debugPrint('❌ [LivitMediaEditor] Exception: ${e.toString()}');
+          }
+          _errorReporter.reportError(e, s);
+          _exportingProcess.value = LivitMediaEditorProcess.error;
         },
         onCompleted: (file) async {
-          _exportingProgress.value = 0;
+          await TempFileManager.trackFile(file.path);
 
           compressedFilePath = await VideoCompressionService.compressVideo(
             inputFilePath: file.path,
             onProgress: (stats) {
               _exportingProgress.value = config.getFFmpegProgress(stats.getTime().toInt());
+              _exportingProcess.value = LivitMediaEditorProcess.compressing;
             },
             onError: (e, s) {
-              _showErrorSnackBar("Error on export video :(");
+              debugPrint('❌ [LivitMediaEditor] Error on export video: $e');
+              _exportingProcess.value = LivitMediaEditorProcess.error;
+              _errorReporter.reportError(e, s);
             },
             onCompleted: (compressedFile) async {
+              await TempFileManager.trackFile(compressedFile.path);
               debugPrint('📑 [LivitMediaEditor] compressedFilePath: ${compressedFile.path}');
               debugPrint('📑 [LivitMediaEditor] compressedFilePath size: ${compressedFile.lengthSync() / 1024 / 1024} MB');
               await MediaFileCleanup.deleteFileByPath(file.path);
+              _exportingProcess.value = LivitMediaEditorProcess.exportingCover;
               await _exportCover(compressedFile.path);
-              _isExporting.value = false;
+              if (_exportingProcess.value == LivitMediaEditorProcess.error) return;
+              _exportingProcess.value = LivitMediaEditorProcess.finished;
             },
           );
         },
       );
     } catch (e) {
-      // Clean up any temporary files on error
       await MediaFileCleanup.deleteFile(trimmedFile);
       await MediaFileCleanup.deleteFileByPath(compressedFilePath);
-      _isExporting.value = false;
-      _showErrorSnackBar("Error processing video");
+      _exportingProcess.value = LivitMediaEditorProcess.error;
+      _errorReporter.reportError(e, StackTrace.current);
     }
   }
 
@@ -167,11 +197,11 @@ class _LivitMediaEditorState extends State<LivitMediaEditor> with TickerProvider
     await tempDir.create(recursive: true);
 
     if (_coverPath != null) {
-      final LivitLocationMediaImage coverImage = LivitLocationMediaImage(
+      final LivitMediaImage coverImage = LivitMediaImage(
         filePath: _coverPath!,
         url: '',
       );
-      final LivitLocationMediaVideo video = LivitLocationMediaVideo(
+      final LivitMediaVideo video = LivitMediaVideo(
         filePath: videoFilePath,
         url: '',
         cover: coverImage,
@@ -185,21 +215,27 @@ class _LivitMediaEditorState extends State<LivitMediaEditor> with TickerProvider
     );
     final execute = await config.getExecuteConfig();
     if (execute == null) {
-      _showErrorSnackBar("Error on cover exportation initialization.");
+      debugPrint('❌ [LivitMediaEditor] Error on cover exportation initialization.');
+      _exportingProcess.value = LivitMediaEditorProcess.error;
+      _errorReporter.reportError(Exception('Error on cover exportation initialization.'), StackTrace.current);
       return;
     }
 
     await ExportService.runFFmpegCommand(
       execute,
-      onError: (e, s) => _showErrorSnackBar("Error on cover exportation :("),
+      onError: (e, s) {
+        debugPrint('❌ [LivitMediaEditor] Error on cover exportation: $e');
+        _exportingProcess.value = LivitMediaEditorProcess.error;
+        _errorReporter.reportError(e, s);
+      },
       onCompleted: (cover) {
         if (!mounted) return;
 
-        final LivitLocationMediaImage coverImage = LivitLocationMediaImage(
+        final LivitMediaImage coverImage = LivitMediaImage(
           filePath: cover.path,
           url: '',
         );
-        final LivitLocationMediaVideo video = LivitLocationMediaVideo(
+        final LivitMediaVideo video = LivitMediaVideo(
           filePath: videoFilePath,
           url: '',
           cover: coverImage,
@@ -214,7 +250,7 @@ class _LivitMediaEditorState extends State<LivitMediaEditor> with TickerProvider
     return PopScope(
       onPopInvokedWithResult: (didPop, result) async {},
       child: Scaffold(
-        backgroundColor: Colors.black,
+        backgroundColor: LivitColors.mainBlack,
         body: _controller.initialized
             ? SafeArea(
                 child: Stack(
@@ -320,20 +356,56 @@ class _LivitMediaEditorState extends State<LivitMediaEditor> with TickerProvider
                               ),
                               ValueListenableBuilder(
                                 valueListenable: _isExporting,
-                                builder: (_, bool export, Widget? child) => AnimatedSize(
-                                  duration: kThemeAnimationDuration,
-                                  child: export ? child : null,
-                                ),
-                                child: AlertDialog(
-                                  title: ValueListenableBuilder(
+                                builder: (_, bool export, Widget? child) {
+                                  if (!export) return const SizedBox.shrink();
+                                  return ValueListenableBuilder(
                                     valueListenable: _exportingProgress,
-                                    builder: (_, double value, __) => Text(
-                                      "Exportando video ${(value * 100).ceil()}%",
-                                      style: const TextStyle(fontSize: 12),
-                                    ),
-                                  ),
-                                ),
-                              )
+                                    builder: (_, double value, __) {
+                                      return ValueListenableBuilder(
+                                        valueListenable: _exportingProcess,
+                                        builder: (_, LivitMediaEditorProcess process, __) {
+                                          late final String text;
+                                          if (process == LivitMediaEditorProcess.error) {
+                                            text = "Error al exportar video";
+                                          } else if (_exportingProcess.value == LivitMediaEditorProcess.exporting) {
+                                            text = "Exportando video ${(value * 100).ceil()}%";
+                                          } else if (_exportingProcess.value == LivitMediaEditorProcess.compressing) {
+                                            text = "Comprimiendo video ${(value * 100).ceil()}%";
+                                          } else if (_exportingProcess.value == LivitMediaEditorProcess.exportingCover) {
+                                            text = "Exportando portada";
+                                          } else if (_exportingProcess.value == LivitMediaEditorProcess.finished) {
+                                            text = "Video exportado";
+                                          } else {
+                                            text = "Esperando";
+                                          }
+                                          return Padding(
+                                            padding: LivitContainerStyle.paddingFromScreen,
+                                            child: Row(
+                                              children: [
+                                                Expanded(
+                                                  child: AnimatedSize(
+                                                    duration: kThemeAnimationDuration,
+                                                    curve: Curves.easeInOut,
+                                                    child: Button.main(
+                                                      text: text,
+                                                      isActive: true,
+                                                      deactivateSplash: true,
+                                                      onTap: () {},
+                                                      rightIcon: process == LivitMediaEditorProcess.error
+                                                          ? CupertinoIcons.exclamationmark_circle
+                                                          : null,
+                                                    ),
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          );
+                                        },
+                                      );
+                                    },
+                                  );
+                                },
+                              ),
                             ],
                           ),
                         ),
@@ -417,13 +489,47 @@ class _LivitMediaEditorState extends State<LivitMediaEditor> with TickerProvider
                 ],
               ),
             ),
-            Button.main(
-              isActive: true,
-              onPressed: () async {
-                if (_isExporting.value == true) return;
-                await _exportVideo();
-              },
-              text: 'Continuar',
+            AnimatedSize(
+              duration: kThemeAnimationDuration,
+              curve: Curves.easeInOut,
+              child: ValueListenableBuilder(
+                valueListenable: _exportingProcess,
+                builder: (_, LivitMediaEditorProcess process, __) {
+                  if (process == LivitMediaEditorProcess.idle) {
+                    return Button.main(
+                      isActive: true,
+                      isLoading: process != LivitMediaEditorProcess.idle && process != LivitMediaEditorProcess.error,
+                      onTap: () async {
+                        await _exportVideo();
+                      },
+                      text: 'Continuar',
+                    );
+                  } else if (process == LivitMediaEditorProcess.error) {
+                    return Button.main(
+                      isActive: true,
+                      onTap: () async {
+                        _exportingProcess.value = LivitMediaEditorProcess.exporting;
+                        await Future.delayed(kThemeAnimationDuration);
+                        await _exportVideo();
+                      },
+                      text: 'Intentar de nuevo',
+                    );
+                  } else {
+                    return Button.icon(
+                      isLoading: true,
+                      isIconBig: false,
+                      isActive: true,
+                      onTap: () async {
+                        _exportingProcess.value = LivitMediaEditorProcess.exporting;
+                        await Future.delayed(kThemeAnimationDuration);
+                        await _exportVideo();
+                      },
+                      activeBackgroundColor: LivitColors.whiteActive,
+                      activeColor: LivitColors.mainBlack,
+                    );
+                  }
+                },
+              ),
             )
           ],
         ),
@@ -493,7 +599,7 @@ class _LivitMediaEditorState extends State<LivitMediaEditor> with TickerProvider
         children: [
           Button.secondary(
             isActive: true,
-            onPressed: () {
+            onTap: () {
               MediaFileCleanup.deleteFile(File(_coverPath!));
               _coverPath = null;
               setState(() {});
@@ -512,13 +618,16 @@ class _LivitMediaEditorState extends State<LivitMediaEditor> with TickerProvider
               width: double.infinity,
               child: Button.secondary(
                 isActive: true,
-                onPressed: () async {
+                onTap: () async {
                   if (_isExporting.value == true) return;
                   final XFile? cover = await ImagePicker().pickImage(source: ImageSource.gallery);
                   if (cover == null) return;
+                  await TempFileManager.trackFile(cover.path);
                   final String? croppedFilePath = await LivitMediaEditor.cropImage(cover.path);
                   if (croppedFilePath == null) return;
+                  await TempFileManager.trackFile(croppedFilePath);
                   _coverPath = croppedFilePath;
+                  await MediaFileCleanup.deleteFileByPath(cover.path);
                   setState(() {});
                 },
                 text: 'Subir portada',

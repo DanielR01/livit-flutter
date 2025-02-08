@@ -10,4 +10,18 @@ enum LoginMethod {
   phoneAndOtp,
 }
 
-
+enum LoadingState {
+  initial,
+  skipping,
+  verifying,
+  uploading,
+  loading,
+  deleting,
+  downloading,
+  loaded,
+  verified,
+  deleted,
+  aborted,
+  uploaded,
+  error,
+}

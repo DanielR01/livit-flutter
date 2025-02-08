@@ -3,16 +3,16 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:livit/cloud_models/location/location.dart';
+import 'package:livit/models/location/location.dart';
 import 'package:livit/constants/colors.dart';
 import 'package:livit/constants/styles/bar_style.dart';
 import 'package:livit/constants/styles/button_style.dart';
 import 'package:livit/constants/styles/container_style.dart';
 import 'package:livit/constants/styles/livit_text.dart';
 import 'package:livit/constants/styles/spaces.dart';
-import 'package:livit/services/firestore_storage/bloc/locations/location_bloc.dart';
-import 'package:livit/services/firestore_storage/bloc/locations/location_event.dart';
-import 'package:livit/services/firestore_storage/bloc/locations/location_state.dart';
+import 'package:livit/services/firestore_storage/bloc/location/location_bloc.dart';
+import 'package:livit/services/firestore_storage/bloc/location/location_event.dart';
+import 'package:livit/services/firestore_storage/bloc/location/location_state.dart';
 import 'package:livit/services/location/location_search_service.dart';
 import 'package:livit/utilities/bars_containers_fields/bar.dart';
 import 'package:livit/utilities/bars_containers_fields/glass_container.dart';
@@ -236,7 +236,7 @@ class _MapLocationPromptState extends State<MapLocationPrompt> {
                     padding: const EdgeInsets.all(16.0),
                     child: Button.main(
                       text: 'Cerrar',
-                      onPressed: () => Navigator.of(context).pop(),
+                      onTap: () => Navigator.of(context).pop(),
                       isActive: true,
                     ),
                   ),
@@ -470,7 +470,7 @@ class _MapLocationPromptState extends State<MapLocationPrompt> {
                             text: isCloudLoading ? 'Continuando' : 'Continuar',
                             isLoading: isCloudLoading,
                             isActive: _locations.every((location) => location.geopoint != null),
-                            onPressed: () {
+                            onTap: () {
                               debugPrint('🔍 [MapLocationPrompt] Updating locations to cloud');
                               BlocProvider.of<LocationBloc>(context).add(UpdateLocationsToCloudFromLocal(context));
                             },

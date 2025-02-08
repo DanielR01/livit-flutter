@@ -1,7 +1,7 @@
 import 'package:livit/services/exceptions/base_exception.dart';
 
-class StorageServiceExceptions extends LivitException {
-  StorageServiceExceptions(
+class StorageServiceException extends LivitException {
+  StorageServiceException(
     super.message, {
     super.showToUser = true,
     super.technicalDetails,
@@ -9,10 +9,19 @@ class StorageServiceExceptions extends LivitException {
   });
 }
 
-class ObjectNotFoundStorageException extends StorageServiceExceptions {
+class ObjectNotFoundStorageException extends StorageServiceException {
   ObjectNotFoundStorageException(
     super.message, {
     super.showToUser = true,
     super.technicalDetails,
+  });
+}
+
+class UnavailableStorageException extends StorageServiceException {
+  UnavailableStorageException(
+    super.message, {
+    super.showToUser = true,
+    super.technicalDetails,
+    super.severity = ErrorSeverity.low,
   });
 }

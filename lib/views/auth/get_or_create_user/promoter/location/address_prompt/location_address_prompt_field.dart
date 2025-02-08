@@ -5,17 +5,19 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:livit/cloud_models/location/location.dart';
+import 'package:livit/models/location/location.dart';
 import 'package:livit/constants/colors.dart';
+import 'package:livit/constants/styles/bar_style.dart';
 import 'package:livit/constants/styles/container_style.dart';
 import 'package:livit/constants/styles/livit_text.dart';
 import 'package:livit/constants/styles/spaces.dart';
-import 'package:livit/services/firestore_storage/bloc/locations/location_bloc.dart';
-import 'package:livit/services/firestore_storage/bloc/locations/location_event.dart';
+import 'package:livit/services/firestore_storage/bloc/location/location_bloc.dart';
+import 'package:livit/services/firestore_storage/bloc/location/location_event.dart';
 import 'package:livit/utilities/bars_containers_fields/bar.dart';
 import 'package:livit/utilities/bars_containers_fields/livit_text_field.dart';
 import 'package:livit/utilities/buttons/button.dart';
 import 'package:livit/utilities/buttons/livit_dropdown_button.dart';
+import 'package:livit/utilities/dialogs/livit_date_picker.dart';
 
 class LocationAddressPromptField extends StatefulWidget {
   final LivitLocation location;
@@ -188,48 +190,52 @@ class _LocationAddressPromptFieldState extends State<LocationAddressPromptField>
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             mainAxisSize: MainAxisSize.max,
             children: [
-              LivitDropdownButton(
-                entries: states
-                    .map(
-                      (state) => DropdownMenuEntry<String>(
-                        value: state,
-                        label: state,
+              Expanded(
+                child: LivitDropdownButton(
+                  entries: states
+                      .map(
+                        (state) => DropdownMenuEntry<String>(
+                          value: state,
+                          label: state,
+                        ),
+                      )
+                      .toList(),
+                  onSelected: (value) {
+                    BlocProvider.of<LocationBloc>(context).add(
+                      UpdateLocationLocally(
+                        context,
+                        location: widget.location.copyWith(state: value, city: ''),
                       ),
-                    )
-                    .toList(),
-                onSelected: (value) {
-                  BlocProvider.of<LocationBloc>(context).add(
-                    UpdateLocationLocally(
-                      context,
-                      location: widget.location.copyWith(state: value, city: ''),
-                    ),
-                  );
-                },
-                defaultText: 'Departamento',
-                isActive: true,
-                selectedValue: widget.location.state == '' ? null : widget.location.state,
+                    );
+                  },
+                  defaultText: 'Departamento',
+                  isActive: true,
+                  selectedValue: widget.location.state == '' ? null : widget.location.state,
+                ),
               ),
               LivitSpaces.s,
-              LivitDropdownButton(
-                entries: (citiesByState[widget.location.state] ?? [])
-                    .map(
-                      (city) => DropdownMenuEntry<String>(
-                        value: city,
-                        label: city,
+              Expanded(
+                child: LivitDropdownButton(
+                  entries: (citiesByState[widget.location.state] ?? [])
+                      .map(
+                        (city) => DropdownMenuEntry<String>(
+                          value: city,
+                          label: city,
+                        ),
+                      )
+                      .toList(),
+                  onSelected: (value) {
+                    BlocProvider.of<LocationBloc>(context).add(
+                      UpdateLocationLocally(
+                        context,
+                        location: widget.location.copyWith(city: value),
                       ),
-                    )
-                    .toList(),
-                onSelected: (value) {
-                  BlocProvider.of<LocationBloc>(context).add(
-                    UpdateLocationLocally(
-                      context,
-                      location: widget.location.copyWith(city: value),
-                    ),
-                  );
-                },
-                defaultText: 'Ciudad',
-                isActive: (widget.location.state != ''),
-                selectedValue: widget.location.city == '' ? null : widget.location.city,
+                    );
+                  },
+                  defaultText: 'Ciudad',
+                  isActive: (widget.location.state != ''),
+                  selectedValue: widget.location.city == '' ? null : widget.location.city,
+                ),
               ),
             ],
           ),

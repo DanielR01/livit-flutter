@@ -7,10 +7,10 @@ class FileCleanupService {
   factory FileCleanupService() => _instance;
   FileCleanupService._internal();
 
-  static const Duration _maxFileAge = Duration(hours: 12);
+  static const Duration _maxFileAge = Duration(hours: 48);
 
   Future<void> cleanupTempFiles() async {
-    debugPrint('Cleaning up temp files');
+    debugPrint('🧹 [FileCleanupService] Cleaning up temp files');
     try {
       final tempDir = await getTemporaryDirectory();
       try {
@@ -20,12 +20,12 @@ class FileCleanupService {
           await _cleanupDirectory(tempDirCustom);
         }
       } catch (e) {
-        debugPrint('Error during cleanup: $e');
+        debugPrint('❌ [FileCleanupService] Error during cleanup: $e');
       }
-      
+
       await _cleanupDirectory(tempDir);
     } catch (e) {
-      debugPrint('Error during cleanup: $e');
+      debugPrint('❌ [FileCleanupService] Error during cleanup: $e');
     }
   }
 
@@ -34,15 +34,30 @@ class FileCleanupService {
       await for (final entity in dir.list(recursive: true)) {
         if (entity is File) {
           final stat = await entity.stat();
-          final fileAge = DateTime.now().difference(stat.modified);
+          late final Duration fileAge;
+          if (dir == Directory('${(await getApplicationDocumentsDirectory()).parent.path}/tmp')) {
+            final String name = entity.path.split('/').last.split('.').first;
+            final List<String> nameParts = name.split('_');
+            final String typeString = nameParts[0];
+            final String dateString = nameParts[1];
+            if (typeString == 'image' && dateString == 'picker'){
+              debugPrint('🗑️ [FileCleanupService] Not deleting image_picker file: ${entity.path}, last accessed: ${stat.accessed}');
+              fileAge = Duration.zero;
+            }
+              else {
+              fileAge = DateTime.now().difference(stat.accessed);
+            }
+          } else {
+            fileAge = DateTime.now().difference(stat.accessed);
+          }
           if (fileAge > _maxFileAge) {
-            debugPrint('Deleting old file: ${entity.path}');
+            debugPrint('🗑️ [FileCleanupService] Deleting old file: ${entity.path}, last accessed: ${stat.accessed}, age: $fileAge');
             await entity.delete();
           }
         }
       }
     } catch (e) {
-      debugPrint('Error cleaning directory ${dir.path}: $e');
+      debugPrint('❌ [FileCleanupService] Error cleaning directory ${dir.path}: $e');
     }
   }
 }

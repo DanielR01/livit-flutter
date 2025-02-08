@@ -8,8 +8,8 @@ import 'package:livit/services/background/background_bloc.dart';
 import 'package:livit/services/background/background_events.dart';
 import 'package:livit/services/background/background_states.dart';
 import 'package:livit/services/exceptions/base_exception.dart';
-import 'package:livit/services/firestore_storage/bloc/users/user_bloc.dart';
-import 'package:livit/services/firestore_storage/bloc/users/user_state.dart';
+import 'package:livit/services/firestore_storage/bloc/user/user_bloc.dart';
+import 'package:livit/services/firestore_storage/bloc/user/user_state.dart';
 import 'package:livit/utilities/buttons/button.dart';
 import 'package:livit/utilities/error_screens/error_reauth_screen.dart';
 
@@ -170,7 +170,7 @@ class _FinalWelcomeMessageState extends State<FinalWelcomeMessage> with TickerPr
                       child: Button.main(
                           text: 'Comenzar a usar LIVIT',
                           isActive: _animationsCompleted,
-                          onPressed: () {
+                          onTap: () {
                             BlocProvider.of<BackgroundBloc>(context).add(BackgroundStopLoadingAnimation(overrideLock: true));
                             widget.onPressed();
                           }),

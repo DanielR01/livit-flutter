@@ -5,8 +5,8 @@ import 'package:livit/constants/routes.dart';
 import 'package:livit/services/auth/bloc/auth_bloc.dart';
 import 'package:livit/services/background/background_bloc.dart';
 import 'package:livit/services/firebase_storage/bloc/storage_bloc.dart';
-import 'package:livit/services/firestore_storage/bloc/locations/location_bloc.dart';
-import 'package:livit/services/firestore_storage/bloc/users/user_bloc.dart';
+import 'package:livit/services/firestore_storage/bloc/location/location_bloc.dart';
+import 'package:livit/services/firestore_storage/bloc/user/user_bloc.dart';
 
 class SplashView extends StatefulWidget {
   const SplashView({super.key});

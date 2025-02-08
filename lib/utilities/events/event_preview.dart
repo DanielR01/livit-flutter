@@ -1,36 +1,59 @@
-import 'package:flutter/widgets.dart';
-import 'package:livit/constants/styles/container_style.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:livit/constants/colors.dart';
+import 'package:livit/constants/enums.dart';
+import 'package:livit/constants/styles/button_style.dart';
 import 'package:livit/constants/styles/spaces.dart';
+import 'package:livit/models/event/event.dart';
+import 'package:livit/constants/styles/container_style.dart';
 import 'package:livit/constants/styles/livit_text.dart';
-import 'package:livit/services/firestore_storage/livit_event.dart';
 import 'package:livit/utilities/bars_containers_fields/glass_container.dart';
-import 'package:livit/utilities/buttons/button.dart';
-import 'package:livit/utilities/buttons/share_button.dart';
+import 'package:livit/utilities/bars_containers_fields/small_image_container.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:livit/services/firestore_storage/bloc/ticket/ticket_bloc.dart';
+import 'package:livit/services/firestore_storage/bloc/ticket/ticket_state.dart';
+import 'package:livit/services/firestore_storage/bloc/ticket/ticket_event.dart';
+import 'package:shimmer/shimmer.dart';
 
 class EventPreview extends StatefulWidget {
   final LivitEvent? event;
-  final VoidCallback onDeletePressed;
-  final VoidCallback onEditPressed;
-  final bool error;
+  final EventPreviewType type;
+  final EventPreviewLayout layoutType;
+
   const EventPreview({
     super.key,
     required this.event,
-    required this.onDeletePressed,
-    required this.onEditPressed,
-    this.error = false,
+    this.type = EventPreviewType.customer,
+    this.layoutType = EventPreviewLayout.horizontal,
   });
 
-  factory EventPreview.loading() => EventPreview(
+  factory EventPreview.loading({
+    EventPreviewType type = EventPreviewType.customer,
+    EventPreviewLayout layoutType = EventPreviewLayout.horizontal,
+  }) =>
+      EventPreview(
         event: null,
-        onDeletePressed: () {},
-        onEditPressed: () {},
+        type: type,
+        layoutType: layoutType,
       );
 
-  factory EventPreview.error() => EventPreview(
-        event: null,
-        onDeletePressed: () {},
-        onEditPressed: () {},
-        error: true,
+  factory EventPreview.promoter({
+    LivitEvent? event,
+    EventPreviewLayout layoutType = EventPreviewLayout.horizontal,
+  }) =>
+      EventPreview(
+        event: event,
+        type: EventPreviewType.promoter,
+        layoutType: layoutType,
+      );
+
+  factory EventPreview.customer({
+    LivitEvent? event,
+    EventPreviewLayout layoutType = EventPreviewLayout.vertical,
+  }) =>
+      EventPreview(
+        event: event,
+        type: EventPreviewType.customer,
+        layoutType: layoutType,
       );
 
   @override
@@ -38,57 +61,157 @@ class EventPreview extends StatefulWidget {
 }
 
 class _EventPreviewState extends State<EventPreview> {
+  late TicketBloc _ticketBloc;
+
   @override
   void initState() {
     super.initState();
+    _ticketBloc = context.read<TicketBloc>();
+    if (widget.type == EventPreviewType.promoter && widget.event != null) {
+      _ticketBloc.add(FetchTicketsCountByEvent(eventId: widget.event!.id));
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    String title = widget.error ? 'Error' : widget.event?.name ?? 'Cargando';
-    String location = widget.error ? 'Error' : widget.event?.locations.first.name ?? 'Cargando';
-    String creatorId = widget.error ? 'Error' : widget.event?.promoters.first ?? 'Cargando';
     return GlassContainer(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            padding: EdgeInsets.all(LivitContainerStyle.horizontalPadding),
-            width: double.infinity,
-            child: Column(
-              children: [
-                LivitText(
-                  title,
-                  textType: LivitTextType.smallTitle,
-                ),
-                LivitText(location),
-                LivitText(creatorId),
-                LivitSpaces.s,
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  mainAxisSize: MainAxisSize.max,
-                  children: [
-                    ShareEventButton(
-                      event: widget.event!,
-                      isEnabled: widget.event != null,
-                    ),
-                    Button.blueText(
-                      text: 'Editar',
-                      onPressed: widget.onEditPressed,
-                      isActive: widget.event != null,
-                    ),
-                    Button.redText(
-                      text: 'Eliminar',
-                      isActive: true,
-                      onPressed: widget.onDeletePressed,
-                    ),
-                  ],
-                ),
-              ],
+      child: widget.event == null
+          ? Shimmer.fromColors(
+              baseColor: LivitColors.whiteInactive.withOpacity(1),
+              highlightColor: LivitColors.whiteActive.withOpacity(1),
+              child: Row(
+                children: _buildContent(widget.event == null),
+              ),
+            )
+          : Row(
+              children: _buildContent(widget.event == null),
             ),
-          ),
-        ],
-      ),
     );
   }
+
+  List<Widget> _buildContent(bool isLoading) {
+    return [
+      SmallImageContainer(filePath: null),
+      Padding(
+        padding: EdgeInsets.all(LivitContainerStyle.horizontalPadding),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (isLoading)
+              Container(
+                decoration: BoxDecoration(
+                  color: LivitColors.whiteActive,
+                  borderRadius: LivitContainerStyle.borderRadius,
+                ),
+                height: LivitTextStyle.smallTitleFontSize,
+                width: LivitSpaces.xlDouble * 5,
+              )
+            else
+              LivitText(
+                widget.event!.name,
+                textType: LivitTextType.smallTitle,
+              ),
+            LivitSpaces.s,
+            Row(
+              children: [
+                Icon(CupertinoIcons.calendar, color: LivitColors.mainBlueActive, size: LivitButtonStyle.iconSize),
+                LivitSpaces.xs,
+                if (isLoading)
+                  Container(
+                    decoration: BoxDecoration(
+                      color: LivitColors.mainBlueActive,
+                      borderRadius: LivitContainerStyle.borderRadius,
+                    ),
+                    height: LivitTextStyle.regularFontSize,
+                    width: LivitSpaces.xlDouble * 4,
+                  )
+                else
+                  LivitText(widget.event!.toDateString(), color: LivitColors.mainBlueActive),
+              ],
+            ),
+            if (widget.type == EventPreviewType.promoter) ...[
+              LivitSpaces.m,
+              BlocBuilder<TicketBloc, TicketState>(
+                builder: (context, state) {
+                  debugPrint('🛠️ [EventPreview] State: $state');
+                  if (state is TicketCountLoaded) {
+                    debugPrint('🛠️ [EventPreview] LoadingStates: ${state.loadingStates}');
+                    if (state.loadingStates[widget.event?.id] == LoadingState.loaded) {
+                      return Row(
+                        children: [
+                          Icon(CupertinoIcons.tickets, color: LivitColors.whiteActive, size: LivitButtonStyle.iconSize),
+                          LivitSpaces.xs,
+                          LivitText('Tickets vendidos: ${state.ticketCounts[widget.event!.id]}'),
+                        ],
+                      );
+                    } else if (state.loadingStates[widget.event?.id] == LoadingState.loading || widget.event == null) {
+                      return Row(
+                        children: [
+                          Icon(CupertinoIcons.tickets, color: LivitColors.whiteActive, size: LivitButtonStyle.iconSize),
+                          LivitSpaces.xs,
+                          Container(
+                            decoration: BoxDecoration(
+                              color: LivitColors.whiteActive,
+                              borderRadius: LivitContainerStyle.borderRadius,
+                            ),
+                            height: LivitTextStyle.regularFontSize,
+                            width: LivitSpaces.xlDouble * 3,
+                          ),
+                        ],
+                      );
+                    } else if (!state.loadingStates.containsKey(widget.event?.id)) {
+                      _ticketBloc.add(FetchTicketsCountByEvent(eventId: widget.event!.id));
+                      return Row(
+                        children: [
+                          Icon(CupertinoIcons.tickets, color: LivitColors.whiteActive, size: LivitButtonStyle.iconSize),
+                          LivitSpaces.xs,
+                          Container(
+                            decoration: BoxDecoration(
+                              color: LivitColors.whiteActive,
+                              borderRadius: LivitContainerStyle.borderRadius,
+                            ),
+                            height: LivitTextStyle.regularFontSize,
+                            width: LivitSpaces.xlDouble * 3,
+                          ),
+                        ],
+                      );
+                    } else {
+                      return Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const LivitText('Error al cargar tickets', color: LivitColors.whiteInactive),
+                          LivitSpaces.xs,
+                          Icon(
+                            CupertinoIcons.exclamationmark_circle,
+                            size: LivitButtonStyle.iconSize,
+                            color: LivitColors.whiteInactive,
+                          ),
+                        ],
+                      );
+                    }
+                  } else {
+                    if (widget.event != null) {
+                      _ticketBloc.add(FetchTicketsCountByEvent(eventId: widget.event!.id));
+                    }
+                    return Container(
+                      decoration: BoxDecoration(
+                        color: LivitColors.whiteActive,
+                        borderRadius: LivitContainerStyle.borderRadius,
+                      ),
+                      height: LivitTextStyle.regularFontSize,
+                      width: LivitSpaces.xlDouble * 3,
+                    );
+                  }
+                },
+              ),
+            ],
+          ],
+        ),
+      ),
+    ];
+  }
 }
+
+enum EventPreviewType { promoter, customer }
+
+enum EventPreviewLayout { horizontal, vertical }

@@ -4,7 +4,7 @@ import 'package:livit/services/exceptions/base_exception.dart';
 import 'package:livit/services/auth/auth_exceptions.dart';
 import 'package:livit/services/firestore_storage/firestore_storage/exceptions/firestore_exceptions.dart';
 import 'package:livit/services/firestore_storage/firestore_storage/exceptions/locations_exceptions.dart';
-import 'package:livit/services/firestore_storage/bloc/locations/location_bloc_exception.dart';
+import 'package:livit/services/firestore_storage/bloc/location/location_bloc_exception.dart';
 import 'package:livit/services/firestore_storage/cloud_functions/cloud_functions_exceptions.dart';
 
 class ErrorReporter {

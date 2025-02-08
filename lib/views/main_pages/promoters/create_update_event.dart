@@ -1,13 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:livit/constants/styles/spaces.dart';
-import 'package:livit/constants/styles/livit_text.dart';
-import 'package:livit/services/firestore_storage/livit_event.dart';
-import 'package:livit/services/firestore_storage/firestore_storage/firestore_storage.dart';
-import 'package:livit/utilities/bars_containers_fields/glass_container.dart';
-import 'package:livit/utilities/buttons/arrow_back_button.dart';
-import 'package:livit/utilities/buttons/button.dart';
-import 'package:livit/utilities/loading_screen.dart';
+import 'package:livit/models/event/event.dart';
+
 
 class CreateUpdateEventView extends StatefulWidget {
   final LivitEvent? event;

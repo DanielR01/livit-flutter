@@ -7,9 +7,9 @@ import 'package:livit/constants/styles/livit_text.dart';
 import 'package:livit/constants/styles/spaces.dart';
 import 'package:livit/services/background/background_bloc.dart';
 import 'package:livit/services/background/background_events.dart';
-import 'package:livit/services/firestore_storage/bloc/users/user_event.dart';
-import 'package:livit/services/firestore_storage/bloc/users/user_state.dart';
-import 'package:livit/services/firestore_storage/bloc/users/user_bloc.dart';
+import 'package:livit/services/firestore_storage/bloc/user/user_event.dart';
+import 'package:livit/services/firestore_storage/bloc/user/user_state.dart';
+import 'package:livit/services/firestore_storage/bloc/user/user_bloc.dart';
 import 'package:livit/services/firestore_storage/firestore_storage/exceptions/firestore_exceptions.dart';
 import 'package:livit/utilities/bars_containers_fields/keyboard_dismissible.dart';
 import 'package:livit/utilities/buttons/button.dart';
@@ -212,7 +212,7 @@ class _CreateUserViewState extends State<CreateUserView> with TickerProviderStat
                                         text: _isLoading ? 'Creando usuario' : 'Crear usuario',
                                         isLoading: _isLoading,
                                         isActive: _isNameValid && _isUsernameValid,
-                                        onPressed: () => _onContinue(),
+                                        onTap: () => _onContinue(),
                                       ),
                                     ],
                                   ),

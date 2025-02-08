@@ -328,7 +328,7 @@ class _SignInState extends State<SignIn> {
                 text: _isSigningIn ? 'Iniciando sesión' : 'Iniciar sesión',
                 isActive: _isEmailValid & _isPasswordValid,
                 isLoading: _isSigningIn,
-                onPressed: () {
+                onTap: () {
                   context.read<AuthBloc>().add(
                         AuthEventLogInWithEmailAndPassword(
                           context,
@@ -441,8 +441,7 @@ class _RegisterState extends State<Register> {
           _isRegistering = false;
           final exception = state.exception as AuthException;
 
-              confirmPasswordCaptionText = exception.showToUser ? exception.message : 'Algo salió mal, intenta de nuevo';
-          
+          confirmPasswordCaptionText = exception.showToUser ? exception.message : 'Algo salió mal, intenta de nuevo';
         } else if (state is AuthStateRegistering) {
           _isRegistering = true;
         } else if (state is AuthStateRegistered) {
@@ -506,7 +505,7 @@ class _RegisterState extends State<Register> {
               text: _isRegistering ? 'Creando cuenta' : 'Crear cuenta',
               isActive: _isEmailValid & _isPasswordValid & _arePasswordsEqual,
               isLoading: _isRegistering,
-              onPressed: () async {
+              onTap: () async {
                 setState(
                   () {
                     emailCaptionText = null;
@@ -605,7 +604,7 @@ class _VerifyEmail extends State<VerifyEmail> {
                       text: _isSendingCode ? 'Enviando' : 'Reenviar',
                       isActive: true,
                       isLoading: _isSendingCode,
-                      onPressed: () async {
+                      onTap: () async {
                         context.read<AuthBloc>().add(
                               AuthEventSendEmailVerification(context, email: widget.email),
                             );
@@ -787,7 +786,7 @@ class _ForgotPassword extends State<ForgotPassword> {
                                   : 'Enviar',
                           isActive: _isEmailValid,
                           isLoading: _isSendingEmail,
-                          onPressed: () async {
+                          onTap: () async {
                             context.read<AuthBloc>().add(
                                   AuthEventSendPasswordReset(context, email: _emailController.text),
                                 );

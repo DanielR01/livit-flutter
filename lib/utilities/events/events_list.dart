@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:livit/models/event/event.dart';
 import 'package:livit/constants/styles/spaces.dart';
-import 'package:livit/services/firestore_storage/livit_event.dart';
 import 'package:livit/utilities/dialogs/delete_event_dialog.dart';
 import 'package:livit/utilities/events/event_preview.dart';
 
@@ -36,15 +36,6 @@ class _EventPreviewListState extends State<EventPreviewList> {
         final LivitEvent event = widget.events.elementAt(index);
         return EventPreview(
           event: event,
-          onDeletePressed: () async {
-            final bool shouldDelete = await showDeleteEventDialog(context: context);
-            if (shouldDelete) {
-              widget.onDeleteEvent(event);
-            }
-          },
-          onEditPressed: () {
-            widget.onEditEvent(event);
-          },
         );
       },
     );

@@ -14,6 +14,10 @@ class LivitContainerStyle {
     vertical: 10.sp,
   );
 
+  static EdgeInsets horizontalPaddingFromScreen = EdgeInsets.symmetric(
+    horizontal: 10.sp,
+  );
+
   static EdgeInsets padding({List<double?>? padding}) {
     if (padding == null) {
       return EdgeInsets.all(verticalPadding);

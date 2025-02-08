@@ -77,7 +77,7 @@ class CropPage extends StatelessWidget {
                 flex: 2,
                 child: Button.main(
                   isActive: true,
-                  onPressed: () {
+                  onTap: () {
                     controller.applyCacheCrop();
                     Navigator.pop(context);
                   },

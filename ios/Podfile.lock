@@ -1163,22 +1163,22 @@ PODS:
   - BoringSSL-GRPC/Implementation (0.0.36):
     - BoringSSL-GRPC/Interface (= 0.0.36)
   - BoringSSL-GRPC/Interface (0.0.36)
-  - cloud_firestore (5.6.0):
+  - cloud_firestore (5.6.2):
     - Firebase/Firestore (= 11.6.0)
     - firebase_core
     - Flutter
-  - cloud_functions (5.2.0):
+  - cloud_functions (5.3.1):
     - Firebase/Functions (= 11.6.0)
     - firebase_core
     - Flutter
   - device_info_plus (0.0.1):
     - Flutter
-  - ffmpeg-kit-ios-https (6.0)
-  - ffmpeg_kit_flutter (6.0.3):
-    - ffmpeg_kit_flutter/https (= 6.0.3)
+  - ffmpeg-kit-ios-full-gpl (6.0)
+  - ffmpeg_kit_flutter_full_gpl (6.0.3):
+    - ffmpeg_kit_flutter_full_gpl/full-gpl (= 6.0.3)
     - Flutter
-  - ffmpeg_kit_flutter/https (6.0.3):
-    - ffmpeg-kit-ios-https (= 6.0)
+  - ffmpeg_kit_flutter_full_gpl/full-gpl (6.0.3):
+    - ffmpeg-kit-ios-full-gpl (= 6.0)
     - Flutter
   - Firebase/Analytics (11.6.0):
     - Firebase/Core
@@ -1202,27 +1202,27 @@ PODS:
   - Firebase/Storage (11.6.0):
     - Firebase/CoreOnly
     - FirebaseStorage (~> 11.6.0)
-  - firebase_analytics (11.3.6):
+  - firebase_analytics (11.4.1):
     - Firebase/Analytics (= 11.6.0)
     - firebase_core
     - Flutter
-  - firebase_app_check (0.3.2):
+  - firebase_app_check (0.3.2-1):
     - Firebase/CoreOnly (~> 11.6.0)
     - firebase_core
     - FirebaseAppCheck (~> 11.6.0)
     - Flutter
-  - firebase_auth (5.3.4):
+  - firebase_auth (5.4.1):
     - Firebase/Auth (= 11.6.0)
     - firebase_core
     - Flutter
-  - firebase_core (3.10.0):
+  - firebase_core (3.10.1):
     - Firebase/CoreOnly (= 11.6.0)
     - Flutter
-  - firebase_crashlytics (4.2.0):
+  - firebase_crashlytics (4.3.1):
     - Firebase/Crashlytics (= 11.6.0)
     - firebase_core
     - Flutter
-  - firebase_storage (12.3.7):
+  - firebase_storage (12.4.1):
     - Firebase/Storage (= 11.6.0)
     - firebase_core
     - Flutter
@@ -1555,7 +1555,7 @@ DEPENDENCIES:
   - cloud_firestore (from `.symlinks/plugins/cloud_firestore/ios`)
   - cloud_functions (from `.symlinks/plugins/cloud_functions/ios`)
   - device_info_plus (from `.symlinks/plugins/device_info_plus/ios`)
-  - ffmpeg_kit_flutter (from `.symlinks/plugins/ffmpeg_kit_flutter/ios`)
+  - ffmpeg_kit_flutter_full_gpl (from `.symlinks/plugins/ffmpeg_kit_flutter_full_gpl/ios`)
   - Firebase/Analytics
   - Firebase/Crashlytics
   - firebase_analytics (from `.symlinks/plugins/firebase_analytics/ios`)
@@ -1564,6 +1564,7 @@ DEPENDENCIES:
   - firebase_core (from `.symlinks/plugins/firebase_core/ios`)
   - firebase_crashlytics (from `.symlinks/plugins/firebase_crashlytics/ios`)
   - firebase_storage (from `.symlinks/plugins/firebase_storage/ios`)
+  - FirebaseAppCheck
   - Flutter (from `Flutter`)
   - geocoding_ios (from `.symlinks/plugins/geocoding_ios/ios`)
   - geolocator_apple (from `.symlinks/plugins/geolocator_apple/ios`)
@@ -1585,7 +1586,7 @@ SPEC REPOS:
     - AppAuth
     - AppCheckCore
     - BoringSSL-GRPC
-    - ffmpeg-kit-ios-https
+    - ffmpeg-kit-ios-full-gpl
     - Firebase
     - FirebaseAnalytics
     - FirebaseAppCheck
@@ -1632,8 +1633,8 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/cloud_functions/ios"
   device_info_plus:
     :path: ".symlinks/plugins/device_info_plus/ios"
-  ffmpeg_kit_flutter:
-    :path: ".symlinks/plugins/ffmpeg_kit_flutter/ios"
+  ffmpeg_kit_flutter_full_gpl:
+    :path: ".symlinks/plugins/ffmpeg_kit_flutter_full_gpl/ios"
   firebase_analytics:
     :path: ".symlinks/plugins/firebase_analytics/ios"
   firebase_app_check:
@@ -1681,18 +1682,18 @@ SPEC CHECKSUMS:
   AppCheckCore: cc8fd0a3a230ddd401f326489c99990b013f0c4f
   apple_maps_flutter: c59725efea39e13e703cde52a1d2b14866ad68a8
   BoringSSL-GRPC: ca6a8e5d04812fce8ffd6437810c2d46f925eaeb
-  cloud_firestore: 4e400e0609faca03c9654ce2e850f52b49388f82
-  cloud_functions: 72a3c15c65c5b103a00b274ddc377b716ed2b8e9
+  cloud_firestore: d1ec4183fa44c06b38ca55d8723abe930468ee0d
+  cloud_functions: 3632394a4991ad45da7ddf97f7cb324bc896c0b7
   device_info_plus: bf2e3232933866d73fe290f2942f2156cdd10342
-  ffmpeg-kit-ios-https: f9c838aa5400a6c5ba12324c6b798f52197ba354
-  ffmpeg_kit_flutter: b4ca70cac3fc1d8ac14cdc660754b60870358732
+  ffmpeg-kit-ios-full-gpl: 80adc341962e55ef709e36baa8ed9a70cf4ea62b
+  ffmpeg_kit_flutter_full_gpl: 8d15c14c0c3aba616fac04fe44b3d27d02e3c330
   Firebase: 374a441a91ead896215703a674d58cdb3e9d772b
-  firebase_analytics: c2b131770f77b2f6b55f618342c898e9fb1a7c28
-  firebase_app_check: 28939a1047b5f967efa00a71462a01f76810bbf6
-  firebase_auth: 1623c3c0b4d587c35f795181b83aacff03099b84
-  firebase_core: feb37e79f775c2bd08dd35e02d83678291317e10
-  firebase_crashlytics: 01935883b92ced5c6b4a2adca3a491186757bb7c
-  firebase_storage: 4395729ceeff297f86fa779d00bf09fa2befea8b
+  firebase_analytics: 13ea4ad8a42c5060bad7e6694304dabb8b02fe7e
+  firebase_app_check: 8c464d23c5487ee93455f680c347585f2c313b9f
+  firebase_auth: 9927cecefe4daaf92b0fbe5d1d283e9329445177
+  firebase_core: e2aa06dbd854d961f8ce46c2e20933bee1bf2d2b
+  firebase_crashlytics: 868f9aa408c704313eebff880c26c1446081679e
+  firebase_storage: 5f8f929f2b1a4f3d37d32ef6b8c474db40bfbe13
   FirebaseAnalytics: 7114c698cac995602e3b1b96663473e50d54d6e7
   FirebaseAppCheck: 44803909e253d677481e9e16eb719b0f58a7ddc2
   FirebaseAppCheckInterop: 347aa09a805219a31249b58fc956888e9fcb314b
@@ -1743,6 +1744,6 @@ SPEC CHECKSUMS:
   video_player_avfoundation: 7c6c11d8470e1675df7397027218274b6d2360b3
   video_thumbnail: c4e2a3c539e247d4de13cd545344fd2d26ffafd1
 
-PODFILE CHECKSUM: d95f9760c79e6688eb9fb1236d2feca8496b03fc
+PODFILE CHECKSUM: d0e82f50075d42bf1c94a7a97f1b27a4410d6445
 
 COCOAPODS: 1.15.2

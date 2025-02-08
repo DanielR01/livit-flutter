@@ -72,7 +72,7 @@ class _ErrorReauthScreenState extends State<ErrorReauthScreen> {
                 Button.main(
                   isActive: true,
                   text: 'Iniciar sesión de nuevo',
-                  onPressed: _handleLogout,
+                  onTap: _handleLogout,
                 ),
               ],
             ),

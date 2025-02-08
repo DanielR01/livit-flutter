@@ -17,10 +17,13 @@ import 'package:livit/services/background/background_events.dart';
 import 'package:livit/services/error_reporting/error_reporter.dart';
 import 'package:livit/services/files/file_cleanup_manager.dart';
 import 'package:livit/services/files/storage_monitor.dart';
+import 'package:livit/services/files/temp_file_manager.dart';
 import 'package:livit/services/firebase_storage/bloc/storage_bloc.dart';
 import 'package:livit/services/firebase_storage/storage_service/storage_service.dart';
-import 'package:livit/services/firestore_storage/bloc/locations/location_bloc.dart';
-import 'package:livit/services/firestore_storage/bloc/users/user_bloc.dart';
+import 'package:livit/services/firestore_storage/bloc/event/event_bloc.dart';
+import 'package:livit/services/firestore_storage/bloc/location/location_bloc.dart';
+import 'package:livit/services/firestore_storage/bloc/ticket/ticket_bloc.dart';
+import 'package:livit/services/firestore_storage/bloc/user/user_bloc.dart';
 import 'package:livit/services/firestore_storage/cloud_functions/firestore_cloud_functions.dart';
 import 'package:livit/services/firestore_storage/firestore_storage/firestore_storage.dart';
 import 'package:livit/services/navigation/navigation_service.dart';
@@ -163,11 +166,14 @@ class _StartPageState extends State<_StartPage> with WidgetsBindingObserver {
   @override
   Widget build(BuildContext context) {
     ScreenUtil.init(context, designSize: const Size(390, 844));
+    // Clean up old files on app start
+    TempFileManager.cleanupOldFiles();
+
     return MultiBlocProvider(
       providers: [
         BlocProvider<UserBloc>(
           create: (context) => UserBloc(
-            cloudStorage: FirestoreStorage(),
+            cloudStorage: FirestoreStorageService(),
             firestoreCloudFunctions: FirestoreCloudFunctions(),
             authProvider: FirebaseAuthProvider(),
             backgroundBloc: context.read<BackgroundBloc>(),
@@ -186,11 +192,26 @@ class _StartPageState extends State<_StartPage> with WidgetsBindingObserver {
         ),
         BlocProvider<LocationBloc>(
           create: (context) => LocationBloc(
-            firestoreStorage: FirestoreStorage(),
+            firestoreStorage: FirestoreStorageService(),
             cloudFunctions: FirestoreCloudFunctions(),
             storageBloc: context.read<StorageBloc>(),
             backgroundBloc: context.read<BackgroundBloc>(),
             userBloc: context.read<UserBloc>(),
+          ),
+        ),
+        BlocProvider<EventsBloc>(
+          create: (context) => EventsBloc(
+            storageService: FirestoreStorageService(),
+            locationBloc: context.read<LocationBloc>(),
+            backgroundBloc: context.read<BackgroundBloc>(),
+          ),
+        ),
+        BlocProvider<TicketBloc>(
+          create: (context) => TicketBloc(
+            firestoreStorage: FirestoreStorageService(),
+            locationBloc: context.read<LocationBloc>(),
+            userBloc: context.read<UserBloc>(),
+            backgroundBloc: context.read<BackgroundBloc>(),
           ),
         ),
       ],

@@ -7,8 +7,8 @@ import 'package:livit/constants/enums.dart';
 import 'package:livit/constants/styles/container_style.dart';
 import 'package:livit/constants/styles/livit_text.dart';
 import 'package:livit/constants/styles/spaces.dart';
-import 'package:livit/services/firestore_storage/bloc/users/user_bloc.dart';
-import 'package:livit/services/firestore_storage/bloc/users/user_event.dart';
+import 'package:livit/services/firestore_storage/bloc/user/user_bloc.dart';
+import 'package:livit/services/firestore_storage/bloc/user/user_event.dart';
 import 'package:livit/utilities/buttons/button.dart';
 import 'package:livit/utilities/bars_containers_fields/glass_container.dart';
 import 'package:livit/utilities/bars_containers_fields/title_bar.dart';
@@ -90,7 +90,7 @@ class _UserTypeInputState extends State<UserTypeInput> {
                           Button.main(
                             text: 'Continuar',
                             isActive: _selectedUserType != null,
-                            onPressed: () => BlocProvider.of<UserBloc>(context).add(
+                            onTap: () => BlocProvider.of<UserBloc>(context).add(
                               SetUserType(context, userType: _selectedUserType!),
                             ),
                           ),

@@ -1,6 +1,8 @@
 import UIKit
 import Flutter
 import CoreLocation
+import FirebaseCore
+import FirebaseAppCheck
 
 @main
 @objc class AppDelegate: FlutterAppDelegate {
@@ -8,6 +10,17 @@ import CoreLocation
         _ application: UIApplication,
         didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
     ) -> Bool {
+        FirebaseApp.configure()
+        
+        #if DEBUG
+            let debugToken = "C13647D7-313C-4A4F-ABEF-776BB2B8FCB9"
+            let providerFactory = AppCheckDebugProviderFactory(debugToken: debugToken)
+        #else
+            let providerFactory = DeviceCheckProviderFactory()
+        #endif
+
+        AppCheck.setAppCheckProviderFactory(providerFactory)
+        
         guard let controller = window?.rootViewController as? FlutterViewController else {
             fatalError("rootViewController is not type FlutterViewController")
         }

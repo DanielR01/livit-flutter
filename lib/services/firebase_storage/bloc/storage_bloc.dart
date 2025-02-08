@@ -1,147 +1,137 @@
 import 'dart:io';
 
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:livit/cloud_models/location/location_media.dart';
-import 'package:livit/cloud_models/location/location_media_file.dart';
+import 'package:livit/constants/enums.dart';
+import 'package:livit/models/media/location_media_file.dart';
 import 'package:livit/services/error_reporting/error_reporter.dart';
 import 'package:livit/services/exceptions/base_exception.dart';
 import 'package:livit/services/firebase_storage/bloc/storage_bloc_exception.dart';
 import 'package:livit/services/firebase_storage/bloc/storage_event.dart';
 import 'package:livit/services/firebase_storage/bloc/storage_state.dart';
 import 'package:livit/services/firebase_storage/firebase_storage_constants.dart';
+import 'package:livit/services/firebase_storage/storage_service/file_to_upload.dart';
+import 'package:livit/services/firebase_storage/storage_service/storage_reference.dart';
 import 'package:livit/services/firebase_storage/storage_service/storage_service.dart';
 import 'package:livit/services/firebase_storage/storage_service/storage_service_exceptions.dart';
-import 'package:livit/services/firestore_storage/cloud_functions/cloud_functions_exceptions.dart';
 import 'package:livit/services/firestore_storage/cloud_functions/firestore_cloud_functions.dart';
-import 'package:livit/utilities/media/media_file_cleanup.dart';
 
 class StorageBloc extends Bloc<StorageEvent, StorageState> {
   final StorageService _storageService;
-  final FirestoreCloudFunctions _cloudFunctions;
-  List<String> _signedUrls = [];
-  List<Map<String, dynamic>> _fileProperties = [];
-  List<String> _filePaths = [];
-  List<Timestamp> _timestamps = [];
-  List<String> _names = [];
-  LivitLocationMedia? _mediaToUpload;
+
+  List<FileToUpload> _filesToUpload = [];
   String? _locationId;
+
+  Map<String, LoadingState> _loadingStates = {};
+  Map<String, Map<String, LivitException>> _exceptions = {};
 
   StorageBloc({
     required StorageService storageService,
     required FirestoreCloudFunctions cloudFunctions,
   })  : _storageService = storageService,
-        _cloudFunctions = cloudFunctions,
         super(const StorageInitial()) {
-    on<GetSignedUrls>(_onGetSignedUrls);
     on<SetLocationMedia>(_onSetLocationMedia);
     on<DeleteLocationMedia>(_onDeleteLocationMedia);
+    on<VerifyLocationMedia>(_onVerifyLocationMedia);
   }
-  Future<void> _onGetSignedUrls(
-    GetSignedUrls event,
+
+  Future<void> _onVerifyLocationMedia(
+    VerifyLocationMedia event,
     Emitter<StorageState> emit,
   ) async {
-    emit(const StorageGettingSignedUrls());
-    final List<String> names = [];
-    try {
-      if (event.media.mainFile?.filePath == null) {
-        throw GenericStorageBlocException(details: 'Location ${event.locationId} has no main file');
-      }
-      if (event.media.mainFile is LivitLocationMediaVideo) {
-        names.add('main_file/cover.${(event.media.mainFile! as LivitLocationMediaVideo).cover.filePath!.split('.').last}');
-        names.add('main_file/video.${event.media.mainFile!.filePath!.split('.').last}');
-      } else {
-        names.add('main_file/image.${event.media.mainFile!.filePath!.split('.').last}');
-      }
-      debugPrint('🔍 [StorageBloc] Verifying ${1 + (event.media.secondaryFiles?.length ?? 0)} files');
-      List<Map<String, dynamic>> fileProperties = await _isFileValid(event.media.mainFile!);
-      if (event.media.secondaryFiles != null && event.media.secondaryFiles!.isNotEmpty) {
-        for (final file in event.media.secondaryFiles!) {
-          final index = event.media.secondaryFiles!.indexOf(file);
-          if (file == null) continue;
-          if (file is LivitLocationMediaVideo) {
-            names.add('secondary_files/index_$index/cover.${file.filePath!.split('.').last}');
-            names.add('secondary_files/index_$index/video.${file.filePath!.split('.').last}');
-          } else {
-            names.add('secondary_files/index_$index/image.${file.filePath!.split('.').last}');
-          }
-          fileProperties.addAll(await _isFileValid(file));
-        }
-      }
-      debugPrint('📑 [StorageBloc] File properties: $fileProperties');
-      debugPrint('📑 [StorageBloc] Media names: $names');
-      debugPrint('📞 [StorageBloc] Calling getLocationMediaUploadUrls function');
-      final response = await _cloudFunctions.getLocationMediaUploadUrls(
-        locationId: event.locationId,
-        fileSizes: fileProperties.map((e) => e['size'] as int).toList(),
-        fileTypes: fileProperties.map((e) => e['type'] as String).toList(),
-        names: names,
-      );
-      final List<String> signedUrls = response['signedUrls'] as List<String>;
-      final List<Timestamp> timestamps = response['timestamps'] as List<Timestamp>;
-      debugPrint('📥 [StorageBloc] Obtained ${signedUrls.length} signed URLs');
-      debugPrint('📥 [StorageBloc] Timestamps: $timestamps');
-      if (signedUrls.length != fileProperties.length) {
-        throw GenericStorageBlocException(details: 'Signed URLs length does not match file sizes length');
-      }
-      if (event.media.mainFile is LivitLocationMediaVideo) {
-        _filePaths = [(event.media.mainFile! as LivitLocationMediaVideo).cover.filePath!, event.media.mainFile!.filePath!];
-      } else {
-        _filePaths = [event.media.mainFile!.filePath!];
-      }
-      if (event.media.secondaryFiles != null && event.media.secondaryFiles!.isNotEmpty) {
-        for (final file in event.media.secondaryFiles!) {
-          if (file is LivitLocationMediaVideo) {
-            _filePaths.add(file.cover.filePath!);
-            _filePaths.add(file.filePath!);
-          } else {
-            _filePaths.add(file!.filePath!);
-          }
-        }
-      }
-      _timestamps = timestamps;
-      _signedUrls = signedUrls;
-      _fileProperties = fileProperties;
-      _mediaToUpload = event.media;
-      _locationId = event.locationId;
-      _names = names;
-      emit(StorageSignedUrlsObtained());
-    } on StorageBlocException catch (e) {
-      _cleanData();
-      debugPrint('❌ [StorageBloc] StorageBlocException on getSignedUrls: $e');
-      emit(StorageFailure(exception: e));
-    } on CloudFunctionException catch (e) {
-      _cleanData();
-      debugPrint('❌ [StorageBloc] CloudFunctionException on getSignedUrls: $e');
-      emit(StorageFailure(exception: e));
-    } catch (e) {
-      _cleanData();
-      final error = GenericStorageBlocException(details: e.toString());
-      debugPrint('❌ [StorageBloc] Unknown error on getSignedUrls: $e');
-      ErrorReporter().reportError(error, StackTrace.current);
-      emit(StorageFailure(exception: error));
+    debugPrint('🔍 [StorageBloc] Verifying location media');
+    _filesToUpload = [];
+    _loadingStates = {};
+    _exceptions = {};
+    _locationId = event.location.id;
+    _loadingStates[event.location.id] = LoadingState.verifying;
+    for (final file in event.location.media!.files!) {
+      if (file?.filePath == null) continue;
+      _loadingStates[file!.filePath!] = LoadingState.verifying;
     }
+    debugPrint('🔍 [StorageBloc] Loading states: $_loadingStates');
+    emit(StorageLoaded(loadingStates: _loadingStates, exceptions: _exceptions));
+    if (event.location.media?.files != null && event.location.media!.files!.isNotEmpty) {
+      for (final file in event.location.media!.files!) {
+        if (file == null) continue;
+        try {
+          if (file is LivitMediaVideo) {
+            final List<Map<String, dynamic>> fileProperties = await _isFileValid(file);
+            _filesToUpload.add(VideoFileToUpload(
+                reference: LocationMediaStorageReference(locationId: event.location.id),
+                coverPath: file.cover.filePath!,
+                coverContentType: fileProperties[0]['type'],
+                coverSize: fileProperties[0]['size'],
+                filePath: file.filePath!,
+                contentType: fileProperties[1]['type'],
+                size: fileProperties[1]['size']));
+          } else {
+            final List<Map<String, dynamic>> fileProperties = await _isFileValid(file);
+            _filesToUpload.add(ImageFileToUpload(
+                filePath: file.filePath!,
+                contentType: fileProperties[0]['type'],
+                reference: LocationMediaStorageReference(locationId: event.location.id),
+                size: fileProperties[0]['size']));
+          }
+          _loadingStates[file.filePath!] = LoadingState.verified;
+        } catch (e) {
+          debugPrint('❌ [StorageBloc] Error verifying file: $e');
+          ErrorReporter().reportError(e, StackTrace.current);
+          _exceptions[event.location.id] = {
+            ..._exceptions[event.location.id] ?? {},
+            file.filePath!: e is StorageBlocException ? e : GenericStorageBlocException(details: e.toString())
+          };
+          _loadingStates[event.location.media!.files!.indexOf(file).toString()] = LoadingState.error;
+        }
+      }
+    }
+    debugPrint('✅ [StorageBloc] Validation completed');
+    debugPrint('- File properties: $_filesToUpload');
+    final int failedFiles = _loadingStates.values.where((state) => state == LoadingState.error).length;
+    if (failedFiles > 0) {
+      debugPrint('❌ [StorageBloc] $failedFiles files failed validation');
+      _loadingStates[_locationId!] = LoadingState.error;
+    } else {
+      debugPrint('✅ [StorageBloc] All files passed validation');
+      _loadingStates[_locationId!] = LoadingState.verified;
+    }
+    debugPrint('🔍 [StorageBloc] Loading states: $_loadingStates');
+    emit(StorageLoaded(loadingStates: _loadingStates, exceptions: _exceptions));
   }
 
   Future<void> _onDeleteLocationMedia(
     DeleteLocationMedia event,
     Emitter<StorageState> emit,
   ) async {
-    emit(const StorageDeleting());
+    _loadingStates[event.locationId] = LoadingState.deleting;
+    _exceptions = {};
+    emit(StorageLoaded(loadingStates: _loadingStates, exceptions: _exceptions));
     try {
       debugPrint('📞 [StorageBloc] Calling deleteOldLocationMedia');
       await _storageService.deleteLocationMedia(event.locationId);
       debugPrint('✅ [StorageBloc] Calling deleteOldLocationMedia done');
-      emit(const StorageDeleted());
+      _loadingStates[event.locationId] = LoadingState.deleted;
+      debugPrint('🔍 [StorageBloc] Loading states: $_loadingStates');
+      emit(StorageLoaded(loadingStates: _loadingStates, exceptions: _exceptions));
+    } on UnavailableStorageException catch (e) {
+      debugPrint('❌ [StorageBloc] Error deleting location media: $e');
+      _loadingStates[event.locationId] = LoadingState.error;
+      _exceptions[event.locationId] = {'error': UnavailableStorageBlocException(details: e.toString())};
+      debugPrint('🔍 [StorageBloc] Loading states: $_loadingStates');
+      emit(StorageLoaded(loadingStates: _loadingStates, exceptions: _exceptions));
     } catch (e) {
       if (e is ObjectNotFoundStorageException) {
         debugPrint('✅ [StorageBloc] Object not found, deleting location media done');
-        emit(const StorageDeleted());
+        _loadingStates[event.locationId] = LoadingState.deleted;
+        debugPrint('🔍 [StorageBloc] Loading states: $_loadingStates');
+        emit(StorageLoaded(loadingStates: _loadingStates, exceptions: _exceptions));
         return;
       }
       debugPrint('❌ [StorageBloc] Error deleting location media: $e');
-      emit(StorageFailure(exception: GenericStorageBlocException(details: e.toString())));
+      _loadingStates[event.locationId] = LoadingState.error;
+      _exceptions[event.locationId] = {'error': GenericStorageBlocException(details: e.toString())};
+      debugPrint('🔍 [StorageBloc] Loading states: $_loadingStates');
+      emit(StorageLoaded(loadingStates: _loadingStates, exceptions: _exceptions));
     }
   }
 
@@ -149,124 +139,95 @@ class StorageBloc extends Bloc<StorageEvent, StorageState> {
     SetLocationMedia event,
     Emitter<StorageState> emit,
   ) async {
-    emit(StorageUploading());
-    List<String> uploadedUrls = [];
+    _exceptions = {};
+    debugPrint('🏁 [StorageBloc] Setting location media');
+    if (_locationId == null) {
+      throw LocationMediaNotVerifiedException(details: 'Location ID is null');
+    }
+    _loadingStates[_locationId!] = LoadingState.uploading;
+    debugPrint('🔍 [StorageBloc] Loading states: $_loadingStates');
+    emit(StorageLoaded(loadingStates: _loadingStates, exceptions: _exceptions));
+
+    final List<FileToUpload> uploadedFiles = [];
     try {
-      debugPrint('📑 [StorageBloc] Files to upload: ${_filePaths.length}');
-      int filesUploaded = 0;
-      int signedUrlsUsed = 0;
-      if (_filePaths.isEmpty || _filePaths.any((e) => !File(e).existsSync()) || _mediaToUpload?.mainFile == null) {
-        throw GenericStorageBlocException(details: 'No file paths to upload');
+      debugPrint('ℹ️ [StorageBloc] Files to upload: ${_filesToUpload.length}');
+      if (_filesToUpload.isEmpty) {
+        throw IncompleteDataException(details: _filesToUpload.toString());
       }
-      if (_timestamps.isEmpty || _timestamps.length != _signedUrls.length) {
-        throw GenericStorageBlocException(details: 'Timestamps length does not match signed URLs length');
-      }
-      if (_timestamps.any((timestamp) => timestamp.toDate().difference(DateTime.now()).inSeconds < 90)) {
-        throw GenericStorageBlocException(details: 'Signed URLs expired');
-      }
-      LivitLocationMedia newMedia = _mediaToUpload!.copyWith();
-      while (signedUrlsUsed < _signedUrls.length) {
-        if (_timestamps[signedUrlsUsed].toDate().difference(DateTime.now()).inSeconds < 20) {
-          try {
-            final response = await _cloudFunctions.getLocationMediaUploadUrls(
-              locationId: _locationId!,
-              fileSizes: [_fileProperties[signedUrlsUsed]['size'] as int],
-              fileTypes: [_fileProperties[signedUrlsUsed]['type'] as String],
-              names: [_names[signedUrlsUsed]],
-            );
-            _signedUrls[signedUrlsUsed] = response['signedUrls']![0];
-            _timestamps[signedUrlsUsed] = response['timestamps']![0];
-          } catch (e) {
-            throw GenericStorageBlocException(details: 'Error getting signed URL after expiration: $e');
-          }
-        }
-        final LivitLocationMediaFile fileToUpload =
-            filesUploaded == 0 ? _mediaToUpload!.mainFile! : _mediaToUpload!.secondaryFiles![filesUploaded - 1]!;
-        if (fileToUpload is LivitLocationMediaVideo) {
-          final String coverUrl = await _uploadFile(fileToUpload.cover, _signedUrls[signedUrlsUsed], _fileProperties[signedUrlsUsed]);
-          signedUrlsUsed++;
-          final String videoUrl = await _uploadFile(fileToUpload, _signedUrls[signedUrlsUsed], _fileProperties[signedUrlsUsed]);
-          signedUrlsUsed++;
-          if (filesUploaded == 0) {
-            newMedia = newMedia.copyWith(mainFile: fileToUpload.cover.copyWith(url: coverUrl, filePath: null));
-            newMedia = newMedia.copyWith(mainFile: fileToUpload.copyWith(url: videoUrl, filePath: null));
-          } else {
-            newMedia = newMedia.copyWith(
-                secondaryFiles: newMedia.secondaryFiles?.map((e) {
-              if (e is LivitLocationMediaVideo && e == fileToUpload) {
-                LivitLocationMediaImage newFileCover = fileToUpload.cover.copyWith(url: coverUrl, filePath: null);
-                return LivitLocationMediaVideo(url: videoUrl, filePath: null, cover: newFileCover);
-              }
-              return e;
-            }).toList());
-          }
-          uploadedUrls.add(coverUrl);
-          uploadedUrls.add(videoUrl);
-        } else {
-          final String imageUrl = await _uploadFile(fileToUpload, _signedUrls[signedUrlsUsed], _fileProperties[signedUrlsUsed]);
-          signedUrlsUsed++;
-          uploadedUrls.add(imageUrl);
-          if (filesUploaded == 0) {
-            newMedia = newMedia.copyWith(mainFile: fileToUpload.copyWith(url: imageUrl, filePath: null));
-          } else {
-            newMedia = newMedia.copyWith(
-                secondaryFiles: newMedia.secondaryFiles?.map((e) {
-              if (e == fileToUpload) {
-                return fileToUpload.copyWith(url: imageUrl, filePath: null);
-              }
-              return e;
-            }).toList());
-          }
-        }
-        MediaFileCleanup.cleanupLocationMediaFile(fileToUpload);
-        filesUploaded++;
-      }
-      debugPrint('📥 [StorageBloc] Uploaded ${uploadedUrls.length} files');
-      emit(StorageUploaded(media: newMedia));
-    } on StorageBlocException catch (e) {
-      debugPrint('❌ [StorageBloc] StorageBlocException: $e');
-      await _deleteUploadedFiles(uploadedUrls);
-      emit(StorageFailure(exception: e));
-    } on CloudFunctionException catch (e) {
-      debugPrint('❌ [StorageBloc] CloudFunctionException: $e');
-      await _deleteUploadedFiles(uploadedUrls);
-      emit(StorageFailure(exception: e));
-    } catch (e) {
-      final error = GenericStorageBlocException(details: e.toString());
-      debugPrint('❌ [StorageBloc] Unknown error: $e');
-      ErrorReporter().reportError(error, StackTrace.current);
-      await _deleteUploadedFiles(uploadedUrls);
-      emit(StorageFailure(exception: error));
-    }
-  }
-
-  Future<void> _deleteUploadedFiles(List<String> uploadedUrls) async {
-    if (uploadedUrls.isNotEmpty) {
-      for (final url in uploadedUrls) {
+      final List<FileToUpload> failedFiles = [];
+      while (_filesToUpload.isNotEmpty) {
+        final FileToUpload fileToUpload = _filesToUpload.first;
         try {
-          await _storageService.deleteFile(url);
+          await _uploadFile(fileToUpload);
+          uploadedFiles.add(fileToUpload);
+          _loadingStates[fileToUpload.filePath] = LoadingState.uploaded;
+          _filesToUpload.remove(fileToUpload);
+          debugPrint(
+              '✅ [StorageBloc] Uploaded ${uploadedFiles.length + failedFiles.length}/${_filesToUpload.length + failedFiles.length + uploadedFiles.length}, file: $fileToUpload');
+        } on UnavailableStorageException catch (e) {
+          _exceptions[_locationId!] = {..._exceptions[_locationId] ?? {}, fileToUpload.filePath: UnavailableStorageBlocException(details: e.toString())};
+          _loadingStates[fileToUpload.filePath] = LoadingState.error;
+          failedFiles.add(fileToUpload);
+          _filesToUpload.remove(fileToUpload);
+          debugPrint('🔍 [StorageBloc] Loading states: $_loadingStates');
+          emit(StorageLoaded(loadingStates: _loadingStates, exceptions: _exceptions));
+          debugPrint(
+              '❌ [StorageBloc] Error uploading file ${uploadedFiles.length + failedFiles.length}/${_filesToUpload.length + failedFiles.length + uploadedFiles.length}, file: $fileToUpload, error: $e');
         } catch (e) {
-          debugPrint('❌ [StorageBloc] Error deleting file $url: $e');
-          final error = GenericStorageBlocException(
-              details: 'Error deleting file after failed complete upload: $url: $e', severity: ErrorSeverity.high);
-          ErrorReporter().reportError(error, StackTrace.current);
+          ErrorReporter().reportError(e, StackTrace.current);
+          _exceptions[_locationId!] = {..._exceptions[_locationId] ?? {}, fileToUpload.filePath: e is StorageBlocException ? e : GenericStorageBlocException(details: e.toString())};
+          _loadingStates[fileToUpload.filePath] = LoadingState.error;
+          failedFiles.add(fileToUpload);
+          _filesToUpload.remove(fileToUpload);
+          debugPrint('🔍 [StorageBloc] Loading states: $_loadingStates');
+          emit(StorageLoaded(loadingStates: _loadingStates, exceptions: _exceptions));
+          debugPrint(
+              '❌ [StorageBloc] Error uploading file ${uploadedFiles.length + failedFiles.length}/${_filesToUpload.length + failedFiles.length + uploadedFiles.length}, file: $fileToUpload, error: $e');
         }
       }
+      debugPrint('📥 [StorageBloc] Uploaded ${uploadedFiles.length} files');
+      _loadingStates[_locationId!] = LoadingState.uploaded;
+      debugPrint('🔍 [StorageBloc] Loading states: $_loadingStates');
+      emit(StorageLoaded(loadingStates: _loadingStates, exceptions: _exceptions));
+    } on UnavailableStorageException catch (e) {
+      debugPrint('❌ [StorageBloc] Error uploading files: $e');
+      _exceptions[_locationId!] = {..._exceptions[_locationId] ?? {}, 'error': UnavailableStorageBlocException(details: e.toString())};
+      _loadingStates[_locationId!] = LoadingState.error;
+      for (final loadingState in _loadingStates.entries) {
+        if (loadingState.value != LoadingState.error && loadingState.value != LoadingState.uploaded) {
+          _loadingStates[loadingState.key] = LoadingState.aborted;
+        }
+      }
+      debugPrint('🔍 [StorageBloc] Loading states: $_loadingStates');
+      emit(StorageLoaded(loadingStates: _loadingStates, exceptions: _exceptions));
+    } catch (e) {
+      final error = e is StorageBlocFileSizeTooLargeException ? e : GenericStorageBlocException(details: e.toString());
+      debugPrint('❌ [StorageBloc] Error uploading files: $error');
+      ErrorReporter().reportError(error, StackTrace.current);
+      _exceptions[_locationId!] = {..._exceptions[_locationId] ?? {}, 'error': error};
+      _loadingStates[_locationId!] = LoadingState.error;
+      for (final loadingState in _loadingStates.entries) {
+        if (loadingState.value != LoadingState.error && loadingState.value != LoadingState.uploaded) {
+          _loadingStates[loadingState.key] = LoadingState.aborted;
+        }
+      }
+      debugPrint('🔍 [StorageBloc] Loading states: $_loadingStates');
+      emit(StorageLoaded(loadingStates: _loadingStates, exceptions: _exceptions));
     }
   }
 
-  Future<List<Map<String, dynamic>>> _isFileValid(LivitLocationMediaFile file) async {
+  Future<List<Map<String, dynamic>>> _isFileValid(LivitMediaFile file) async {
     List<Map<String, dynamic>> fileProperties = [];
-    if (file.filePath == null) {
-      throw GenericStorageBlocException(details: 'File has no path');
+    if (file.filePath == null || !File(file.filePath!).existsSync()) {
+      throw FileDoesNotExistException(details: file.filePath);
     }
-    if (file is LivitLocationMediaVideo) {
+    if (file is LivitMediaVideo) {
       fileProperties.add((await _isFileValid(file.cover))[0]);
       if (!FirebaseStorageConstants.validVideoExtensions.contains(file.filePath!.split('.').last)) {
         throw InvalidFileExtensionException(details: 'Video has invalid extension');
       }
       if (await File(file.filePath!).length() > FirebaseStorageConstants.maxVideoSizeInMB * 1024 * 1024) {
-        throw FileSizeTooLargeException(details: 'Video is too large');
+        throw StorageBlocFileSizeTooLargeException(details: 'Video is too large');
       }
       fileProperties.add({'type': 'video/${file.filePath!.split('.').last}', 'size': (await File(file.filePath!).length())});
     } else {
@@ -274,25 +235,26 @@ class StorageBloc extends Bloc<StorageEvent, StorageState> {
         throw InvalidFileExtensionException(details: 'Image has invalid extension');
       }
       if (await File(file.filePath!).length() > FirebaseStorageConstants.maxImageSizeInMB * 1024 * 1024) {
-        throw FileSizeTooLargeException(details: 'Image is too large');
+        throw StorageBlocFileSizeTooLargeException(details: 'Image is too large');
       }
       fileProperties.add({'type': 'image/${file.filePath!.split('.').last}', 'size': (await File(file.filePath!).length())});
     }
     return fileProperties;
   }
 
-  Future<String> _uploadFile(LivitLocationMediaFile file, String signedUrl, Map<String, dynamic> fileProperties) async {
-    debugPrint('📞 [StorageBloc] Calling uploadFileWithSignedUrl for $fileProperties');
-    final String coverUrl = await _storageService.uploadFileWithSignedUrl(file.filePath!, signedUrl, fileProperties['type']);
-    debugPrint('📥 [StorageBloc] Uploaded file $fileProperties');
-    return coverUrl;
+  Future<List<String>> _uploadFile(FileToUpload fileToUpload) async {
+    debugPrint('📞 [StorageBloc] Calling uploadFile for $fileToUpload');
+    final List<String> fileUrls = await _storageService.uploadLocationMediaFile(fileToUpload: fileToUpload);
+    debugPrint('📥 [StorageBloc] Uploaded file $fileToUpload');
+    return fileUrls;
   }
 
-  void _cleanData() {
-    _signedUrls = [];
-    _names = [];
-    _fileProperties = [];
-    _filePaths = [];
-    _mediaToUpload = null;
+  Future<void> _onGetMediaFile(
+    GetMediaFile event,
+    Emitter<StorageState> emit,
+  ) async {
+    // emit(StorageDownloading());
+    // final String url = await _storageService.getMediaFile(event.url);
+    // emit(StorageMediaFileObtained(url: url));
   }
 }

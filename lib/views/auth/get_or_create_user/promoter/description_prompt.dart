@@ -4,9 +4,9 @@ import 'package:livit/constants/colors.dart';
 import 'package:livit/constants/styles/container_style.dart';
 import 'package:livit/constants/styles/livit_text.dart';
 import 'package:livit/constants/styles/spaces.dart';
-import 'package:livit/services/firestore_storage/bloc/users/user_bloc.dart';
-import 'package:livit/services/firestore_storage/bloc/users/user_event.dart';
-import 'package:livit/services/firestore_storage/bloc/users/user_state.dart';
+import 'package:livit/services/firestore_storage/bloc/user/user_bloc.dart';
+import 'package:livit/services/firestore_storage/bloc/user/user_event.dart';
+import 'package:livit/services/firestore_storage/bloc/user/user_state.dart';
 import 'package:livit/utilities/bars_containers_fields/glass_container.dart';
 import 'package:livit/utilities/bars_containers_fields/keyboard_dismissible.dart';
 import 'package:livit/utilities/bars_containers_fields/livit_text_field.dart';
@@ -128,7 +128,7 @@ class _DescriptionPromptState extends State<DescriptionPrompt> {
                                 ),
                                 Button.main(
                                   text: _isContinueLoading ? 'Continuando' : 'Continuar',
-                                  onPressed: () {
+                                  onTap: () {
                                     BlocProvider.of<UserBloc>(context)
                                         .add(SetPromoterUserDescription(context, description: _descriptionController.text));
                                   },

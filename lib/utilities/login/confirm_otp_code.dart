@@ -117,9 +117,8 @@ class _ConfirmOTPCodeViewState extends State<ConfirmOTPCodeView> {
       },
       builder: (context, state) {
         if (state is AuthStateLoggedOut) {
-          
-            invalidCode = state.exception?.message;
-          
+          invalidCode = state.exception?.message;
+
           if (state.loginMethod == LoginMethod.phoneAndOtp) {
             _isVerifyingCode = true;
           } else {
@@ -224,7 +223,7 @@ class _ConfirmOTPCodeViewState extends State<ConfirmOTPCodeView> {
                                                           : 'Reenviar codigo... $countdown',
                                                   isActive: _isResendButtonActive,
                                                   isLoading: _isResendingCode,
-                                                  onPressed: () {
+                                                  onTap: () {
                                                     context.read<AuthBloc>().add(
                                                           AuthEventSendOtpCode(
                                                             context,
@@ -240,7 +239,7 @@ class _ConfirmOTPCodeViewState extends State<ConfirmOTPCodeView> {
                                                   text: _isVerifyingCode ? 'Verificando' : 'Verificar',
                                                   isActive: isOtpCodeValid,
                                                   isLoading: _isVerifyingCode,
-                                                  onPressed: () {
+                                                  onTap: () {
                                                     context.read<AuthBloc>().add(
                                                           AuthEventLogInWithPhoneAndOtp(
                                                             context,

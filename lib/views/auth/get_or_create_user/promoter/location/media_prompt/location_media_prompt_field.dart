@@ -5,28 +5,31 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:livit/cloud_models/location/location.dart';
-import 'package:livit/cloud_models/location/location_media_file.dart';
+import 'package:livit/constants/enums.dart';
+import 'package:livit/models/location/location.dart';
+import 'package:livit/models/media/location_media_file.dart';
 import 'package:livit/constants/colors.dart';
 import 'package:livit/constants/routes.dart';
+import 'package:livit/constants/styles/bar_style.dart';
 import 'package:livit/constants/styles/button_style.dart';
 import 'package:livit/constants/styles/container_style.dart';
 import 'package:livit/constants/styles/livit_text.dart';
 import 'package:livit/constants/styles/shadows.dart';
 import 'package:livit/constants/styles/spaces.dart';
+import 'package:livit/services/exceptions/base_exception.dart';
 import 'package:livit/services/firebase_storage/firebase_storage_constants.dart';
-import 'package:livit/services/firestore_storage/bloc/locations/location_bloc.dart';
-import 'package:livit/services/firestore_storage/bloc/locations/location_state.dart';
+import 'package:livit/services/firestore_storage/bloc/location/location_bloc.dart';
+import 'package:livit/services/firestore_storage/bloc/location/location_state.dart';
 import 'package:livit/utilities/bars_containers_fields/bar.dart';
 
 class LocationMediaInputField extends StatefulWidget {
   final LivitLocation location;
-  final String? errorMessage;
+  final Map<String, LivitException>? errors;
 
   const LocationMediaInputField({
     super.key,
     required this.location,
-    required this.errorMessage,
+    required this.errors,
   });
 
   @override
@@ -47,6 +50,8 @@ class _LocationMediaInputFieldState extends State<LocationMediaInputField> {
   final Map<String, String> _videoThumbnails = {};
   bool isUploading = false;
   bool isUploadingAnimationVisible = false;
+
+  String? _errorMessage;
 
   @override
   void initState() {
@@ -71,10 +76,10 @@ class _LocationMediaInputFieldState extends State<LocationMediaInputField> {
       textDirection: TextDirection.ltr,
     )..layout();
     TextPainter? errorTextPainter;
-    if (widget.errorMessage != null) {
+    if (widget.errors != null) {
       errorTextPainter = TextPainter(
         text: TextSpan(
-          text: widget.errorMessage!,
+          text: _errorMessage,
           style: TextStyle(
             fontSize: LivitTextStyle.regularFontSize,
             fontWeight: FontWeight.bold,
@@ -85,9 +90,13 @@ class _LocationMediaInputFieldState extends State<LocationMediaInputField> {
     }
 
     final textHeight = textPainter.height;
-    final errorTextHeight = errorTextPainter?.height ?? 0 + (widget.errorMessage != null ? LivitSpaces.sDouble + LivitSpaces.mDouble : 0);
-    _mediaDisplayContainerHeight =
-        _mediaDisplayHeight + LivitSpaces.sDouble * 2 + LivitContainerStyle.padding().vertical + textHeight + errorTextHeight;
+    final errorTextHeight = errorTextPainter?.height ?? 0;
+    _mediaDisplayContainerHeight = _mediaDisplayHeight +
+        LivitSpaces.sDouble * 2 +
+        LivitContainerStyle.padding().vertical +
+        textHeight +
+        errorTextHeight +
+        (errorTextHeight > 0 ? LivitSpaces.sDouble + LivitSpaces.xsDouble + LivitButtonStyle.iconSize : 0);
   }
 
   @override
@@ -103,9 +112,9 @@ class _LocationMediaInputFieldState extends State<LocationMediaInputField> {
     super.dispose();
   }
 
-  Widget _buildMediaPreview(LivitLocationMediaFile file, int index, {bool isSmall = false}) {
+  Widget _buildMediaPreview(LivitMediaFile file, int index, {bool isSmall = false}) {
     try {
-      final bool isVideo = file is LivitLocationMediaVideo;
+      final bool isVideo = file is LivitMediaVideo;
       final String? path = isVideo ? file.cover.filePath : file.filePath;
 
       if (path == null) return const SizedBox.shrink();
@@ -159,7 +168,7 @@ class _LocationMediaInputFieldState extends State<LocationMediaInputField> {
     }
   }
 
-  void _showMediaPreview(LivitLocationMediaFile currentMedia, int index) async {
+  void _showMediaPreview(LivitMediaFile currentMedia, int index) async {
     if (currentMedia.filePath == null || widget.location.media == null) return;
     if (isUploading) return;
 
@@ -175,20 +184,36 @@ class _LocationMediaInputFieldState extends State<LocationMediaInputField> {
 
   @override
   Widget build(BuildContext context) {
+    if (widget.errors != null) {
+      if (widget.errors!['error'] != null) {
+        _errorMessage = widget.errors!['error']?.message;
+      } else {
+        if (widget.errors!.length > 1) {
+          _errorMessage = 'Multiples errores: ';
+        } else {
+          _errorMessage = '';
+        }
+        final List<String> errorMessages = [];
+        widget.errors!.forEach((key, value) {
+          errorMessages.add(value.message);
+        });
+        _errorMessage = '${_errorMessage!}${errorMessages.join(', ')}.';
+      }
+    }
     _calculateMediaDisplaySizes();
-    secondaryFilesLength = widget.location.media?.secondaryFiles?.length ?? 0;
+    secondaryFilesLength = (widget.location.media?.files?.length ?? 0) - 1;
     secondaryTilesLength = min(secondaryFilesLength + 1, FirebaseStorageConstants.maxFiles - 1);
 
-    final bool isLocationMediaEmpty = widget.location.media == null ||
-        (widget.location.media?.mainFile == null && (widget.location.media?.secondaryFiles?.isEmpty ?? true));
+    final bool isLocationMediaEmpty = widget.location.media == null || (widget.location.media?.files?.isEmpty ?? true);
 
     return BlocBuilder<LocationBloc, LocationState>(
       builder: (context, state) {
         if (state is LocationsLoaded) {
           isUploading = state.loadingStates['cloud'] == LoadingState.loading;
-          isUploadingAnimationVisible = state.loadingStates[widget.location.id] == LoadingState.loading ||
-              state.loadingStates[widget.location.id] == LoadingState.uploading ||
-              state.loadingStates[widget.location.id] == LoadingState.verifying;
+          isUploadingAnimationVisible = ((state.loadingStates[widget.location.id] != LoadingState.uploaded &&
+                      state.loadingStates[widget.location.id] != LoadingState.loaded) &&
+                  state.loadingStates[widget.location.id] != LoadingState.error) &&
+              state.loadingStates['cloud'] == LoadingState.loading;
         } else {
           isUploading = false;
           isUploadingAnimationVisible = false;
@@ -256,7 +281,7 @@ class _LocationMediaInputFieldState extends State<LocationMediaInputField> {
                                 )
                               : Icon(
                                   Icons.circle,
-                                  color: widget.errorMessage != null
+                                  color: state is LocationsLoaded && state.loadingStates[widget.location.id] == LoadingState.error
                                       ? LivitColors.yellowError
                                       : !isLocationMediaEmpty
                                           ? LivitColors.mainBlueActive
@@ -281,11 +306,28 @@ class _LocationMediaInputFieldState extends State<LocationMediaInputField> {
                       children: [
                         LivitSpaces.s,
                         mediaDisplay(),
-                        if (widget.errorMessage != null) ...[
+                        if (_errorMessage != null) ...[
                           LivitSpaces.s,
-                          LivitText(widget.errorMessage!,
-                              color: LivitColors.whiteActive, fontWeight: FontWeight.bold, textType: LivitTextType.small),
-                          LivitSpaces.m,
+                          Padding(
+                            padding: LivitContainerStyle.padding(padding: [0, null, 0, null]),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Flexible(
+                                  child: LivitText(_errorMessage ?? '',
+                                      color: LivitColors.whiteActive, fontWeight: FontWeight.bold, textType: LivitTextType.small),
+                                ),
+                                LivitSpaces.xs,
+                                Icon(
+                                  CupertinoIcons.exclamationmark_circle,
+                                  color: LivitColors.yellowError,
+                                  size: LivitButtonStyle.iconSize,
+                                ),
+                              ],
+                            ),
+                          ),
+                          LivitSpaces.s,
                         ]
                       ],
                     ),
@@ -308,7 +350,7 @@ class _LocationMediaInputFieldState extends State<LocationMediaInputField> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _mainMediaDisplay(),
-          if (widget.location.media?.mainFile != null) ...[
+          if (widget.location.media?.files?.isNotEmpty ?? false) ...[
             LivitSpaces.s,
             Flexible(
               child: _secondaryMediaDisplay(),
@@ -363,7 +405,7 @@ class _LocationMediaInputFieldState extends State<LocationMediaInputField> {
                           ),
                         )
                       : _buildMediaPreview(
-                          widget.location.media!.secondaryFiles![index]!,
+                          widget.location.media!.files![index + 1]!,
                           index + 1,
                           isSmall: true,
                         ),
@@ -387,10 +429,10 @@ class _LocationMediaInputFieldState extends State<LocationMediaInputField> {
           clipBehavior: Clip.hardEdge,
           width: _mediaDisplayWidth,
           height: _mediaDisplayHeight,
-          decoration: widget.location.media?.mainFile == null
+          decoration: widget.location.media?.files?.isEmpty ?? true
               ? LivitContainerStyle.decorationWithActiveShadow
               : LivitContainerStyle.decorationWithInactiveShadow,
-          child: widget.location.media?.mainFile?.filePath == null
+          child: widget.location.media?.files?.isEmpty ?? true
               ? InkWell(
                   onTap: () {
                     if (isUploading) return;
@@ -410,7 +452,7 @@ class _LocationMediaInputFieldState extends State<LocationMediaInputField> {
                     size: 24.sp,
                   ),
                 )
-              : _buildMediaPreview(widget.location.media!.mainFile!, 0),
+              : _buildMediaPreview(widget.location.media!.files![0]!, 0),
         ),
         LivitSpaces.s,
         LivitText('Principal', fontWeight: FontWeight.bold, color: LivitColors.whiteInactive),

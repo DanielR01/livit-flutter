@@ -1,10 +1,12 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:livit/constants/colors.dart';
+import 'package:livit/constants/styles/bar_style.dart';
 import 'package:livit/constants/styles/container_style.dart';
 import 'package:livit/constants/styles/livit_text.dart';
 import 'package:livit/constants/styles/shadows.dart';
 import 'package:livit/constants/styles/spaces.dart';
+import 'package:livit/utilities/bars_containers_fields/bar.dart';
 import 'package:livit/utilities/bars_containers_fields/livit_text_field.dart';
 import 'package:livit/utilities/buttons/button.dart';
 
@@ -14,6 +16,9 @@ class LivitDropdownButton extends StatefulWidget {
   final String defaultText;
   final bool isActive;
   final String? selectedValue;
+  final bool isSearchable;
+  final BoxShadow? activeBoxShadow;
+  final BoxShadow? inactiveBoxShadow;
 
   const LivitDropdownButton({
     super.key,
@@ -22,6 +27,9 @@ class LivitDropdownButton extends StatefulWidget {
     required this.defaultText,
     required this.isActive,
     this.selectedValue,
+    this.isSearchable = true,
+    this.activeBoxShadow,
+    this.inactiveBoxShadow,
   });
 
   @override
@@ -126,64 +134,81 @@ class _LivitDropdownButtonState extends State<LivitDropdownButton> {
           builder: (context, dialogSetState) {
             return Dialog(
               backgroundColor: Colors.transparent,
-              child: Container(
-                decoration: LivitContainerStyle.decoration,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (widget.isSearchable) ...[
                     LivitTextField(
+                      unfocusedShadow: LivitTextFieldShadow.strong,
                       prefixIcon: CupertinoIcons.search,
                       controller: _searchController,
                       hint: widget.defaultText,
                       onChanged: (value) => _filterEntries(_searchController.text, dialogSetState),
                     ),
-                    LivitSpaces.xs,
-                    Flexible(
-                      child: NotificationListener<ScrollNotification>(
-                        onNotification: (notification) {
-                          if (notification is ScrollUpdateNotification) {
-                            _lastScrollOffset = _scrollController.offset;
-                          }
-                          return true;
-                        },
-                        child: SingleChildScrollView(
-                          controller: _scrollController,
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: _filteredEntries.map((entry) {
-                              final isSelected = entry.value == widget.selectedValue;
-                              return InkWell(
-                                onTap: () {
-                                  widget.onSelected(entry.value);
-                                  Navigator.of(context).pop();
-                                },
-                                child: Container(
-                                  width: double.infinity,
-                                  padding: const EdgeInsets.symmetric(
-                                    vertical: 12,
-                                    horizontal: 16,
-                                  ),
-                                  color: isSelected ? LivitColors.whiteActive.withOpacity(0.1) : null,
-                                  child: LivitText(
-                                    entry.label,
-                                    textType: LivitTextType.regular,
-                                  ),
-                                ),
-                              );
-                            }).toList(),
-                          ),
-                        ),
-                      ),
-                    ),
-                    LivitSpaces.s,
-                    Button.main(
-                      text: 'Cancelar',
-                      onPressed: () => Navigator.of(context).pop(),
-                      isActive: true,
-                    ),
                     LivitSpaces.m,
                   ],
-                ),
+                  Flexible(
+                    child: Container(
+                      decoration: LivitContainerStyle.decoration,
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Flexible(
+                            child: NotificationListener<ScrollNotification>(
+                              onNotification: (notification) {
+                                if (notification is ScrollUpdateNotification) {
+                                  _lastScrollOffset = _scrollController.offset;
+                                }
+                                return true;
+                              },
+                              child: SingleChildScrollView(
+                                controller: _scrollController,
+                                child: Padding(
+                                  padding: LivitContainerStyle.padding(),
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: _filteredEntries.map((entry) {
+                                      final isSelected = entry.value == widget.selectedValue;
+                                      return LivitBar.touchable(
+                                        noPadding: true,
+                                        isTransparent: !isSelected,
+                                        shadowType: isSelected ? ShadowType.normal : ShadowType.none,
+                                        onTap: () {
+                                          widget.onSelected(entry.value);
+                                          Navigator.of(context).pop();
+                                        },
+                                        child: Padding(
+                                          padding: LivitContainerStyle.padding(),
+                                          child: Center(
+                                            child: LivitText(
+                                              entry.label,
+                                            ),
+                                          ),
+                                        ),
+                                      );
+                                    }).toList(),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                          LivitSpaces.s,
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Button.main(
+                                text: 'Cancelar',
+                                onTap: () => Navigator.of(context).pop(),
+                                isActive: true,
+                              ),
+                            ],
+                          ),
+                          LivitSpaces.m,
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
               ),
             );
           },
@@ -194,21 +219,20 @@ class _LivitDropdownButtonState extends State<LivitDropdownButton> {
 
   @override
   Widget build(BuildContext context) {
-    return Expanded(
-      child: widget.selectedValue == null
-          ? Button.secondary(
-              rightIcon: CupertinoIcons.chevron_down,
-              text: widget.defaultText,
-              isActive: widget.isActive,
-              onPressed: () => _showSelectionDialog(context),
-            )
-          : Button(
-              rightIcon: CupertinoIcons.chevron_down,
-              text: widget.selectedValue ?? widget.defaultText,
-              isActive: widget.isActive,
-              onPressed: () => _showSelectionDialog(context),
-              boxShadow: [LivitShadows.inactiveWhiteShadow],
-            ),
-    );
+    return widget.selectedValue == null
+        ? Button.secondary(
+            rightIcon: CupertinoIcons.chevron_down,
+            text: widget.defaultText,
+            isActive: widget.isActive,
+            onTap: () => _showSelectionDialog(context),
+            boxShadow: widget.inactiveBoxShadow != null ? [widget.inactiveBoxShadow!] : null,
+          )
+        : Button(
+            rightIcon: CupertinoIcons.chevron_down,
+            text: widget.selectedValue ?? widget.defaultText,
+            isActive: widget.isActive,
+            onTap: () => _showSelectionDialog(context),
+            boxShadow: [widget.activeBoxShadow ?? LivitShadows.inactiveWhiteShadow],
+          );
   }
 }

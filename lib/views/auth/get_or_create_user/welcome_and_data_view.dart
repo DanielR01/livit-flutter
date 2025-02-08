@@ -7,9 +7,9 @@ import 'package:livit/constants/styles/spaces.dart';
 import 'package:livit/services/background/background_bloc.dart';
 import 'package:livit/services/background/background_events.dart';
 import 'package:livit/services/background/background_states.dart';
-import 'package:livit/services/firestore_storage/bloc/users/user_bloc.dart';
-import 'package:livit/services/firestore_storage/bloc/users/user_event.dart';
-import 'package:livit/services/firestore_storage/bloc/users/user_state.dart';
+import 'package:livit/services/firestore_storage/bloc/user/user_bloc.dart';
+import 'package:livit/services/firestore_storage/bloc/user/user_event.dart';
+import 'package:livit/services/firestore_storage/bloc/user/user_state.dart';
 import 'package:livit/services/firestore_storage/firestore_storage/exceptions/firestore_exceptions.dart';
 import 'package:livit/utilities/bars_containers_fields/glass_container.dart';
 import 'package:livit/utilities/buttons/button.dart';
@@ -192,7 +192,7 @@ class __WelcomeViewState extends State<_WelcomeView> with TickerProviderStateMix
                   child: Button.main(
                     text: 'Continuar',
                     isActive: _isAnimationFinished,
-                    onPressed: widget.onNext,
+                    onTap: widget.onNext,
                   ),
                 ),
               ],
@@ -285,7 +285,7 @@ class _InterestsViewState extends State<_InterestsView> {
                         return Button.secondary(
                           text: topic,
                           isActive: selectedTopics.contains(topic),
-                          onPressed: () => _toggleTopic(topic),
+                          onTap: () => _toggleTopic(topic),
                           forceOnPressed: true,
                         );
                       }).toList(),
@@ -295,7 +295,7 @@ class _InterestsViewState extends State<_InterestsView> {
                       text: _isLoading ? 'Continuando' : 'Continuar',
                       isActive: selectedTopics.isNotEmpty,
                       isLoading: _isLoading,
-                      onPressed: () {
+                      onTap: () {
                         BlocProvider.of<UserBloc>(context).add(
                           SetUserInterests(context, interests: selectedTopics.toList()),
                         );

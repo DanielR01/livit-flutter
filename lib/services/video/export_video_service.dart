@@ -1,11 +1,16 @@
-
 import 'dart:io';
 
-import 'package:ffmpeg_kit_flutter/ffmpeg_kit.dart';
-import 'package:ffmpeg_kit_flutter/ffmpeg_kit_config.dart';
-import 'package:ffmpeg_kit_flutter/ffmpeg_session.dart';
-import 'package:ffmpeg_kit_flutter/return_code.dart';
-import 'package:ffmpeg_kit_flutter/statistics.dart';
+// import 'package:ffmpeg_kit_flutter/ffmpeg_kit.dart';
+// import 'package:ffmpeg_kit_flutter/ffmpeg_kit_config.dart';
+// import 'package:ffmpeg_kit_flutter/ffmpeg_session.dart';
+// import 'package:ffmpeg_kit_flutter/return_code.dart';
+// import 'package:ffmpeg_kit_flutter/statistics.dart';
+import 'package:ffmpeg_kit_flutter_full_gpl/ffmpeg_kit.dart';
+import 'package:ffmpeg_kit_flutter_full_gpl/ffmpeg_kit_config.dart';
+import 'package:ffmpeg_kit_flutter_full_gpl/ffmpeg_session.dart';
+import 'package:ffmpeg_kit_flutter_full_gpl/return_code.dart';
+import 'package:ffmpeg_kit_flutter_full_gpl/statistics.dart';
+import 'package:flutter/foundation.dart';
 import 'package:video_editor/video_editor.dart';
 
 class ExportService {
@@ -20,7 +25,6 @@ class ExportService {
     void Function(Object, StackTrace)? onError,
     void Function(Statistics)? onProgress,
   }) {
-    
     return FFmpegKit.executeAsync(
       execute.command,
       (session) async {
@@ -32,7 +36,7 @@ class ExportService {
         } else {
           if (onError != null) {
             onError(
-              Exception('FFmpeg process exited with state $state and return code $code.\n${await session.getOutput()}'),
+              Exception('FFmpeg process exited with state $state and return code $code.'),
               StackTrace.current,
             );
           }

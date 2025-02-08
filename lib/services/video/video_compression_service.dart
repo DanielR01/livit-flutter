@@ -1,11 +1,16 @@
 import 'dart:io';
-import 'package:ffmpeg_kit_flutter/ffmpeg_kit.dart';
-import 'package:ffmpeg_kit_flutter/ffmpeg_kit_config.dart';
-import 'package:ffmpeg_kit_flutter/return_code.dart';
-import 'package:ffmpeg_kit_flutter/statistics.dart';
+// import 'package:ffmpeg_kit_flutter/ffmpeg_kit.dart';
+// import 'package:ffmpeg_kit_flutter/ffmpeg_kit_config.dart';
+// import 'package:ffmpeg_kit_flutter/return_code.dart';
+// import 'package:ffmpeg_kit_flutter/statistics.dart';
+import 'package:ffmpeg_kit_flutter_full_gpl/ffmpeg_kit.dart';
+import 'package:ffmpeg_kit_flutter_full_gpl/ffmpeg_kit_config.dart';
+import 'package:ffmpeg_kit_flutter_full_gpl/return_code.dart';
+import 'package:ffmpeg_kit_flutter_full_gpl/statistics.dart';
 import 'package:livit/services/firebase_storage/firebase_storage_constants.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as path;
+import 'package:flutter/foundation.dart';
 
 class VideoCompressionService {
   static const int targetBitrate = FirebaseStorageConstants.targetVideoBitrate;
@@ -16,49 +21,71 @@ class VideoCompressionService {
     required void Function(Statistics) onProgress,
     required void Function(File file) onCompleted,
     void Function(Object, StackTrace)? onError,
-    int? customBitrate,
-    String? customResolution,
   }) async {
     try {
       final tempDir = await getTemporaryDirectory();
       final outputPath = path.join(
         tempDir.path,
-        'compressed_${DateTime.now().day}_${DateTime.now().month}_${DateTime.now().year}_${DateTime.now().hour}_${DateTime.now().minute}_${DateTime.now().millisecondsSinceEpoch}.mp4',
+        'livitmediacompressed_${DateTime.now().millisecondsSinceEpoch}.mp4',
       );
 
-      final bitrate = customBitrate ?? targetBitrate;
-      final resolution = customResolution ?? targetResolution;
+      // Parse resolution into width and height
+      final dimensions = FirebaseStorageConstants.targetVideoResolution.split('x');
+      final width = dimensions[0];
+      final height = dimensions[1];
 
-      // Add progress parameter to command
-      final command = '-i "$inputFilePath" '
-          '-c:v h264 '
-          '-b:v ${bitrate}k '
-          '-vf scale=$resolution:force_original_aspect_ratio=decrease '
-          '-c:a aac '
-          '-b:a 128k '
-          '-movflags +faststart '
-          '-progress pipe:1 '
+      // Fixed command with proper string concatenation and quotes
+      final command = '-i "$inputFilePath" -c:v libx264 -preset fast -crf 23 '
+          '-b:v ${FirebaseStorageConstants.targetVideoBitrate}k '
+          '-maxrate ${(FirebaseStorageConstants.targetVideoBitrate * 1.5).round()}k '
+          '-bufsize ${(FirebaseStorageConstants.targetVideoBitrate * 2).round()}k '
+          '-vf scale=w=$width:h=$height:force_original_aspect_ratio=decrease,'
+          'pad=w=$width:h=$height:x=(ow-iw)/2:y=(oh-ih)/2:color=black '
+          '-profile:v high -level:v 4.0 -movflags +faststart '
+          '-c:a aac -b:a 192k -ar 48000 -y '
           '"$outputPath"';
 
-      final session = await FFmpegKit.executeAsync(command, 
-      (session) async {
-        final state = FFmpegKitConfig.sessionStateToString(await session.getState());
-        final code = await session.getReturnCode();
+      debugPrint('🎥 [VideoCompressionService] Starting compression');
+      debugPrint('📁 Input path: $inputFilePath');
+      debugPrint('📁 Output path: $outputPath');
+      debugPrint('⚙️ Command: $command');
 
-        if (ReturnCode.isSuccess(code)) {
-          onCompleted(File(outputPath));
-        } else {
-          if (onError != null) {
-            onError(
-              Exception('FFmpeg process exited with state $state and return code $code.\n${await session.getOutput()}'),
-              StackTrace.current,
-            );
+      final session = await FFmpegKit.executeAsync(
+        // "-y -i $inputFilePath -vcodec libx264 -crf 22 $outputPath",
+        command,
+        (session) async {
+          final state = FFmpegKitConfig.sessionStateToString(await session.getState());
+          final code = await session.getReturnCode();
+          final logs = await session.getOutput();
+
+          debugPrint('🎥 [VideoCompressionService] FFmpeg process completed');
+          debugPrint('📊 State: $state');
+          debugPrint('📊 Return code: $code');
+          debugPrint('📝 Logs: $logs');
+
+          if (ReturnCode.isSuccess(code)) {
+            final outputFile = File(outputPath);
+            if (await outputFile.exists()) {
+              onCompleted(outputFile);
+            } else {
+              if (onError != null) {
+                onError(
+                  Exception('Output file not found at: $outputPath'),
+                  StackTrace.current,
+                );
+              }
+            }
+          } else {
+            if (onError != null) {
+              onError(
+                Exception('FFmpeg process exited with state $state and return code $code.\n$logs'),
+                StackTrace.current,
+              );
+            }
           }
-          return;
-        }
-      },
-      null,
-      onProgress,
+        },
+        null,
+        onProgress,
       );
 
       final returnCode = await session.getReturnCode();
@@ -67,13 +94,9 @@ class VideoCompressionService {
         throw Exception('FFmpeg process failed: $logs');
       }
 
-      if (!await File(outputPath).exists()) {
-        throw Exception('Compressed file not found');
-      }
-
       return outputPath;
     } catch (e) {
-      print('Video compression failed: $e');
+      debugPrint('❌ [VideoCompressionService] Video compression failed: $e');
       return null;
     }
   }

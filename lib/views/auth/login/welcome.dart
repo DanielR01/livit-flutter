@@ -23,7 +23,7 @@ class _WelcomeViewState extends State<WelcomeView> {
   bool displayContent = false;
   bool displayLivit = false;
   bool animationsCompleted = false;
-  
+
   @override
   void initState() {
     super.initState();
@@ -115,7 +115,7 @@ class WelcomeMessage extends StatelessWidget {
           Button.main(
             text: 'Comenzar',
             isActive: animationsCompleted,
-            onPressed: () async {              
+            onTap: () async {
               Navigator.of(context).pushNamedAndRemoveUntil(
                 Routes.authRoute,
                 (route) => false,

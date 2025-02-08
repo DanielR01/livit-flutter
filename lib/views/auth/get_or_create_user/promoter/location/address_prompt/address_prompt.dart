@@ -1,16 +1,16 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:livit/cloud_models/location/location.dart';
+import 'package:livit/models/location/location.dart';
 import 'package:livit/constants/styles/container_style.dart';
 import 'package:livit/constants/styles/livit_text.dart';
 import 'package:livit/constants/styles/spaces.dart';
-import 'package:livit/services/firestore_storage/bloc/locations/location_bloc.dart';
-import 'package:livit/services/firestore_storage/bloc/locations/location_event.dart';
-import 'package:livit/services/firestore_storage/bloc/locations/location_state.dart';
-import 'package:livit/services/firestore_storage/bloc/users/user_bloc.dart';
-import 'package:livit/services/firestore_storage/bloc/users/user_event.dart';
-import 'package:livit/services/firestore_storage/bloc/users/user_state.dart';
+import 'package:livit/services/firestore_storage/bloc/location/location_bloc.dart';
+import 'package:livit/services/firestore_storage/bloc/location/location_event.dart';
+import 'package:livit/services/firestore_storage/bloc/location/location_state.dart';
+import 'package:livit/services/firestore_storage/bloc/user/user_bloc.dart';
+import 'package:livit/services/firestore_storage/bloc/user/user_event.dart';
+import 'package:livit/services/firestore_storage/bloc/user/user_state.dart';
 import 'package:livit/services/firestore_storage/firestore_storage/exceptions/firestore_exceptions.dart';
 import 'package:livit/utilities/bars_containers_fields/glass_container.dart';
 import 'package:livit/utilities/bars_containers_fields/keyboard_dismissible.dart';
@@ -126,7 +126,7 @@ class _AddressPromptState extends State<AddressPrompt> {
                                       isActive: isValid,
                                       text: isCloudLoading ? 'Continuando' : 'Continuar',
                                       isLoading: isCloudLoading,
-                                      onPressed: () {
+                                      onTap: () {
                                         debugPrint('📤 [AddressPrompt] Creating locations to cloud from local');
                                         BlocProvider.of<LocationBloc>(context).add(
                                           CreateLocationsToCloudFromLocal(context),
@@ -165,7 +165,7 @@ class _AddressPromptState extends State<AddressPrompt> {
               width: double.infinity,
               child: Button.secondary(
                 text: 'Añadir ubicación',
-                onPressed: () {
+                onTap: () {
                   BlocProvider.of<LocationBloc>(context).add(
                     CreateLocationLocally(
                       context,

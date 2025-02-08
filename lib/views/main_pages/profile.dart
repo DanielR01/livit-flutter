@@ -45,7 +45,7 @@ class _ProfileViewState extends State<ProfileView> {
                 Button.main(
                   text: 'Cerrar sesión',
                   isActive: true,
-                  onPressed: () async {
+                  onTap: () async {
                     final bool shouldLogOut = await showLogOutDialog(context: context);
                     if (shouldLogOut) {
                       _handleLogOut();
@@ -56,7 +56,7 @@ class _ProfileViewState extends State<ProfileView> {
                 Button.main(
                   text: 'Crear un nuevo evento',
                   isActive: true,
-                  onPressed: () {
+                  onTap: () {
                     Navigator.of(context).pushNamed(
                       Routes.createUpdateEventRoute,
                     );

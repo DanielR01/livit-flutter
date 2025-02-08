@@ -4,9 +4,9 @@ import 'dart:typed_data';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:livit/models/event/event.dart';
 import 'package:livit/constants/colors.dart';
 import 'package:livit/constants/styles/container_style.dart';
-import 'package:livit/services/firestore_storage/livit_event.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:path_provider/path_provider.dart';
 
@@ -48,7 +48,7 @@ class ShareEventButton extends StatelessWidget {
           style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.black),
         ),
         TextSpan(
-          text: 'Location: ${event.locations.first.name}\n',
+          text: 'Location: ${event.location.name}\n',
           style: const TextStyle(fontSize: 18, color: Colors.black),
         ),
       ],

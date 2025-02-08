@@ -44,7 +44,7 @@ class ErrorView extends StatelessWidget {
                 Button.main(
                   isActive: true,
                   text: 'Volver',
-                  onPressed: () {
+                  onTap: () {
                     if (Navigator.canPop(context)) {
                       Navigator.of(context).pop();
                     } else {

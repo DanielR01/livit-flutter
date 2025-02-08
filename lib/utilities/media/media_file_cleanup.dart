@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:livit/cloud_models/location/location_media_file.dart';
+import 'package:livit/models/media/location_media_file.dart';
 
 class MediaFileCleanup {
   static Future<void> deleteFile(File? file) async {
@@ -20,12 +20,12 @@ class MediaFileCleanup {
     await deleteFile(File(filePath));
   }
 
-  static Future<void> cleanupLocationMediaFile(LivitLocationMediaFile? mediaFile) async {
+  static Future<void> cleanupLocationMediaFile(LivitMediaFile? mediaFile) async {
     if (mediaFile?.filePath == null) return;
 
     await deleteFile(File(mediaFile!.filePath!));
 
-    if (mediaFile is LivitLocationMediaVideo) {
+    if (mediaFile is LivitMediaVideo) {
       if (mediaFile.cover.filePath == null) return;
       await deleteFile(File(mediaFile.cover.filePath!));
     }

@@ -121,7 +121,18 @@ class CouldNotCreateLocationFromDocumentException extends LocationException {
       : super(
           'No se pudo crear la ubicación desde el documento',
           code: 'could-not-create-location-from-document',
-          showToUser: true,
+          showToUser: false,
+          technicalDetails: details,
+          severity: ErrorSeverity.high,
+        );
+}
+
+class CouldNotCreateLocationProductFromDocumentException extends LocationException {
+  CouldNotCreateLocationProductFromDocumentException({String? details})
+      : super(
+          'No se pudo crear el producto desde el documento',
+          code: 'could-not-create-location-product-from-document',
+          showToUser: false,
           technicalDetails: details,
           severity: ErrorSeverity.high,
         );

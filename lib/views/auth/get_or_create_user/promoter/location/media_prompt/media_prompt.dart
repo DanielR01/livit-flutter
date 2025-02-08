@@ -1,13 +1,18 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:livit/cloud_models/location/location.dart';
-import 'package:livit/cloud_models/location/location_media.dart';
+import 'package:livit/constants/colors.dart';
+import 'package:livit/constants/enums.dart';
+import 'package:livit/constants/styles/button_style.dart';
+import 'package:livit/models/location/location.dart';
+import 'package:livit/models/location/location_media.dart';
 import 'package:livit/constants/styles/container_style.dart';
 import 'package:livit/constants/styles/livit_text.dart';
 import 'package:livit/constants/styles/spaces.dart';
-import 'package:livit/services/firestore_storage/bloc/locations/location_bloc.dart';
-import 'package:livit/services/firestore_storage/bloc/locations/location_event.dart';
-import 'package:livit/services/firestore_storage/bloc/locations/location_state.dart';
+import 'package:livit/services/exceptions/base_exception.dart';
+import 'package:livit/services/firestore_storage/bloc/location/location_bloc.dart';
+import 'package:livit/services/firestore_storage/bloc/location/location_event.dart';
+import 'package:livit/services/firestore_storage/bloc/location/location_state.dart';
 import 'package:livit/services/firestore_storage/firestore_storage/exceptions/firestore_exceptions.dart';
 import 'package:livit/utilities/bars_containers_fields/glass_container.dart';
 import 'package:livit/utilities/buttons/button.dart';
@@ -69,6 +74,8 @@ class _MediaPromptState extends State<MediaPrompt> {
             int uploadingLocations = 0;
             int uploadedLocations = 0;
             int errorLocations = 0;
+            int loadingLocations = 0;
+            int deletingLocations = 0;
             debugPrint('🔄 [LocationBloc] Loading states: ${state.loadingStates}');
             for (final location in state.loadingStates.entries) {
               if (location.key == 'cloud') continue;
@@ -76,16 +83,20 @@ class _MediaPromptState extends State<MediaPrompt> {
                 uploadingLocations++;
               } else if (location.value == LoadingState.verifying) {
                 verifyingLocations++;
-              } else if (location.value == LoadingState.loaded) {
+              } else if (location.value == LoadingState.uploaded) {
                 uploadedLocations++;
               } else if (location.value == LoadingState.error) {
                 errorLocations++;
+              } else if (location.value == LoadingState.loading) {
+                loadingLocations++;
+              } else if (location.value == LoadingState.deleting) {
+                deletingLocations++;
               }
             }
-            if (uploadingLocations == 0 && verifyingLocations != 0) {
+            if (verifyingLocations != 0) {
               continueButtonText = 'Verificando ${uploadedLocations + errorLocations + 1} de ${_locations.length}';
-            } else if (uploadingLocations != 0) {
-              continueButtonText = 'Subiendo ${uploadedLocations + 1} de ${_locations.length}';
+            } else if (uploadingLocations != 0 || deletingLocations != 0) {
+              continueButtonText = 'Subiendo ${uploadedLocations + errorLocations + 1} de ${_locations.length}';
             } else if (uploadedLocations == _locations.length && isCloudLoading) {
               continueButtonText = 'Completando';
             }
@@ -93,83 +104,89 @@ class _MediaPromptState extends State<MediaPrompt> {
             return Scaffold(
               body: LivitDisplayArea(
                 child: Center(
-                    child: GlassContainer(
-                      hasPadding: false,
-                      titleBarText: _locations.length > 1 ? 'Agrega multimedia de tus locaciones' : 'Agrega multimedia de tu locación',
-                      child: Flexible(
-                        child: Padding(
-                          padding: LivitContainerStyle.padding(padding: [0, 0, null, 0]),
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Padding(
-                                padding: LivitContainerStyle.padding(padding: [0, null, 0, null]),
-                                child: LivitText(
-                                  'Agrega videos o imagenes de tus locaciones para que tus clientes puedan verlos. La imagen o video principal sera la que se muestre como portada de tu locación.',
-                                ),
+                  child: GlassContainer(
+                    hasPadding: false,
+                    titleBarText: _locations.length > 1 ? 'Agrega multimedia de tus locaciones' : 'Agrega multimedia de tu locación',
+                    child: Flexible(
+                      child: Padding(
+                        padding: LivitContainerStyle.padding(padding: [0, 0, null, 0]),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Padding(
+                              padding: LivitContainerStyle.padding(padding: [0, null, 0, null]),
+                              child: LivitText(
+                                'Agrega videos o imagenes de tus locaciones para que tus clientes puedan verlos. La imagen o video principal sera la que se muestre como portada de tu locación.',
                               ),
-                              Flexible(
-                                child: Padding(
-                                  padding: EdgeInsets.symmetric(vertical: LivitContainerStyle.verticalPadding / 2),
-                                  child: LivitScrollbar(
-                                    thumbVisibility: true,
-                                    controller: _scrollController,
-                                    child: _locationsScroller(
-                                      scrollController: _scrollController,
-                                      failedLocations: state.failedLocations,
-                                    ),
+                            ),
+                            Flexible(
+                              child: Padding(
+                                padding: EdgeInsets.symmetric(vertical: LivitContainerStyle.verticalPadding / 2),
+                                child: LivitScrollbar(
+                                  thumbVisibility: true,
+                                  controller: _scrollController,
+                                  child: _locationsScroller(
+                                    scrollController: _scrollController,
+                                    failedLocations: state.failedLocations,
                                   ),
                                 ),
                               ),
-                              if (errorMessage != null) ...[
-                                Padding(
-                                  padding: LivitContainerStyle.padding(padding: [0, null, 0, null]),
-                                  child: LivitText(errorMessage, fontWeight: FontWeight.bold),
-                                ),
-                                LivitSpaces.s,
-                              ],
+                            ),
+                            if (errorMessage != null) ...[
                               Padding(
-                                padding: EdgeInsets.only(right: LivitContainerStyle.horizontalPadding),
+                                padding: LivitContainerStyle.padding(padding: [0, null, 0, null]),
                                 child: Row(
-                                  mainAxisAlignment: continueButtonText == null
-                                      ? state.loadingStates['cloud'] == LoadingState.skipping
-                                          ? MainAxisAlignment.start
-                                          : MainAxisAlignment.spaceBetween
-                                      : MainAxisAlignment.end,
-                                  mainAxisSize: MainAxisSize.max,
+                                  mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
-                                    if (continueButtonText == null)
-                                      Button.grayText(
-                                        deactivateSplash: true,
-                                        isActive: state.loadingStates['cloud'] != LoadingState.loading,
-                                        text: state.loadingStates['cloud'] == LoadingState.skipping ? 'Completando' : 'Completar más tarde',
-                                        isLoading: state.loadingStates['cloud'] == LoadingState.skipping,
-                                        rightIcon: Icons.arrow_forward_ios,
-                                        onPressed: () {
-                                          _locations =
-                                              _locations.map((location) => location.copyWith(media: LivitLocationMedia())).toList();
-                                          BlocProvider.of<LocationBloc>(context).add(SkipUpdateLocationsMediaToCloud(context));
-                                        },
-                                      ),
-                                    if (state.loadingStates['cloud'] != LoadingState.skipping)
-                                      Button.main(
-                                        isActive: isValid && state.loadingStates['cloud'] != LoadingState.skipping,
-                                        text: continueButtonText ?? 'Continuar',
-                                        isLoading: continueButtonText != null,
-                                        onPressed: () {
-                                          BlocProvider.of<LocationBloc>(context).add(UpdateLocationsMediaToCloudFromLocal(context));
-                                        },
-                                      ),
+                                    LivitText(
+                                      'Revisa que errores han ocurrido',
+                                      fontWeight: FontWeight.bold,
+                                    ),
                                   ],
                                 ),
                               ),
+                              LivitSpaces.s,
                             ],
-                          ),
+                            Padding(
+                              padding: EdgeInsets.only(right: LivitContainerStyle.horizontalPadding),
+                              child: Row(
+                                mainAxisAlignment: continueButtonText == null
+                                    ? state.loadingStates['cloud'] == LoadingState.skipping
+                                        ? MainAxisAlignment.start
+                                        : MainAxisAlignment.spaceBetween
+                                    : MainAxisAlignment.end,
+                                mainAxisSize: MainAxisSize.max,
+                                children: [
+                                  if (continueButtonText == null)
+                                    Button.grayText(
+                                      deactivateSplash: true,
+                                      isActive: state.loadingStates['cloud'] != LoadingState.loading,
+                                      text: state.loadingStates['cloud'] == LoadingState.skipping ? 'Completando' : 'Completar más tarde',
+                                      isLoading: state.loadingStates['cloud'] == LoadingState.skipping,
+                                      rightIcon: Icons.arrow_forward_ios,
+                                      onPressed: () {
+                                        _locations = _locations.map((location) => location.copyWith(media: LivitLocationMedia())).toList();
+                                        BlocProvider.of<LocationBloc>(context).add(SkipUpdateLocationsMediaToCloud(context));
+                                      },
+                                    ),
+                                  if (state.loadingStates['cloud'] != LoadingState.skipping)
+                                    Button.main(
+                                      isActive: isValid && state.loadingStates['cloud'] != LoadingState.skipping,
+                                      text: continueButtonText ?? 'Continuar',
+                                      isLoading: isCloudLoading,
+                                      onTap: () {
+                                        BlocProvider.of<LocationBloc>(context).add(UpdateLocationsMediaToCloudFromLocal(context));
+                                      },
+                                    ),
+                                ],
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ),
                   ),
-                
+                ),
               ),
             );
           } else {
@@ -182,7 +199,8 @@ class _MediaPromptState extends State<MediaPrompt> {
     );
   }
 
-  Widget _locationsScroller({required ScrollController scrollController, required Map<LivitLocation, String>? failedLocations}) {
+  Widget _locationsScroller(
+      {required ScrollController scrollController, required Map<LivitLocation, Map<String, LivitException>>? failedLocations}) {
     return ListView.builder(
       controller: scrollController,
       shrinkWrap: true,
@@ -192,7 +210,7 @@ class _MediaPromptState extends State<MediaPrompt> {
         final location = _locations.elementAt(index);
         return Padding(
             padding: LivitContainerStyle.padding(padding: [index != 0 ? 0 : null, null, null, null]),
-            child: LocationMediaInputField(location: location, errorMessage: failedLocations?[location]));
+            child: LocationMediaInputField(location: location, errors: failedLocations?[location]));
       },
     );
   }

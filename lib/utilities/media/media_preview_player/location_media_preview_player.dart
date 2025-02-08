@@ -5,19 +5,19 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:inview_notifier_list/inview_notifier_list.dart';
-import 'package:livit/cloud_models/location/location.dart';
-import 'package:livit/cloud_models/location/location_media.dart';
-import 'package:livit/cloud_models/location/location_media_file.dart';
+import 'package:livit/models/location/location.dart';
+import 'package:livit/models/location/location_media.dart';
+import 'package:livit/models/media/location_media_file.dart';
 import 'package:livit/constants/styles/bar_style.dart';
 import 'package:livit/constants/styles/button_style.dart';
 import 'package:livit/constants/styles/container_style.dart';
 import 'package:livit/constants/styles/livit_text.dart';
 import 'package:livit/constants/styles/spaces.dart';
-import 'package:livit/services/firestore_storage/bloc/locations/location_bloc.dart';
-import 'package:livit/services/firestore_storage/bloc/locations/location_event.dart';
-import 'package:livit/services/firestore_storage/bloc/locations/location_state.dart';
-import 'package:livit/utilities/background/main_background.dart';
+import 'package:livit/services/error_reporting/error_reporter.dart';
+import 'package:livit/services/files/temp_file_manager.dart';
+import 'package:livit/services/firestore_storage/bloc/location/location_bloc.dart';
+import 'package:livit/services/firestore_storage/bloc/location/location_event.dart';
+import 'package:livit/services/firestore_storage/bloc/location/location_state.dart';
 import 'package:livit/utilities/bars_containers_fields/bar.dart';
 import 'package:livit/utilities/bars_containers_fields/glass_container.dart';
 import 'package:livit/utilities/buttons/button.dart';
@@ -61,15 +61,16 @@ class _LocationMediaPreviewPlayerState extends State<LocationMediaPreviewPlayer>
   bool _isControlsVisible = true;
   Timer? _controlsTimer;
 
-  bool get isVideo => _isAddingMedia ? false : _allMedia.isNotEmpty && _allMedia[_currentIndex] is LivitLocationMediaVideo;
+  bool get isVideo => _isAddingMedia ? false : _allMedia.isNotEmpty && _allMedia[_currentIndex] is LivitMediaVideo;
 
   late final LocationBloc _locationBloc;
 
   late LivitLocation _location;
 
-  List<LivitLocationMediaFile> get _allMedia => [
-        if (_location.media?.mainFile != null) _location.media!.mainFile!,
-        ..._location.media?.secondaryFiles?.whereType<LivitLocationMediaFile>() ?? [],
+  final ErrorReporter _errorReporter = ErrorReporter();
+
+  List<LivitMediaFile> get _allMedia => [
+        ..._location.media?.files?.whereType<LivitMediaFile>() ?? [],
       ];
 
   @override
@@ -94,10 +95,8 @@ class _LocationMediaPreviewPlayerState extends State<LocationMediaPreviewPlayer>
             });
             return;
           }
-
           final LivitLocationMedia locationMedia = LivitLocationMedia(
-            mainFile: _currentIndex == 0 ? result : _allMedia[0],
-            secondaryFiles: _currentIndex == 0 ? _location.media?.secondaryFiles : [..._location.media?.secondaryFiles ?? [], result],
+            files: [..._allMedia, result],
           );
           if (mounted) {
             BlocProvider.of<LocationBloc>(context).add(
@@ -151,8 +150,8 @@ class _LocationMediaPreviewPlayerState extends State<LocationMediaPreviewPlayer>
     }
   }
 
-  void _replaceMedia(LivitLocationMediaFile? newMedia) {
-    final List<LivitLocationMediaFile?> auxMedia = [_location.media?.mainFile, ..._location.media?.secondaryFiles ?? []];
+  void _replaceMedia(LivitMediaFile? newMedia) async {
+    final List<LivitMediaFile?> auxMedia = _location.media?.files ?? [];
 
     if (newMedia != null) {
       auxMedia[_currentIndex] = newMedia;
@@ -161,8 +160,7 @@ class _LocationMediaPreviewPlayerState extends State<LocationMediaPreviewPlayer>
     }
 
     final LivitLocationMedia locationMedia = LivitLocationMedia(
-      mainFile: auxMedia.isNotEmpty ? auxMedia[0] : null,
-      secondaryFiles: auxMedia.length > 1 ? auxMedia.sublist(1) : [],
+      files: auxMedia,
     );
 
     if (mounted) {
@@ -170,12 +168,14 @@ class _LocationMediaPreviewPlayerState extends State<LocationMediaPreviewPlayer>
         UpdateLocationMediaLocally(context, location: _location, media: locationMedia),
       );
     }
+    await Future.delayed(const Duration(milliseconds: 500));
+    _initializeController();
   }
 
   void _addMedia() async {
     setState(() {
       _isAddingMedia = true;
-      if (_location.media?.mainFile != null) {
+      if (_location.media?.files?.isNotEmpty ?? false) {
         _currentIndex++;
       }
     });
@@ -188,16 +188,12 @@ class _LocationMediaPreviewPlayerState extends State<LocationMediaPreviewPlayer>
       return;
     }
 
-    final List<LivitLocationMediaFile?> auxMedia = [
-      if (_location.media?.mainFile != null) _location.media!.mainFile!,
-      ..._location.media?.secondaryFiles ?? []
-    ];
+    final List<LivitMediaFile?> auxMedia = _location.media?.files ?? [];
 
     auxMedia.insert(_currentIndex, result);
 
     final LivitLocationMedia locationMedia = LivitLocationMedia(
-      mainFile: auxMedia[0],
-      secondaryFiles: auxMedia.sublist(1),
+      files: auxMedia,
     );
 
     if (mounted) {
@@ -221,25 +217,25 @@ class _LocationMediaPreviewPlayerState extends State<LocationMediaPreviewPlayer>
     });
   }
 
-  Widget _buildMediaView(LivitLocationMediaFile media) {
-    final bool isVideo = media is LivitLocationMediaVideo;
-    if (isVideo) {
-    } else if (media.filePath != null) {
-      return Container(
-        clipBehavior: Clip.hardEdge,
-        decoration: BoxDecoration(
-          borderRadius: LivitContainerStyle.borderRadius / 2,
-        ),
-        child: Image.file(
-          File(media.filePath!),
-          fit: BoxFit.contain,
-        ),
-      );
-    }
-    return const Center(child: Icon(Icons.error));
-  }
+  // Widget _buildMediaView(LivitMediaFile media) {
+  //   final bool isVideo = media is LivitMediaVideo;
+  //   if (isVideo) {
+  //   } else if (media.filePath != null) {
+  //     return Container(
+  //       clipBehavior: Clip.hardEdge,
+  //       decoration: BoxDecoration(
+  //         borderRadius: LivitContainerStyle.borderRadius / 2,
+  //       ),
+  //       child: Image.file(
+  //         File(media.filePath!),
+  //         fit: BoxFit.contain,
+  //       ),
+  //     );
+  //   }
+  //   return const Center(child: Icon(Icons.error));
+  // }
 
-  Widget _buildVideoView(LivitLocationMediaVideo media) {
+  Widget _buildVideoView(LivitMediaVideo media) {
     return _isInitialized && _controller != null
         ? Container(
             clipBehavior: Clip.hardEdge,
@@ -277,7 +273,7 @@ class _LocationMediaPreviewPlayerState extends State<LocationMediaPreviewPlayer>
                                       Button.main(
                                         text: 'Ver video',
                                         isActive: true,
-                                        onPressed: () {
+                                        onTap: () {
                                           setState(() {
                                             _isShowingCover = false;
                                           });
@@ -297,7 +293,7 @@ class _LocationMediaPreviewPlayerState extends State<LocationMediaPreviewPlayer>
                                       Button.main(
                                         text: 'Ver portada',
                                         isActive: true,
-                                        onPressed: () {
+                                        onTap: () {
                                           setState(() {
                                             _isShowingCover = true;
                                             _controller?.pause();
@@ -395,7 +391,7 @@ class _LocationMediaPreviewPlayerState extends State<LocationMediaPreviewPlayer>
           );
   }
 
-  Widget _buildImageView(LivitLocationMediaImage media) {
+  Widget _buildImageView(LivitMediaImage media) {
     return Container(
       clipBehavior: Clip.hardEdge,
       decoration: BoxDecoration(
@@ -407,7 +403,7 @@ class _LocationMediaPreviewPlayerState extends State<LocationMediaPreviewPlayer>
 
   Widget _buildThumbnail(int index, bool isCurrent) {
     final media = _allMedia[index];
-    final bool isVideo = media is LivitLocationMediaVideo;
+    final bool isVideo = media is LivitMediaVideo;
     final String? path = isVideo ? media.cover.filePath : media.filePath;
 
     return Container(
@@ -483,9 +479,11 @@ class _LocationMediaPreviewPlayerState extends State<LocationMediaPreviewPlayer>
     );
   }
 
-  Future<LivitLocationMediaFile?> _pickMedia() async {
+  Future<LivitMediaFile?> _pickMedia() async {
     final XFile? pickedFile = await ImagePicker().pickMedia(imageQuality: 100);
     if (pickedFile == null) return null;
+
+    await TempFileManager.trackFile(pickedFile.path);
 
     final String fileExtension = pickedFile.path.split('.').last.toLowerCase();
     final bool isVideo = ['mp4', 'mov', 'avi'].contains(fileExtension);
@@ -493,9 +491,9 @@ class _LocationMediaPreviewPlayerState extends State<LocationMediaPreviewPlayer>
     try {
       if (isVideo) {
         if (mounted) {
-          return await Navigator.push<LivitLocationMediaVideo>(
+          return await Navigator.push<LivitMediaVideo>(
             context,
-            MaterialPageRoute<LivitLocationMediaVideo>(
+            MaterialPageRoute<LivitMediaVideo>(
               builder: (context) => LivitMediaEditor(videoPath: pickedFile.path),
             ),
           );
@@ -506,9 +504,17 @@ class _LocationMediaPreviewPlayerState extends State<LocationMediaPreviewPlayer>
         final croppedFilePath = await LivitMediaEditor.cropImage(pickedFile.path);
         if (croppedFilePath == null) return null;
         debugPrint('🖼️ [LocationMediaPreviewPlayer] Cropped image path: $croppedFilePath');
-        return LivitLocationMediaImage(filePath: croppedFilePath, url: '');
+        return LivitMediaImage(filePath: croppedFilePath, url: '');
       }
-    } finally {}
+    } catch (e) {
+      debugPrint('🖼️ [LocationMediaPreviewPlayer] Error picking media: $e');
+      _errorReporter.reportError(e, StackTrace.current);
+      return null;
+    } finally {
+      if (await File(pickedFile.path).exists()) {
+        await File(pickedFile.path).delete();
+      }
+    }
   }
 
   Widget _buildTopBar(String? errorMessage) {
@@ -529,7 +535,7 @@ class _LocationMediaPreviewPlayerState extends State<LocationMediaPreviewPlayer>
                     isActive: !_isAddingMedia && !_isReplacingMedia,
                     isIconBig: true,
                     icon: CupertinoIcons.chevron_back,
-                    onPressed: () async {
+                    onTap: () async {
                       if (!_locationBloc.areUnsavedChanges) {
                         if (mounted) Navigator.pop(context);
                         return;
@@ -550,7 +556,7 @@ class _LocationMediaPreviewPlayerState extends State<LocationMediaPreviewPlayer>
                       isShadowActive: true,
                       isIconBig: true,
                       icon: CupertinoIcons.add,
-                      onPressed: () {
+                      onTap: () {
                         _addMedia();
                       },
                     ),
@@ -558,7 +564,7 @@ class _LocationMediaPreviewPlayerState extends State<LocationMediaPreviewPlayer>
                     Button.main(
                       text: 'Guardar',
                       isActive: _locationBloc.areUnsavedChanges && !_isAddingMedia && !_isReplacingMedia,
-                      onPressed: () {
+                      onTap: () {
                         BlocProvider.of<LocationBloc>(context).add(SaveChangesLocally(context));
                       },
                     ),
@@ -587,14 +593,14 @@ class _LocationMediaPreviewPlayerState extends State<LocationMediaPreviewPlayer>
         children: [
           Button.icon(
             isActive: _allMedia.isNotEmpty && !_isAddingMedia && !_isReplacingMedia,
-            onPressed: () async {
-              if (_allMedia[_currentIndex] is LivitLocationMediaVideo) {
-                final result = await Navigator.push<LivitLocationMediaVideo>(
+            onTap: () async {
+              if (_allMedia[_currentIndex] is LivitMediaVideo) {
+                final result = await Navigator.push<LivitMediaVideo>(
                   context,
                   MaterialPageRoute(
                     builder: (context) => LivitMediaEditor(
                       videoPath: _allMedia[_currentIndex].filePath!,
-                      coverPath: (_allMedia[_currentIndex] as LivitLocationMediaVideo).cover.filePath!,
+                      coverPath: (_allMedia[_currentIndex] as LivitMediaVideo).cover.filePath!,
                     ),
                   ),
                 );
@@ -604,7 +610,7 @@ class _LocationMediaPreviewPlayerState extends State<LocationMediaPreviewPlayer>
               } else {
                 final croppedFilePath = await LivitMediaEditor.cropImage(_allMedia[_currentIndex].filePath!);
                 if (croppedFilePath == null) return;
-                _replaceMedia(LivitLocationMediaImage(filePath: croppedFilePath, url: ''));
+                _replaceMedia(LivitMediaImage(filePath: croppedFilePath, url: ''));
               }
             },
             icon: CupertinoIcons.slider_horizontal_3,
@@ -614,11 +620,11 @@ class _LocationMediaPreviewPlayerState extends State<LocationMediaPreviewPlayer>
             text: _isReplacingMedia ? 'Reemplazando' : 'Reemplazar',
             isLoading: _isReplacingMedia,
             isActive: _allMedia.isNotEmpty && !_isAddingMedia && !_isReplacingMedia,
-            onPressed: () async {
+            onTap: () async {
               setState(() {
                 _isReplacingMedia = true;
               });
-              final LivitLocationMediaFile? file = await _pickMedia();
+              final LivitMediaFile? file = await _pickMedia();
               if (file != null) {
                 _replaceMedia(file);
               }
@@ -629,7 +635,7 @@ class _LocationMediaPreviewPlayerState extends State<LocationMediaPreviewPlayer>
           ),
           Button.icon(
             isActive: _allMedia.isNotEmpty && !_isAddingMedia && !_isReplacingMedia,
-            onPressed: () {
+            onTap: () {
               _deleteCurrentMedia();
             },
             icon: CupertinoIcons.delete,
@@ -686,7 +692,7 @@ class _LocationMediaPreviewPlayerState extends State<LocationMediaPreviewPlayer>
                   Button.main(
                     text: 'Cancelar',
                     isActive: true,
-                    onPressed: () => Navigator.of(context).pop(false),
+                    onTap: () => Navigator.of(context).pop(false),
                   ),
                   Button.redText(
                     text: 'Descartar',
@@ -799,11 +805,11 @@ class _LocationMediaPreviewPlayerState extends State<LocationMediaPreviewPlayer>
                                               ),
                                             );
                                           }
-                                          final LivitLocationMediaFile media = _allMedia[index];
-                                          if (media is LivitLocationMediaVideo) {
+                                          final LivitMediaFile media = _allMedia[index];
+                                          if (media is LivitMediaVideo) {
                                             return _buildVideoView(media);
                                           } else {
-                                            return _buildImageView(media as LivitLocationMediaImage);
+                                            return _buildImageView(media as LivitMediaImage);
                                           }
                                         },
                                       ),

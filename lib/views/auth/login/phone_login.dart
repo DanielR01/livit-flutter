@@ -169,7 +169,7 @@ class _PhoneLoginViewState extends State<PhoneLoginView> {
                                             text: _isSendingCode ? 'Enviando código' : 'Enviar código',
                                             isActive: isPhoneValid,
                                             isLoading: _isSendingCode,
-                                            onPressed: () {
+                                            onTap: () {
                                               context.read<AuthBloc>().add(
                                                     AuthEventSendOtpCode(
                                                       context,

@@ -23,7 +23,7 @@ enum ButtonType {
 class Button extends StatefulWidget {
   final bool isIconBig;
   final String? text;
-  final VoidCallback onPressed;
+  final VoidCallback onTap;
   final bool isActive;
   final bool? forceOnPressed;
   final bool isLoading;
@@ -47,7 +47,7 @@ class Button extends StatefulWidget {
     super.key,
     required this.text,
     required this.isActive,
-    required this.onPressed,
+    required this.onTap,
     this.isLoading = false,
     this.width,
     this.blueStyle = false,
@@ -86,7 +86,7 @@ class Button extends StatefulWidget {
       case ButtonType.main:
         return Button.main(
           text: text,
-          onPressed: onPressed,
+          onTap: onPressed,
           isActive: isActive,
           blueStyle: blueStyle ?? false,
           forceOnPressed: forceOnPressed,
@@ -100,7 +100,7 @@ class Button extends StatefulWidget {
       case ButtonType.secondary:
         return Button.secondary(
           text: text,
-          onPressed: onPressed,
+          onTap: onPressed,
           isActive: isActive,
           blueStyle: blueStyle ?? false,
           forceOnPressed: forceOnPressed,
@@ -200,7 +200,7 @@ class Button extends StatefulWidget {
       case ButtonType.icon:
         return Button.icon(
           isActive: isActive,
-          onPressed: onPressed,
+          onTap: onPressed,
           icon: rightIcon,
           forceOnPressed: forceOnPressed,
           boxShadow: boxShadow,
@@ -213,7 +213,7 @@ class Button extends StatefulWidget {
   factory Button.main({
     required String text,
     required bool isActive,
-    required VoidCallback onPressed,
+    required VoidCallback onTap,
     double? width,
     bool blueStyle = false,
     bool isLoading = false,
@@ -227,7 +227,7 @@ class Button extends StatefulWidget {
     Color activeBackgroundColor = blueStyle ? LivitColors.mainBlueActive : LivitColors.whiteActive;
     return Button(
       text: text,
-      onPressed: onPressed,
+      onTap: onTap,
       isActive: isActive,
       blueStyle: blueStyle,
       isShadowActive: false,
@@ -251,7 +251,7 @@ class Button extends StatefulWidget {
   factory Button.secondary({
     required String text,
     required bool isActive,
-    required VoidCallback onPressed,
+    required VoidCallback onTap,
     bool isLoading = false,
     double? width,
     bool blueStyle = false,
@@ -264,7 +264,7 @@ class Button extends StatefulWidget {
   }) {
     return Button(
       text: text,
-      onPressed: onPressed,
+      onTap: onTap,
       isActive: isActive,
       blueStyle: blueStyle,
       isShadowActive: true,
@@ -298,7 +298,7 @@ class Button extends StatefulWidget {
   }) {
     return Button(
       text: null,
-      onPressed: onPressed,
+      onTap: onPressed,
       isActive: isActive,
       blueStyle: false,
       isShadowActive: true,
@@ -328,7 +328,7 @@ class Button extends StatefulWidget {
   }) {
     return Button(
       text: text,
-      onPressed: onPressed,
+      onTap: onPressed,
       isActive: isActive,
       blueStyle: blueStyle,
       isShadowActive: true,
@@ -364,7 +364,7 @@ class Button extends StatefulWidget {
     return Button(
       //activeBackgroundColor: LivitColors.red,
       text: text,
-      onPressed: onPressed,
+      onTap: onPressed,
       isActive: isActive,
       blueStyle: false,
       isShadowActive: false,
@@ -397,7 +397,7 @@ class Button extends StatefulWidget {
   }) {
     return Button(
       text: text,
-      onPressed: onPressed,
+      onTap: onPressed,
       isActive: isActive,
       blueStyle: false,
       isShadowActive: false,
@@ -429,7 +429,7 @@ class Button extends StatefulWidget {
   }) {
     return Button(
       text: text,
-      onPressed: onPressed,
+      onTap: onPressed,
       isActive: isActive,
       blueStyle: false,
       isShadowActive: false,
@@ -459,7 +459,7 @@ class Button extends StatefulWidget {
   }) {
     return Button(
       text: text,
-      onPressed: onPressed,
+      onTap: onPressed,
       isActive: isActive,
       blueStyle: false,
       isShadowActive: false,
@@ -493,7 +493,7 @@ class Button extends StatefulWidget {
   }) {
     return Button(
       text: text,
-      onPressed: onPressed,
+      onTap: onPressed,
       isActive: isActive,
       blueStyle: false,
       isShadowActive: false,
@@ -513,7 +513,7 @@ class Button extends StatefulWidget {
 
   factory Button.icon({
     required bool isActive,
-    required VoidCallback onPressed,
+    required VoidCallback onTap,
     IconData? icon,
     bool? forceOnPressed,
     List<BoxShadow>? boxShadow,
@@ -521,11 +521,14 @@ class Button extends StatefulWidget {
     bool isIconBig = true,
     Color? activeColor,
     Color? inactiveColor,
+    Color? activeBackgroundColor,
+    Color? inactiveBackgroundColor,
     bool isShadowActive = false,
+    bool isLoading = false,
   }) {
     return Button(
       text: null,
-      onPressed: onPressed,
+      onTap: onTap,
       isActive: isActive,
       blueStyle: false,
       isShadowActive: isShadowActive,
@@ -538,7 +541,9 @@ class Button extends StatefulWidget {
       isIconBig: isIconBig,
       activeTextColor: activeColor ?? LivitColors.whiteActive,
       inactiveTextColor: inactiveColor ?? LivitColors.whiteInactive,
-      inactiveBackgroundColor: LivitColors.mainBlack,
+      activeBackgroundColor: activeBackgroundColor ?? LivitColors.mainBlack,
+      inactiveBackgroundColor: inactiveBackgroundColor ?? LivitColors.mainBlack,
+      isLoading: isLoading,
     );
   }
 
@@ -599,9 +604,9 @@ class _ButtonState extends State<Button> {
                 highlightColor: widget.deactivateSplash ? Colors.transparent : null,
                 borderRadius: LivitButtonStyle.radius,
                 onTap: (widget.forceOnPressed ?? false)
-                    ? widget.onPressed
+                    ? widget.onTap
                     : (widget.isActive && !widget.isLoading)
-                        ? widget.onPressed
+                        ? widget.onTap
                         : null,
                 child: Padding(
                   padding: LivitButtonStyle.padding,

@@ -1,12 +1,12 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:livit/cloud_models/location/location.dart';
-import 'package:livit/cloud_models/location/private_data/location_private_data.dart';
-import 'package:livit/cloud_models/user/cloud_user.dart';
-import 'package:livit/cloud_models/user/private_data.dart';
+import 'package:livit/models/event/event.dart';
+import 'package:livit/models/location/location.dart';
+import 'package:livit/models/location/private_data/location_private_data.dart';
+import 'package:livit/models/ticket/ticket.dart';
+import 'package:livit/models/user/cloud_user.dart';
+import 'package:livit/models/user/private_data.dart';
 import 'package:livit/constants/enums.dart';
 import 'package:livit/services/firestore_storage/firestore_storage/exceptions/firestore_exceptions.dart';
-import 'package:livit/services/firestore_storage/livit_event.dart';
-import 'package:livit/services/firestore_storage/livit_ticket.dart';
 
 class Collections {
   static final Collections _shared = Collections._sharedInstance();
