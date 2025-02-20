@@ -155,6 +155,6 @@ class LivitLocation {
 
   @override
   String toString() {
-    return 'Location(name: $name, userId: $userId, address: $address, geopoint: $geopoint, department: $state, city: $city, description: $description, media: $media, createdAt: $createdAt)';
+    return 'Location(id: $id, name: $name, userId: $userId, address: $address, geopoint: $geopoint, department: $state, city: $city, description: $description, media: $media, createdAt: $createdAt)';
   }
 }

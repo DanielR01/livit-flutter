@@ -14,7 +14,7 @@ import 'package:livit/services/firebase_storage/storage_service/file_to_upload.d
 import 'package:livit/services/firebase_storage/storage_service/storage_reference.dart';
 import 'package:livit/services/firebase_storage/storage_service/storage_service.dart';
 import 'package:livit/services/firebase_storage/storage_service/storage_service_exceptions.dart';
-import 'package:livit/services/firestore_storage/cloud_functions/firestore_cloud_functions.dart';
+import 'package:livit/services/cloud_functions/firestore_cloud_functions.dart';
 
 class StorageBloc extends Bloc<StorageEvent, StorageState> {
   final StorageService _storageService;

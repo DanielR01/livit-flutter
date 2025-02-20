@@ -250,7 +250,7 @@ class _LocationAddressPromptFieldState extends State<LocationAddressPromptField>
     isLocationValid = locationBloc.isLocationValid(widget.location);
     return LivitBar(
       noPadding: true,
-      shadowType: isLocationValid['isValidWithoutMedia'] as bool ? ShadowType.weak : ShadowType.strong,
+      shadowType: ShadowType.none, // isLocationValid['isValidWithoutMedia'] as bool ? ShadowType.weak : ShadowType.strong,
       child: Column(
         children: [
           LivitBar(
@@ -336,6 +336,7 @@ class _LocationAddressPromptFieldState extends State<LocationAddressPromptField>
                     ),
                   ),
                   Button.grayText(
+                    deactivateSplash: true,
                     text: isEditing ? 'Ocultar' : 'Editar',
                     isActive: true,
                     rightIcon: isEditing ? CupertinoIcons.chevron_up : CupertinoIcons.chevron_down,

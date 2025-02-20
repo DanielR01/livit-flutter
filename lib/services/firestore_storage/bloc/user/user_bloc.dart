@@ -3,7 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:livit/models/user/cloud_user.dart';
 import 'package:livit/models/user/private_data.dart';
 import 'package:livit/services/background/background_events.dart';
-import 'package:livit/services/firestore_storage/cloud_functions/firestore_cloud_functions.dart';
+import 'package:livit/services/cloud_functions/firestore_cloud_functions.dart';
 import 'package:livit/services/firestore_storage/firestore_storage/firestore_storage.dart';
 import 'package:livit/services/auth/auth_provider.dart';
 import 'package:livit/services/firestore_storage/bloc/user/user_event.dart';

@@ -2,7 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:livit/utilities/bars_containers_fields/navigation_bar.dart';
 import 'package:livit/views/main_pages/promoters/event_dashboard.dart';
-import 'package:livit/views/main_pages/promoters/location_detail.dart';
+import 'package:livit/views/main_pages/promoters/location_detail/location_detail.dart';
 import 'package:livit/views/main_pages/promoters/promoter_profile.dart';
 import 'package:livit/views/main_pages/promoters/ticket_dashboard.dart';
 

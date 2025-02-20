@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -181,7 +183,7 @@ class _AddressPromptState extends State<AddressPrompt> {
         }
         final location = _locations.elementAt(index);
         return Padding(
-          padding: LivitContainerStyle.padding(padding: [index != 0 ? 0 : null, null, null, null]),
+          padding: LivitContainerStyle.padding(padding: [(index != 0 && Platform.isIOS) ? null : 0, null, null, null]),
           child: LocationAddressPromptField(location: location),
         );
       },

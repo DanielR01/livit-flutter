@@ -22,9 +22,10 @@ import 'package:livit/services/firebase_storage/bloc/storage_bloc.dart';
 import 'package:livit/services/firebase_storage/storage_service/storage_service.dart';
 import 'package:livit/services/firestore_storage/bloc/event/event_bloc.dart';
 import 'package:livit/services/firestore_storage/bloc/location/location_bloc.dart';
+import 'package:livit/services/firestore_storage/bloc/product/product_bloc.dart';
 import 'package:livit/services/firestore_storage/bloc/ticket/ticket_bloc.dart';
 import 'package:livit/services/firestore_storage/bloc/user/user_bloc.dart';
-import 'package:livit/services/firestore_storage/cloud_functions/firestore_cloud_functions.dart';
+import 'package:livit/services/cloud_functions/firestore_cloud_functions.dart';
 import 'package:livit/services/firestore_storage/firestore_storage/firestore_storage.dart';
 import 'package:livit/services/navigation/navigation_service.dart';
 import 'package:livit/utilities/navigation/transitions/rootwidget.dart';
@@ -212,6 +213,11 @@ class _StartPageState extends State<_StartPage> with WidgetsBindingObserver {
             locationBloc: context.read<LocationBloc>(),
             userBloc: context.read<UserBloc>(),
             backgroundBloc: context.read<BackgroundBloc>(),
+          ),
+        ),
+        BlocProvider<ProductBloc>(
+          create: (context) => ProductBloc(
+            firestoreStorageService: FirestoreStorageService(),
           ),
         ),
       ],

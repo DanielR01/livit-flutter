@@ -9,6 +9,8 @@ class FetchTicketsCountByDate extends TicketEvent {
   FetchTicketsCountByDate({required this.startDate, required this.endDate});
 }
 
+class RefreshTicketsCountByDate extends TicketEvent {}
+
 class FetchTicketsCountByEvent extends TicketEvent {
   final String eventId;
   final Timestamp? startDate;

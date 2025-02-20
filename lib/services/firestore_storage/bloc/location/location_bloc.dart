@@ -21,7 +21,7 @@ import 'package:livit/services/firestore_storage/bloc/location/location_state.da
 import 'package:livit/services/firestore_storage/bloc/user/user_bloc.dart';
 import 'package:livit/services/firestore_storage/bloc/user/user_event.dart';
 import 'package:livit/services/firestore_storage/bloc/user/user_state.dart';
-import 'package:livit/services/firestore_storage/cloud_functions/firestore_cloud_functions.dart';
+import 'package:livit/services/cloud_functions/firestore_cloud_functions.dart';
 import 'package:livit/services/firestore_storage/firestore_storage/exceptions/locations_exceptions.dart';
 import 'package:livit/services/firestore_storage/firestore_storage/firestore_storage.dart';
 import 'package:livit/services/navigation/navigation_service.dart';
@@ -697,7 +697,7 @@ class LocationBloc extends Bloc<LocationEvent, LocationState> {
           }
         }
       }
-      
+
       bool atLeastOneLoaded = false;
       for (final loadingState in _loadingStates.values) {
         if (loadingState == LoadingState.uploaded) {

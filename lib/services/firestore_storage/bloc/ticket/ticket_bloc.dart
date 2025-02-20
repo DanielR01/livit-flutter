@@ -1,4 +1,5 @@
 // lib/bloc/ticket/ticket_bloc.dart
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:livit/constants/enums.dart';
@@ -23,6 +24,8 @@ class TicketBloc extends Bloc<TicketEvent, TicketState> {
   Map<String, LoadingState> loadingStates = {};
   Map<String, int> ticketCounts = {};
   Map<String, String> errorMessages = {};
+
+  List<Timestamp>? _selectedDateRange;
   TicketBloc(
       {required FirestoreStorageService firestoreStorage,
       required LocationBloc locationBloc,
@@ -36,17 +39,18 @@ class TicketBloc extends Bloc<TicketEvent, TicketState> {
         super(TicketInitial()) {
     on<FetchTicketsCountByDate>(_onFetchTicketsCountByDate);
     on<FetchTicketsCountByEvent>(_onFetchTicketsCountByEvent);
+    on<RefreshTicketsCountByDate>(_onRefreshTicketsCountByDate);
   }
 
   Future<void> _onFetchTicketsCountByDate(
     FetchTicketsCountByDate event,
     Emitter<TicketState> emit,
   ) async {
-    //_backgroundBloc.add(BackgroundStartLoadingAnimation());
     debugPrint('🛠️ [TicketBloc] Fetching tickets count for ${event.startDate} to ${event.endDate}');
     try {
       _ensureLocationIsSet();
       _ensureUserIsPromoter();
+      _selectedDateRange = [event.startDate, event.endDate];
       loadingStates[_locationBloc.currentLocation!.id] = LoadingState.loading;
       emit(TicketCountLoaded(
         loadingStates: loadingStates,
@@ -77,6 +81,20 @@ class TicketBloc extends Bloc<TicketEvent, TicketState> {
       _errorReporter.reportError(e, StackTrace.current);
     } finally {
       _backgroundBloc.add(BackgroundStopLoadingAnimation());
+    }
+  }
+
+  Future<void> _onRefreshTicketsCountByDate(
+    RefreshTicketsCountByDate event,
+    Emitter<TicketState> emit,
+  ) async {
+    if (_selectedDateRange?.isNotEmpty == true) {
+      add(FetchTicketsCountByDate(startDate: _selectedDateRange![0], endDate: _selectedDateRange![1]));
+    } else {
+      add(FetchTicketsCountByDate(
+        startDate: Timestamp.fromDate(DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day)),
+        endDate: Timestamp.fromDate(DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day + 1)),
+      ));
     }
   }
 

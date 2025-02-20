@@ -22,7 +22,7 @@ class InvalidCredentialsAuthException extends AuthException {
 class NotVerifiedEmailAuthException extends AuthException {
   NotVerifiedEmailAuthException({String? details})
       : super(
-          'Email no verificado',
+          'Verifica tu correo electrónico',
           showToUser: true,
           technicalDetails: details,
         );
@@ -42,7 +42,7 @@ class InvalidEmailAuthException extends AuthException {
       : super(
           'Email inválido',
           showToUser: true,
-          technicalDetails: details,          
+          technicalDetails: details,
         );
 }
 

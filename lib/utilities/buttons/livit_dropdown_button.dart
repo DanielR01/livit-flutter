@@ -144,6 +144,7 @@ class _LivitDropdownButtonState extends State<LivitDropdownButton> {
                       controller: _searchController,
                       hint: widget.defaultText,
                       onChanged: (value) => _filterEntries(_searchController.text, dialogSetState),
+                      disableCheckValidity: true,
                     ),
                     LivitSpaces.m,
                   ],

@@ -21,4 +21,14 @@ class LivitPrice {
       'currency': currency,
     };
   }
+
+    String formatPrice() {
+    final hasDecimal = amount % 1 != 0;
+    final parts = amount.toString().split('.');
+    final wholePart = parts[0].replaceAllMapped(
+      RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+      (match) => '${match[1]}.',
+    );
+    return hasDecimal ? '$wholePart,${parts[1]}' : wholePart;
+  }
 }

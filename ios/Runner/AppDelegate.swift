@@ -25,12 +25,19 @@ import FirebaseAppCheck
             fatalError("rootViewController is not type FlutterViewController")
         }
         
-        guard let registrar = controller.registrar(forPlugin: "LivitAppleMapView") else {
-            fatalError("Failed to retrieve registrar for LivitAppleMapView")
+        guard let promptRegistrar = controller.registrar(forPlugin: "LivitAppleMapPrompt") else {
+            fatalError("Failed to retrieve registrar for LivitAppleMapPrompt")
+        }
+
+        guard let viewerRegistrar = controller.registrar(forPlugin: "LivitAppleMapViewer") else {
+            fatalError("Failed to retrieve registrar for LivitAppleMapViewer")
         }
         
-        let mapViewFactory = LivitAppleMapViewFactory(messenger: registrar.messenger())
-        registrar.register(mapViewFactory, withId: "LivitAppleMapView")
+        let mapPromptFactory = LivitAppleMapPromptFactory(messenger: promptRegistrar.messenger())
+        promptRegistrar.register(mapPromptFactory, withId: "LivitAppleMapPrompt")
+
+        let viewerFactory = LivitAppleMapViewerFactory(messenger: viewerRegistrar.messenger())
+        viewerRegistrar.register(viewerFactory, withId: "LivitAppleMapViewer")
 
         // Register location search service
         let locationSearchChannel = FlutterMethodChannel(

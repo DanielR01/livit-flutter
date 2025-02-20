@@ -18,7 +18,7 @@ import 'package:livit/utilities/bars_containers_fields/bar.dart';
 import 'package:livit/utilities/bars_containers_fields/glass_container.dart';
 import 'package:livit/utilities/buttons/button.dart';
 import 'package:livit/utilities/livit_scrollbar.dart';
-import 'package:livit/utilities/map_viewer.dart';
+import 'package:livit/utilities/map_prompt.dart';
 
 class MapLocationPrompt extends StatefulWidget {
   const MapLocationPrompt({super.key});
@@ -426,7 +426,7 @@ class _MapLocationPromptState extends State<MapLocationPrompt> {
                             child: Container(
                               clipBehavior: Clip.hardEdge,
                               decoration: LivitContainerStyle.decoration,
-                              child: LivitMapView(
+                              child: LivitMapPrompt(
                                 zoom: _shouldZoomToUserLocation ? 15.0 : 12.0,
                                 shouldUpdate: _shouldUpdate,
                                 shouldReinitialize: _shouldReinitialize,

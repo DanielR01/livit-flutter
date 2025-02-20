@@ -11,6 +11,7 @@ import 'package:livit/services/auth/bloc/auth_state.dart';
 import 'package:livit/services/background/background_bloc.dart';
 import 'package:livit/services/background/background_events.dart';
 import 'package:livit/services/error_reporting/error_reporter.dart';
+import 'package:livit/services/exceptions/base_exception.dart';
 
 class AuthBloc extends Bloc<AuthEvent, AuthState> {
   final AuthProvider _provider;
@@ -42,7 +43,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
     on<AuthEventLogInWithEmailAndPassword>(
       (event, emit) async {
-        debugPrint('🔑 Attempting email login: ${event.email}');
+        debugPrint('🔑 [AuthBloc] Attempting email login: ${event.email}');
         final context = event.context;
 
         BlocProvider.of<BackgroundBloc>(context, listen: false).add(BackgroundStartLoadingAnimation());
@@ -56,11 +57,11 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         try {
           final user = await _provider.logInWithEmailAndPassword(email: email, password: password);
 
-          debugPrint('✅ Email login successful: ${user.id}');
+          debugPrint('✅ [AuthBloc] Email login successful: ${user.id}');
           emit(AuthStateLoggedIn(user: user, userType: event.userType));
         } catch (e) {
-          debugPrint('❌ Email login failed: $e');
-          final authException = _mapFirebaseToAuthException(e);
+          debugPrint('❌ [AuthBloc] Email login failed: $e');
+          final authException = _mapFirebaseToAuthException(e as Exception);
           await _handleError(authException);
           emit(AuthStateLoggedOut(exception: authException));
         } finally {
@@ -73,16 +74,16 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
     on<AuthEventLogOut>(
       (event, emit) async {
-        debugPrint('🚪 Logging out...');
+        debugPrint('🚪 [AuthBloc] Logging out...');
         final context = event.context;
         BlocProvider.of<BackgroundBloc>(context, listen: false).add(BackgroundStartLoadingAnimation());
         emit(const AuthStateLoggingOut());
         try {
           await _provider.logOut();
-          debugPrint('✅ Logout successful');
+          debugPrint('✅ [AuthBloc] Logout successful');
           emit(const AuthStateLoggedOut());
         } catch (e) {
-          debugPrint('❌ Logout failed: $e');
+          debugPrint('❌ [AuthBloc] Logout failed: $e');
           _emitError(emit, e as Exception);
         } finally {
           if (context.mounted) {
@@ -94,7 +95,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
     on<AuthEventSendOtpCode>(
       (event, emit) async {
-        debugPrint('📱 Sending OTP to: +${event.phoneCode} ${event.phoneNumber}');
+        debugPrint('📱 [AuthBloc] Sending OTP to: +${event.phoneCode} ${event.phoneNumber}');
         final context = event.context;
         BlocProvider.of<BackgroundBloc>(context, listen: false).add(BackgroundStartLoadingAnimation());
         emit(AuthStateSendingCode(isResending: event.isResending));
@@ -104,11 +105,11 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
           final completer = Completer<AuthState>();
           await _provider.sendOtpCode(
             onVerificationCompleted: (credential) {
-              debugPrint('✅ Phone verification completed automatically');
+              debugPrint('✅ [AuthBloc] Phone verification completed automatically');
               completer.complete(const AuthStateLoggedOut());
             },
             onVerificationFailed: (error) async {
-              debugPrint('❌ Phone verification failed: ${error.code}');
+              debugPrint('❌ [AuthBloc] Phone verification failed: ${error.code}');
               final authException = _mapFirebaseToAuthException(error);
               await _handleError(authException);
               completer.complete(AuthStateCodeSentError(
@@ -116,13 +117,13 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
               ));
             },
             onCodeSent: (String verificationId, int? forceResendingToken) {
-              debugPrint('📤 OTP code sent successfully');
+              debugPrint('📤 [AuthBloc] OTP code sent successfully');
               completer.complete(AuthStateCodeSent(verificationId: verificationId));
             },
             phoneCode: phoneCode,
             phoneNumber: phoneNumber,
             onCodeAutoRetrievalTimeout: (verificationId) {
-              debugPrint('⏰ OTP code auto-retrieval timeout');
+              debugPrint('⏰ [AuthBloc] OTP code auto-retrieval timeout');
               if (!completer.isCompleted) {
                 completer.complete(const AuthStateLoggedOut());
               }
@@ -131,8 +132,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
           final result = await completer.future;
           emit(result);
         } catch (e) {
-          debugPrint('❌ Error sending OTP: $e');
-          final authException = _mapFirebaseToAuthException(e);
+          debugPrint('❌ [AuthBloc] Error sending OTP: $e');
+          final authException = _mapFirebaseToAuthException(e as Exception);
           await _handleError(authException);
           emit(AuthStateLoggedOut(exception: authException));
         } finally {
@@ -204,7 +205,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         emit(const AuthStateEmailVerificationSent());
       } catch (e) {
         debugPrint('❌ [AuthBloc] Failed to send email verification: $e');
-        final authException = _mapFirebaseToAuthException(e);
+        final authException = _mapFirebaseToAuthException(e as Exception);
         await _handleError(authException);
         emit(AuthStateEmailVerificationSentError(exception: authException));
       } finally {
@@ -228,7 +229,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         emit(const AuthStateRegistered());
       } catch (e) {
         debugPrint('❌ [AuthBloc] Registration failed: $e');
-        final authException = _mapFirebaseToAuthException(e);
+        final authException = _mapFirebaseToAuthException(e as Exception);
         await _handleError(authException);
         emit(AuthStateRegisterError(exception: authException));
       } finally {
@@ -250,7 +251,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         emit(const AuthStatePasswordResetSent());
       } catch (e) {
         debugPrint('❌ [AuthBloc] Failed to send password reset: $e');
-        final authException = _mapFirebaseToAuthException(e);
+        final authException = _mapFirebaseToAuthException(e as Exception);
         await _handleError(authException);
         emit(AuthStatePasswordResetSentError(exception: authException));
       } finally {
@@ -261,13 +262,15 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     });
   }
 
-  AuthException _mapFirebaseToAuthException(dynamic error) {
-    debugPrint('🔄 [AuthBloc] Mapping Firebase error: ${error.code}');
+  AuthException _mapFirebaseToAuthException(Exception error) {
+    if (error is AuthException) {
+      return error;
+    }
     if (error is! FirebaseAuthException) {
       debugPrint('⚠️ [AuthBloc] Unknown error type: ${error.runtimeType}');
       return GenericAuthException(details: error.toString());
     }
-
+    debugPrint('🔄 [AuthBloc] Mapping Firebase error: ${error.code}');
     final exception = _createAuthException(error);
     debugPrint('📝 [AuthBloc] Mapped to: ${exception.runtimeType}');
     return exception;

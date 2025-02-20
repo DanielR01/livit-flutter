@@ -63,7 +63,7 @@ class _GetOrCreateUserViewState extends State<GetOrCreateUserView> {
       return isCompleted;
     }
     debugPrint('🔄 [GetOrCreateUserView] Profile is not completed');
-    return false;
+      return false;
   }
 
   Widget _handleNoCurrentUser(NoCurrentUser noCurrentUser) {
@@ -235,12 +235,12 @@ class _GetOrCreateUserViewState extends State<GetOrCreateUserView> {
         }
         try {
           debugPrint('🔄 [GetOrCreateUserView] Building state: ${userState.runtimeType}');
-          switch (userState) {
-            case CurrentUser():
+        switch (userState) {
+          case CurrentUser():
               return _handleCurrentUser(userState);
             case NoCurrentUser():
               return _handleNoCurrentUser(userState);
-            default:
+                        default:
               debugPrint('❌ [GetOrCreateUserView] Unknown state type');
               throw GenericFirestoreException(details: 'Unknown state type');
           }

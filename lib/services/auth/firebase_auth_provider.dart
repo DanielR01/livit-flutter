@@ -1,5 +1,6 @@
 // import 'package:cloud_firestore/cloud_firestore.dart';
 // import 'package:cloud_functions/cloud_functions.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:livit/services/auth/auth_user.dart';
 import 'package:livit/services/auth/auth_exceptions.dart';
@@ -117,12 +118,15 @@ class FirebaseAuthProvider implements AuthProvider {
     required String password,
   }) async {
     try {
+      debugPrint('🔑 [FirebaseAuthProvider] Logging in with email and password: $email, $password');
       await FirebaseAuth.instance.signInWithEmailAndPassword(
         email: email,
         password: password,
       );
+      debugPrint('✅ [FirebaseAuthProvider] Login successful, current user: ${currentUser.id}');
       return currentUser;
     } on FirebaseAuthException catch (e) {
+      debugPrint('❌ [FirebaseAuthProvider] Login failed: ${e.code}');
       switch (e.code) {
         case 'invalid-credential':
           throw InvalidCredentialsAuthException(details: e.message);

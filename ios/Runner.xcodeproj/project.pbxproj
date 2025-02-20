@@ -9,9 +9,11 @@
 /* Begin PBXBuildFile section */
 		11F64382A60758931AB3E21D /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 991BB93EA1E84AA17673ABBC /* GoogleService-Info.plist */; };
 		1498D2341E8E89220040F4C2 /* GeneratedPluginRegistrant.m in Sources */ = {isa = PBXBuildFile; fileRef = 1498D2331E8E89220040F4C2 /* GeneratedPluginRegistrant.m */; };
-		21D07FD32CCEBDAD00537D09 /* LivitAppleMapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21D07FD22CCEBDAD00537D09 /* LivitAppleMapView.swift */; };
-		21D07FD52CCEBDBE00537D09 /* LivitAppleMapViewFactory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21D07FD42CCEBDBE00537D09 /* LivitAppleMapViewFactory.swift */; };
 		21D6C8672CDFA2ED00B73608 /* LocationSearchService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21D6C8662CDFA2ED00B73608 /* LocationSearchService.swift */; };
+		21DC8A542D6533D3005E3896 /* LivitAppleMapViewer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21DC8A522D6533D3005E3896 /* LivitAppleMapViewer.swift */; };
+		21DC8A552D6533D3005E3896 /* LivitAppleMapPrompt.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21DC8A502D6533D3005E3896 /* LivitAppleMapPrompt.swift */; };
+		21DC8A562D6533D3005E3896 /* LivitAppleMapViewerFactory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21DC8A532D6533D3005E3896 /* LivitAppleMapViewerFactory.swift */; };
+		21DC8A572D6533D3005E3896 /* LivitAppleMapPromptFactory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21DC8A512D6533D3005E3896 /* LivitAppleMapPromptFactory.swift */; };
 		331C808B294A63AB00263BE5 /* RunnerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 331C807B294A618700263BE5 /* RunnerTests.swift */; };
 		35B3BDCA09B1E9246DFD30C5 /* Pods_RunnerTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B465BAA2BCA7065C0BB85D5F /* Pods_RunnerTests.framework */; };
 		3B3967161E833CAA004F5970 /* AppFrameworkInfo.plist in Resources */ = {isa = PBXBuildFile; fileRef = 3B3967151E833CAA004F5970 /* AppFrameworkInfo.plist */; };
@@ -48,9 +50,11 @@
 /* Begin PBXFileReference section */
 		1498D2321E8E86230040F4C2 /* GeneratedPluginRegistrant.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = GeneratedPluginRegistrant.h; sourceTree = "<group>"; };
 		1498D2331E8E89220040F4C2 /* GeneratedPluginRegistrant.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GeneratedPluginRegistrant.m; sourceTree = "<group>"; };
-		21D07FD22CCEBDAD00537D09 /* LivitAppleMapView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LivitAppleMapView.swift; sourceTree = "<group>"; };
-		21D07FD42CCEBDBE00537D09 /* LivitAppleMapViewFactory.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LivitAppleMapViewFactory.swift; sourceTree = "<group>"; };
 		21D6C8662CDFA2ED00B73608 /* LocationSearchService.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LocationSearchService.swift; sourceTree = "<group>"; };
+		21DC8A502D6533D3005E3896 /* LivitAppleMapPrompt.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LivitAppleMapPrompt.swift; sourceTree = "<group>"; };
+		21DC8A512D6533D3005E3896 /* LivitAppleMapPromptFactory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LivitAppleMapPromptFactory.swift; sourceTree = "<group>"; };
+		21DC8A522D6533D3005E3896 /* LivitAppleMapViewer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LivitAppleMapViewer.swift; sourceTree = "<group>"; };
+		21DC8A532D6533D3005E3896 /* LivitAppleMapViewerFactory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LivitAppleMapViewerFactory.swift; sourceTree = "<group>"; };
 		331C807B294A618700263BE5 /* RunnerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RunnerTests.swift; sourceTree = "<group>"; };
 		331C8081294A63A400263BE5 /* RunnerTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = RunnerTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		3B3967151E833CAA004F5970 /* AppFrameworkInfo.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = AppFrameworkInfo.plist; path = Flutter/AppFrameworkInfo.plist; sourceTree = "<group>"; };
@@ -139,9 +143,11 @@
 		97C146F01CF9000F007C117D /* Runner */ = {
 			isa = PBXGroup;
 			children = (
+				21DC8A502D6533D3005E3896 /* LivitAppleMapPrompt.swift */,
+				21DC8A512D6533D3005E3896 /* LivitAppleMapPromptFactory.swift */,
+				21DC8A522D6533D3005E3896 /* LivitAppleMapViewer.swift */,
+				21DC8A532D6533D3005E3896 /* LivitAppleMapViewerFactory.swift */,
 				21D6C8662CDFA2ED00B73608 /* LocationSearchService.swift */,
-				21D07FD42CCEBDBE00537D09 /* LivitAppleMapViewFactory.swift */,
-				21D07FD22CCEBDAD00537D09 /* LivitAppleMapView.swift */,
 				97C146FA1CF9000F007C117D /* Main.storyboard */,
 				97C146FD1CF9000F007C117D /* Assets.xcassets */,
 				97C146FF1CF9000F007C117D /* LaunchScreen.storyboard */,
@@ -444,8 +450,10 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				21D07FD52CCEBDBE00537D09 /* LivitAppleMapViewFactory.swift in Sources */,
-				21D07FD32CCEBDAD00537D09 /* LivitAppleMapView.swift in Sources */,
+				21DC8A542D6533D3005E3896 /* LivitAppleMapViewer.swift in Sources */,
+				21DC8A552D6533D3005E3896 /* LivitAppleMapPrompt.swift in Sources */,
+				21DC8A562D6533D3005E3896 /* LivitAppleMapViewerFactory.swift in Sources */,
+				21DC8A572D6533D3005E3896 /* LivitAppleMapPromptFactory.swift in Sources */,
 				74858FAF1ED2DC5600515810 /* AppDelegate.swift in Sources */,
 				1498D2341E8E89220040F4C2 /* GeneratedPluginRegistrant.m in Sources */,
 				21D6C8672CDFA2ED00B73608 /* LocationSearchService.swift in Sources */,

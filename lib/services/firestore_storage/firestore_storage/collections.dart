@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:livit/models/event/event.dart';
 import 'package:livit/models/location/location.dart';
 import 'package:livit/models/location/private_data/location_private_data.dart';
+import 'package:livit/models/product_sale/product_sale.dart';
 import 'package:livit/models/ticket/ticket.dart';
 import 'package:livit/models/user/cloud_user.dart';
 import 'package:livit/models/user/private_data.dart';
@@ -54,5 +55,11 @@ class Collections {
       usersCollection.doc(userId).collection('private').doc('privateData').withConverter<UserPrivateData>(
             fromFirestore: (snap, _) => UserPrivateData.fromDocument(snap),
             toFirestore: (privateData, _) => privateData.toMap(),
+          );
+
+          CollectionReference<LivitProductSale> productSalesCollection(String locationId) =>
+      locationsCollection.doc(locationId).collection('sales').withConverter<LivitProductSale>(
+            fromFirestore: (snap, _) => LivitProductSale.fromDocument(snap),
+            toFirestore: (productSale, _) => productSale.toMap(),
           );
 }

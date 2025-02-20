@@ -3,7 +3,7 @@ import UIKit
 import MapKit
 import CoreLocation
 
-class LivitAppleMapView: NSObject, FlutterPlatformView, CLLocationManagerDelegate, MKMapViewDelegate {
+class LivitAppleMapPrompt: NSObject, FlutterPlatformView, CLLocationManagerDelegate, MKMapViewDelegate {
     private var _view: UIView
     private var mapView: MKMapView!
     private let locationManager = CLLocationManager()
@@ -14,7 +14,7 @@ class LivitAppleMapView: NSObject, FlutterPlatformView, CLLocationManagerDelegat
     init(frame: CGRect, viewIdentifier viewId: Int64, arguments args: Any?, binaryMessenger messenger: FlutterBinaryMessenger?) {
         _view = UIView(frame: frame)
         
-        channel = FlutterMethodChannel(name: "LivitAppleMapView_\(viewId)", binaryMessenger: messenger!)
+        channel = FlutterMethodChannel(name: "LivitAppleMapPrompt_\(viewId)", binaryMessenger: messenger!)
         
         super.init()
         

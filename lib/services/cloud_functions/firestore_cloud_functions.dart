@@ -2,7 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:flutter/material.dart';
 import 'package:livit/models/location/location.dart';
-import 'package:livit/services/firestore_storage/cloud_functions/cloud_functions_exceptions.dart';
+import 'package:livit/services/cloud_functions/cloud_functions_exceptions.dart';
 
 class FirestoreCloudFunctions {
   final FirebaseFunctions _functions = FirebaseFunctions.instance;

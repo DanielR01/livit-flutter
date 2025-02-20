@@ -6,9 +6,9 @@ import 'package:flutter/services.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
 
-const livitAppleMapView = "LivitAppleMapView";
+const livitAppleMapPrompt = "LivitAppleMapPrompt";
 
-class LivitMapView extends StatefulWidget {
+class LivitMapPrompt extends StatefulWidget {
   final Function(Map<dynamic, dynamic>) onLocationSelected;
   final Map<String, double?> hoverCoordinates;
   final GeoPoint? locationCoordinates;
@@ -20,7 +20,7 @@ class LivitMapView extends StatefulWidget {
   final double zoom;
   final bool shouldZoomToUserLocation;
 
-  const LivitMapView({
+  const LivitMapPrompt({
     super.key,
     required this.onLocationSelected,
     required this.hoverCoordinates,
@@ -35,10 +35,10 @@ class LivitMapView extends StatefulWidget {
   });
 
   @override
-  State<LivitMapView> createState() => LivitMapViewState();
+  State<LivitMapPrompt> createState() => LivitMapPromptState();
 }
 
-class LivitMapViewState extends State<LivitMapView> {
+class LivitMapPromptState extends State<LivitMapPrompt> {
   MethodChannel? _channel;
   Key _viewKey = UniqueKey();
   LatLng? _initialTarget;
@@ -52,7 +52,7 @@ class LivitMapViewState extends State<LivitMapView> {
   }
 
   @override
-  void didUpdateWidget(LivitMapView oldWidget) {
+  void didUpdateWidget(LivitMapPrompt oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.shouldReinitialize) {
       setState(() {
@@ -214,9 +214,9 @@ class LivitMapViewState extends State<LivitMapView> {
 
     return UiKitView(
       key: _viewKey,
-      viewType: livitAppleMapView,
+      viewType: livitAppleMapPrompt,
       onPlatformViewCreated: (int id) {
-        _channel = MethodChannel('${livitAppleMapView}_$id');
+        _channel = MethodChannel('${livitAppleMapPrompt}_$id');
         _channel?.setMethodCallHandler(_onLocationSelected);
       },
     );

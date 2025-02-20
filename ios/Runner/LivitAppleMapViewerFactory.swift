@@ -1,7 +1,7 @@
 import Flutter
 import UIKit
 
-class LivitAppleMapViewFactory: NSObject, FlutterPlatformViewFactory {
+class LivitAppleMapViewerFactory: NSObject, FlutterPlatformViewFactory {
     private var messenger: FlutterBinaryMessenger
 
     init(messenger: FlutterBinaryMessenger) {
@@ -14,6 +14,6 @@ class LivitAppleMapViewFactory: NSObject, FlutterPlatformViewFactory {
     }
 
     func create(withFrame frame: CGRect, viewIdentifier viewId: Int64, arguments args: Any?) -> FlutterPlatformView {
-        return LivitAppleMapView(frame: frame, viewIdentifier: viewId, arguments: args, binaryMessenger: messenger)
+        return LivitAppleMapViewer(frame: frame, viewIdentifier: viewId, arguments: args, binaryMessenger: messenger)
     }
 }
