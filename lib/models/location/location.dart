@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:livit/models/location/location_media.dart';
+import 'package:livit/models/location/schedule/location_schedule.dart';
 import 'package:livit/services/firestore_storage/firestore_storage/exceptions/locations_exceptions.dart';
 
 class LivitLocation {
@@ -14,6 +15,8 @@ class LivitLocation {
   final String? description;
   final LivitLocationMedia? media;
   final Timestamp? createdAt;
+  final LocationSchedule? schedule;
+  final DateTime? allowReservationUntil;
 
   LivitLocation(
       {required this.id,
@@ -25,7 +28,9 @@ class LivitLocation {
       required this.city,
       this.description,
       this.media,
-      this.createdAt});
+      this.createdAt,
+      required this.schedule,
+      this.allowReservationUntil});
 
   LivitLocation.empty()
       : id = DateTime.now().millisecondsSinceEpoch.toString(),
@@ -37,7 +42,9 @@ class LivitLocation {
         city = '',
         description = null,
         media = null,
-        createdAt = null;
+        createdAt = null,
+        schedule = null,
+        allowReservationUntil = null;
 
   Map<String, dynamic> toMap() {
     return {
@@ -50,6 +57,8 @@ class LivitLocation {
       'media': media?.toMap(),
       'description': description,
       'createdAt': createdAt,
+      'schedule': schedule?.toMap(),
+      'allowReservationUntil': allowReservationUntil,
     };
   }
 
@@ -64,6 +73,8 @@ class LivitLocation {
     String? description,
     LivitLocationMedia? media,
     Timestamp? createdAt,
+    LocationSchedule? schedule,
+    DateTime? allowReservationUntil,
   }) {
     return LivitLocation(
       id: id ?? this.id,
@@ -76,6 +87,8 @@ class LivitLocation {
       description: description ?? this.description,
       media: media ?? this.media,
       createdAt: createdAt ?? this.createdAt,
+      schedule: schedule ?? this.schedule,
+      allowReservationUntil: allowReservationUntil ?? this.allowReservationUntil,
     );
   }
 
@@ -91,6 +104,8 @@ class LivitLocation {
       description: description,
       media: media,
       createdAt: createdAt,
+      schedule: schedule,
+      allowReservationUntil: allowReservationUntil,
     );
   }
 
@@ -110,6 +125,8 @@ class LivitLocation {
         description: data['description'] as String?,
         media: data['media'] != null ? LivitLocationMedia.fromMap(data['media'] as Map<String, dynamic>) : null,
         createdAt: data['createdAt'] as Timestamp?,
+        schedule: data['schedule'] != null ? LocationSchedule.fromMap(data['schedule'] as Map<String, dynamic>) : null,
+        allowReservationUntil: data['allowReservationUntil'] as DateTime?,
       );
       debugPrint('📥 [LivitLocation] Location created from document: ${location.name}');
       return location;
@@ -150,11 +167,13 @@ class LivitLocation {
       description: map['description'] as String?,
       media: map['media'] != null ? LivitLocationMedia.fromMap(map['media'] as Map<String, dynamic>) : null,
       createdAt: createdAt,
+      schedule: map['schedule'] != null ? LocationSchedule.fromMap(map['schedule'] as Map<String, dynamic>) : null,
+      allowReservationUntil: map['allowReservationUntil'] as DateTime?,
     );
   }
 
   @override
   String toString() {
-    return 'Location(id: $id, name: $name, userId: $userId, address: $address, geopoint: $geopoint, department: $state, city: $city, description: $description, media: $media, createdAt: $createdAt)';
+    return 'Location(id: $id, name: $name, userId: $userId, address: $address, geopoint: $geopoint, department: $state, city: $city, description: $description, media: $media, createdAt: $createdAt, schedule: $schedule, allowReservationUntil: $allowReservationUntil)';
   }
 }

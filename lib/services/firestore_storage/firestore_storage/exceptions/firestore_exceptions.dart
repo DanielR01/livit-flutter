@@ -254,3 +254,24 @@ class CouldNotUpdatePrivateDataException extends FirestoreException {
         );
 }
 //TODO: check the severity of the errors
+
+// Scanner Exceptions
+class ScannerNotFoundException extends FirestoreException {
+  ScannerNotFoundException({String? details})
+      : super(
+          'No se pudo encontrar el escáner',
+          showToUser: true,
+          technicalDetails: details,
+          severity: ErrorSeverity.normal,
+        );
+}
+
+class CouldNotGetScannersByLocationIdException extends FirestoreException {
+  CouldNotGetScannersByLocationIdException({String? details})
+      : super(
+          'No se pudo obtener los escáneres por ubicación',
+          showToUser: true,
+          technicalDetails: details,
+          severity: ErrorSeverity.normal,
+        );
+}

@@ -201,7 +201,7 @@ class LocationBloc extends Bloc<LocationEvent, LocationState> {
       debugPrint('📥 [LocationBloc] Getting user data and locations from cloud after creating locations');
       final locations = await _firestoreStorage.locationService.getUserLocations(_userId!);
       // ignore: use_build_context_synchronously
-      _userBloc.add(GetUser(event.context));
+      _userBloc.add(GetUserWithPrivateData(event.context));
       debugPrint('✅ [LocationBloc] Got ${locations.length} locations from cloud after creating locations');
       _cloudLocations = locations;
       _loadingStates = {..._loadingStates, 'cloud': LoadingState.loaded};

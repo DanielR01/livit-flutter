@@ -22,58 +22,61 @@ class _TicketsCountBarState extends State<TicketsCountBar> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<LocationBloc, LocationState>(
-      builder: (context, state) {
+    return BlocListener<LocationBloc, LocationState>(
+      listener: (context, state) {
+        debugPrint('📞 [TicketsCountBar] Fetching tickets count');
         _ticketBloc.add(FetchTicketsCountByDate(
           startDate: Timestamp.fromDate(DateTime(_selectedDateRange[0].year, _selectedDateRange[0].month, _selectedDateRange[0].day)),
           endDate: Timestamp.fromDate(DateTime(_selectedDateRange[1].year, _selectedDateRange[1].month, _selectedDateRange[1].day)),
         ));
-        return BlocBuilder<TicketBloc, TicketState>(
-          builder: (context, state) {
-            late int? ticketsCount;
-            late bool isError;
-            if (state is TicketCountLoaded && state.loadingStates[_locationBloc.currentLocation!.id] == LoadingState.loading) {
-              ticketsCount = null;
-              isError = false;
-            } else if (state is TicketCountLoaded && state.loadingStates[_locationBloc.currentLocation!.id] == LoadingState.loaded) {
-              ticketsCount = state.ticketCounts[_locationBloc.currentLocation!.id];
-              isError = false;
-            } else if (state is TicketInitial ||
-                (state is TicketCountLoaded && !state.loadingStates.containsKey(_locationBloc.currentLocation!.id))) {
-              ticketsCount = null;
-              isError = false;
-              _ticketBloc.add(FetchTicketsCountByDate(
-                startDate: Timestamp.fromDate(DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day)),
-                endDate: Timestamp.fromDate(DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day + 1)),
-              ));
-            } else {
-              ticketsCount = null;
-              isError = true;
-            }
-            return LivitBar(
-              shadowType: ShadowType.weak,
-              child: Column(
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          if (isError) ...[
-                            LivitText('Error al cargar tickets', color: LivitColors.whiteInactive),
-                            LivitSpaces.xs,
-                            Icon(
-                              CupertinoIcons.exclamationmark_circle,
-                              size: LivitButtonStyle.iconSize,
-                              color: LivitColors.whiteInactive,
-                            )
-                          ] else
-                            Icon(
-                              CupertinoIcons.tickets,
-                              size: LivitButtonStyle.iconSize,
-                              color: LivitColors.whiteActive,
-                            ),
+      },
+      child: BlocBuilder<TicketBloc, TicketState>(
+        builder: (context, state) {
+          debugPrint('🛠️ [TicketsCountBar] Building');
+          late int? ticketsCount;
+          late bool isError;
+          if (state is TicketCountLoaded && state.loadingStates[_locationBloc.currentLocation!.id] == LoadingState.loading) {
+            ticketsCount = null;
+            isError = false;
+          } else if (state is TicketCountLoaded && state.loadingStates[_locationBloc.currentLocation!.id] == LoadingState.loaded) {
+            ticketsCount = state.ticketCounts[_locationBloc.currentLocation!.id];
+            isError = false;
+          } else if (state is TicketInitial ||
+              (state is TicketCountLoaded && !state.loadingStates.containsKey(_locationBloc.currentLocation!.id))) {
+            ticketsCount = null;
+            isError = false;
+            _ticketBloc.add(FetchTicketsCountByDate(
+              startDate: Timestamp.fromDate(DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day)),
+              endDate: Timestamp.fromDate(DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day + 1)),
+            ));
+          } else {
+            ticketsCount = null;
+            isError = true;
+          }
+          return LivitBar(
+            shadowType: ShadowType.weak,
+            child: Column(
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        if (isError) ...[
+                          LivitText('Error al cargar tickets vendidos', color: LivitColors.whiteInactive),
+                          LivitSpaces.xs,
+                          Icon(
+                            CupertinoIcons.exclamationmark_circle,
+                            size: LivitButtonStyle.iconSize,
+                            color: LivitColors.yellowError,
+                          )
+                        ] else ...[
+                          Icon(
+                            CupertinoIcons.tickets,
+                            size: LivitButtonStyle.iconSize,
+                            color: LivitColors.whiteActive,
+                          ),
                           LivitSpaces.xs,
                           LivitText('Tickets vendidos: ', textType: LivitTextType.regular),
                           if (ticketsCount != null) ...[
@@ -84,41 +87,41 @@ class _TicketsCountBarState extends State<TicketsCountBar> {
                               color: LivitColors.whiteActive,
                             ),
                         ],
+                      ],
+                    ),
+                    LivitSpaces.s,
+                    Flexible(
+                      child: LivitDatePicker(
+                        onSelected: (date) {
+                          debugPrint('🛠️ [LocationDetailView] Date selected: $date');
+                          if (date == null) return;
+                          setState(() {
+                            _selectedDateRange = date;
+                          });
+                          if (_selectedDateRange.length == 1) {
+                            _ticketBloc.add(FetchTicketsCountByDate(
+                              startDate: Timestamp.fromDate(_selectedDateRange[0]),
+                              endDate: Timestamp.fromDate(_selectedDateRange[0]),
+                            ));
+                          } else {
+                            _ticketBloc.add(FetchTicketsCountByDate(
+                              startDate: Timestamp.fromDate(_selectedDateRange[0]),
+                              endDate: Timestamp.fromDate(_selectedDateRange[1]),
+                            ));
+                          }
+                        },
+                        defaultDate: DateTime.now(),
+                        isActive: true,
+                        selectedDateRange: _selectedDateRange,
                       ),
-                      LivitSpaces.s,
-                      Flexible(
-                        child: LivitDatePicker(
-                          onSelected: (date) {
-                            debugPrint('🛠️ [LocationDetailView] Date selected: $date');
-                            if (date == null) return;
-                            setState(() {
-                              _selectedDateRange = date;
-                            });
-                            if (_selectedDateRange.length == 1) {
-                              _ticketBloc.add(FetchTicketsCountByDate(
-                                startDate: Timestamp.fromDate(_selectedDateRange[0]),
-                                endDate: Timestamp.fromDate(_selectedDateRange[0]),
-                              ));
-                            } else {
-                              _ticketBloc.add(FetchTicketsCountByDate(
-                                startDate: Timestamp.fromDate(_selectedDateRange[0]),
-                                endDate: Timestamp.fromDate(_selectedDateRange[1]),
-                              ));
-                            }
-                          },
-                          defaultDate: DateTime.now(),
-                          isActive: true,
-                          selectedDateRange: _selectedDateRange,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            );
-          },
-        );
-      },
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          );
+        },
+      ),
     );
   }
 }

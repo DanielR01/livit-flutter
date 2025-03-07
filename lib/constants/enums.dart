@@ -18,10 +18,12 @@ enum LoadingState {
   loading,
   deleting,
   downloading,
+  creating,
   loaded,
   verified,
   deleted,
   aborted,
   uploaded,
   error,
+  created,
 }

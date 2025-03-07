@@ -39,7 +39,7 @@ class _GetOrCreateUserViewState extends State<GetOrCreateUserView> {
     super.initState();
     debugPrint('🔄 [GetOrCreateUserView] Initializing view...');
     BlocProvider.of<UserBloc>(context).add(GetUserWithPrivateData(context));
-    // BlocProvider.of<AuthBloc>(context).add(AuthEventLogOut(context));
+    //BlocProvider.of<AuthBloc>(context).add(AuthEventLogOut(context));
   }
 
   bool _isProfileCompleted(UserState userState, LocationState? locationState) {
@@ -57,13 +57,13 @@ class _GetOrCreateUserViewState extends State<GetOrCreateUserView> {
           locations.every((location) => location.geopoint != null && location.media != null);
       debugPrint('🔄 [GetOrCreateUserView] Profile is completed: $isCompleted');
       return isCompleted;
-    } else if (userState.user.userType == UserType.customer) {
-      final bool isCompleted = userState.user.interests != null;
+    } else if (userState.user is CloudCustomer) {
+      final bool isCompleted = (userState.user as CloudCustomer).interests != null;
       debugPrint('🔄 [GetOrCreateUserView] Profile is completed: $isCompleted');
       return isCompleted;
     }
     debugPrint('🔄 [GetOrCreateUserView] Profile is not completed');
-      return false;
+    return false;
   }
 
   Widget _handleNoCurrentUser(NoCurrentUser noCurrentUser) {
@@ -107,8 +107,11 @@ class _GetOrCreateUserViewState extends State<GetOrCreateUserView> {
 
   Widget _handleCurrentUser(CurrentUser currentUser) {
     debugPrint('👤 [GetOrCreateUserView] Handling CurrentUser state - Type: ${currentUser.user.userType}');
-    if (currentUser.user.isProfileCompleted) {
+    if (currentUser.user is CloudCustomer && (currentUser.user as CloudCustomer).isProfileCompleted ||
+        currentUser.user is CloudPromoter && (currentUser.user as CloudPromoter).isProfileCompleted) {
       return _handleCurrentUserProfileCompleted(currentUser);
+    } else if (currentUser.user is CloudScanner) {
+      return const LoadingScreen();
     }
 
     return _handleCurrentUserProfileIncomplete(currentUser);
@@ -118,7 +121,8 @@ class _GetOrCreateUserViewState extends State<GetOrCreateUserView> {
     debugPrint('👤 [GetOrCreateUserView] Handling CurrentUser profile incomplete - Type: ${currentUser.user.userType}');
     switch (currentUser.user.userType) {
       case UserType.customer:
-        if (currentUser.user.interests == null) {
+        if (currentUser.user is CloudCustomer && (currentUser.user as CloudCustomer).interests == null ||
+            currentUser.user is CloudPromoter && (currentUser.user as CloudPromoter).interests == null) {
           debugPrint('📝 [GetOrCreateUserView] Customer needs to set interests');
           _isFirstTime = true;
           return const WelcomeAndInterestsView();
@@ -215,7 +219,10 @@ class _GetOrCreateUserViewState extends State<GetOrCreateUserView> {
     return BlocConsumer<UserBloc, UserState>(
       listener: (context, state) {
         if (state is CurrentUser) {
-          if (state.user.isProfileCompleted && !_isFirstTime) {
+          if (state.user is CloudScanner ||
+              (state.user is CloudCustomer && (state.user as CloudCustomer).isProfileCompleted ||
+                      state.user is CloudPromoter && (state.user as CloudPromoter).isProfileCompleted) &&
+                  !_isFirstTime) {
             debugPrint('✅ [GetOrCreateUserView] Profile complete, navigating to main view');
             Navigator.of(context).pushNamedAndRemoveUntil(
               Routes.mainViewRoute,
@@ -235,12 +242,12 @@ class _GetOrCreateUserViewState extends State<GetOrCreateUserView> {
         }
         try {
           debugPrint('🔄 [GetOrCreateUserView] Building state: ${userState.runtimeType}');
-        switch (userState) {
-          case CurrentUser():
+          switch (userState) {
+            case CurrentUser():
               return _handleCurrentUser(userState);
             case NoCurrentUser():
               return _handleNoCurrentUser(userState);
-                        default:
+            default:
               debugPrint('❌ [GetOrCreateUserView] Unknown state type');
               throw GenericFirestoreException(details: 'Unknown state type');
           }

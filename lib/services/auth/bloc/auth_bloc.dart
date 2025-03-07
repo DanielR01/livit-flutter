@@ -31,7 +31,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<AuthEventInitialize>((event, emit) async {
       debugPrint('🔄 [AuthBloc] Initializing Auth...');
       try {
-        final AuthUser user = _provider.currentUser;
+        final AuthUser user = await _provider.currentUser;
         debugPrint('✅ [AuthBloc] Auth initialized with user: ${user.id}');
         emit(AuthStateLoggedIn(user: user));
       } catch (e) {
@@ -153,7 +153,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
       try {
         await _provider.logInWithGoogle();
-        final user = _provider.currentUser;
+        final user = await _provider.currentUser;
         debugPrint('✅ [AuthBloc] Google login successful: ${user.id}');
         emit(AuthStateLoggedIn(user: user, userType: event.userType));
       } catch (e) {

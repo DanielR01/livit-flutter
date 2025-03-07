@@ -54,6 +54,18 @@ class LivitBar extends StatefulWidget {
         child = null,
         onTap = null;
 
+  const LivitBar.expandableWithCustomChild({
+    super.key,
+    this.shadowType = ShadowType.weak,
+    this.isTransparent = false,
+    required this.buttons,
+    required this.child,
+  })  : noPadding = true,
+        isTouchable = false,
+        isExpandable = true,
+        titleText = null,
+        onTap = null;
+
   @override
   State<LivitBar> createState() => _LivitBarState();
 }
@@ -87,7 +99,6 @@ class _LivitBarState extends State<LivitBar> {
   void _toggleExpandable() {
     setState(() {
       _isExpanded = !_isExpanded;
-      //_shadowType = !_isExpanded ? ShadowType.none : ShadowType.weak;
       _updateButtonsSize();
     });
   }
@@ -111,8 +122,10 @@ class _LivitBarState extends State<LivitBar> {
       );
     }
 
-    if (widget.isExpandable) {
+    if (widget.isExpandable && widget.child == null) {
       return _buildExpandableBar();
+    } else if (widget.isExpandable && widget.child != null) {
+      return _buildExpandableWithCustomChild();
     }
 
     return Container(
@@ -272,6 +285,87 @@ class _LivitBarState extends State<LivitBar> {
           ),
         );
       },
+    );
+  }
+
+  Widget _buildExpandableWithCustomChild() {
+    return Container(
+      width: double.infinity,
+      decoration: LivitBarStyle.decoration(isTransparent: widget.isTransparent, shadowType: ShadowType.weak),
+      child: Material(
+        color: widget.isTransparent ? Colors.transparent : LivitColors.mainBlack,
+        borderRadius: LivitBarStyle.borderRadius,
+        child: InkWell(
+          borderRadius: LivitBarStyle.borderRadius,
+          onTap: _toggleExpandable,
+          child: Container(
+            constraints: BoxConstraints(
+              minHeight: LivitBarStyle.height,
+            ),
+            padding: LivitContainerStyle.padding(padding: [0, null, 0, null]),
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                return Stack(
+                  alignment: Alignment.centerRight,
+                  clipBehavior: Clip.none,
+                  children: [
+                    Positioned(
+                      left: 0,
+                      child: Opacity(
+                        opacity: _isExpanded ? 0 : 1,
+                        child: IgnorePointer(
+                          ignoring: _isExpanded,
+                          child: widget.child!,
+                        ),
+                      ),
+                    ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        AnimatedRotation(
+                          duration: kThemeAnimationDuration,
+                          turns: _isExpanded ? 0 : 0.5,
+                          child: Icon(
+                            CupertinoIcons.chevron_right,
+                            size: LivitButtonStyle.iconSize,
+                            color: LivitColors.whiteActive,
+                          ),
+                        ),
+                        AnimatedSize(
+                          duration: kThemeAnimationDuration,
+                          alignment: Alignment.centerRight,
+                          child: SizedBox(
+                            width: _isExpanded ? constraints.maxWidth - LivitButtonStyle.iconSize : 0,
+                            child: AnimatedOpacity(
+                              duration: kThemeAnimationDuration,
+                              opacity: _isExpanded ? 1 : 0,
+                              child: _isExpanded
+                                  ? Padding(
+                                      padding: LivitContainerStyle.padding(padding: [
+                                        (_buttonsHeight ?? 0) > LivitButtonStyle.height ? null : 0,
+                                        0,
+                                        (_buttonsHeight ?? 0) > LivitButtonStyle.height ? null : 0,
+                                        LivitSpaces.xsDouble
+                                      ]),
+                                      child: Wrap(
+                                        spacing: LivitSpaces.sDouble,
+                                        runSpacing: LivitSpaces.sDouble,
+                                        children: widget.buttons ?? [],
+                                      ),
+                                    )
+                                  : SizedBox.shrink(),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                );
+              },
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

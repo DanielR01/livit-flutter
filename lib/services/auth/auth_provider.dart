@@ -1,7 +1,7 @@
 import 'package:livit/services/auth/auth_user.dart';
 
 abstract class AuthProvider {
-  AuthUser get currentUser;
+  Future<AuthUser> get currentUser;
 
   Future<AuthUser> logInWithEmailAndPassword({
     required String email,

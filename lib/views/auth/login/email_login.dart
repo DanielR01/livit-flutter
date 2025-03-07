@@ -51,7 +51,6 @@ class _EmailLogin extends State<EmailLoginView> {
 
   @override
   Widget build(BuildContext context) {
-    context.read<AuthBloc>().add(const AuthEventInitialize());
     return Scaffold(
       backgroundColor: Colors.transparent,
       body: SafeArea(
@@ -514,7 +513,6 @@ class _RegisterState extends State<Register> {
                     emailToVerify = null;
                   },
                 );
-
                 context.read<AuthBloc>().add(
                       AuthEventRegister(
                         context,

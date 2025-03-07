@@ -13,6 +13,7 @@ class TicketService {
   }) async {
     try {
       // Query tickets directly
+      debugPrint('📥 [TicketService] Getting tickets sold in date range: $startDate to $endDate');
       final querySnapshot = await _firestore
           .collection('tickets')
           .where('promoterId', isEqualTo: promoterId)
@@ -20,10 +21,10 @@ class TicketService {
           .where('purchasedAt', isGreaterThanOrEqualTo: startDate)
           .where('purchasedAt', isLessThanOrEqualTo: endDate)
           .get();
-
+      debugPrint('📥 [TicketService] Tickets sold in date range: ${querySnapshot.docs.length}');
       return querySnapshot.docs.length;
     } catch (e) {
-      debugPrint('❌ Error getting tickets count: $e');
+      debugPrint('❌ [TicketService] Error getting tickets count: $e');
       rethrow;
     }
   }
@@ -42,10 +43,10 @@ class TicketService {
           )
           .where('promoterId', isEqualTo: promoterId)
           .get();
-
+      debugPrint('📥 [TicketService] Tickets sold for event: ${querySnapshot.docs.length}');
       return querySnapshot.docs.length;
     } catch (e) {
-      debugPrint('❌ Error getting tickets count: $e');
+      debugPrint('❌ [TicketService] Error getting tickets count: $e');
       rethrow;
     }
   }

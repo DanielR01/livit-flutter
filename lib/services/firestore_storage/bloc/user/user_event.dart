@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:livit/constants/enums.dart';
+import 'package:livit/models/location/location.dart';
 
 abstract class UserEvent {
   final BuildContext context;
@@ -60,4 +61,9 @@ class OnError extends UserEvent {
 
 class SetUserProfileCompleted extends UserEvent {
   SetUserProfileCompleted(super.context);
+}
+
+class SetUserLocationsLocally extends UserEvent {
+  final List<LivitLocation> locations;
+  SetUserLocationsLocally(super.context, {required this.locations});
 }

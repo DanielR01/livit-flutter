@@ -44,6 +44,7 @@ class UserBloc extends Bloc<UserEvent, UserState> {
     on<UpdateState>(_onUpdateState);
     on<SetUserProfileCompleted>(_onSetUserProfileCompleted);
     on<OnError>(_onOnError);
+    on<SetUserLocationsLocally>(_onSetUserLocationsLocally);
   }
 
   Future<void> _handleError(dynamic error, [String? context]) async {
@@ -64,10 +65,10 @@ class UserBloc extends Bloc<UserEvent, UserState> {
     _backgroundBloc.add(BackgroundStartLoadingAnimation());
 
     try {
-      final userId = _authProvider.currentUser.id;
+      final userId = (await _authProvider.currentUser).id;
       debugPrint('📥 [UserBloc] Fetching user data for ID: $userId');
       final user = await _cloudStorage.userService.getUser(userId: userId);
-      debugPrint('👤 [UserBloc] User fetched: ${user.username}');
+      debugPrint('👤 [UserBloc] User fetched: $user');
       emit(CurrentUser(user: user, privateData: _currentPrivateData!));
     } catch (e) {
       await _handleError(e, 'Getting user');
@@ -85,13 +86,18 @@ class UserBloc extends Bloc<UserEvent, UserState> {
     _backgroundBloc.add(BackgroundStartLoadingAnimation());
 
     try {
-      final userId = _authProvider.currentUser.id;
+      final userId = (await _authProvider.currentUser).id;
       debugPrint('📥 [UserBloc] Fetching user data for ID: $userId');
 
       final user = await _cloudStorage.userService.getUser(userId: userId);
-      debugPrint('👤 [UserBloc] User fetched: ${user.username}');
+      if (user is CloudPromoter) {
+        debugPrint('👤 [UserBloc] Promoter fetched: ${user.username}');
+      } else if (user is CloudCustomer) {
+        debugPrint('👤 [UserBloc] Customer fetched: ${user.username}');
+      }
+      late final UserPrivateData privateData;
 
-      final privateData = await _cloudStorage.privateDataService.getPrivateData(userId: userId);
+      privateData = await _cloudStorage.privateDataService.getPrivateData(userId: userId);
       debugPrint('🔒 [UserBloc] Private data fetched for user');
 
       if (user.userType != privateData.userType) {
@@ -104,20 +110,30 @@ class UserBloc extends Bloc<UserEvent, UserState> {
       }
 
       currentUser = user;
-      _currentPrivateData = privateData;
+      _currentPrivateData = user is CloudScanner ? null : privateData;
       debugPrint('✅ [UserBloc] User data successfully loaded');
       debugPrint('🔄 [UserBloc] Emitting CurrentUser state');
       emit(CurrentUser(user: user, privateData: privateData));
     } catch (e) {
-      debugPrint('❌ [UserBloc] Error getting user data: $e');
-      await _handleError(e, 'Getting user with private data');
-      debugPrint(
-          '🔄 [UserBloc] Emitting NoCurrentUser with error: ${e is FirestoreException ? e : GenericFirestoreException(details: e.toString())}');
-      emit(NoCurrentUser(exception: e is FirestoreException ? e : GenericFirestoreException(details: e.toString())));
-    } finally {
-      if (event.context.mounted) {
-        _backgroundBloc.add(BackgroundStopLoadingAnimation());
+      if (e is UserNotFoundException) {
+        try {
+          final scanner = await _cloudStorage.scannerService.getScannerById((await _authProvider.currentUser).id);
+          currentUser = scanner;
+          _currentPrivateData = null;
+          emit(CurrentUser(user: scanner, privateData: null));
+        } catch (e) {
+          await _handleError(e, 'Getting user with private data');
+          emit(NoCurrentUser(exception: e is FirestoreException ? e : GenericFirestoreException(details: e.toString())));
+        }
+      } else {
+        debugPrint('❌ [UserBloc] Error getting user data: $e');
+        await _handleError(e, 'Getting user with private data');
+        debugPrint(
+            '🔄 [UserBloc] Emitting NoCurrentUser with error: ${e is FirestoreException ? e : GenericFirestoreException(details: e.toString())}');
+        emit(NoCurrentUser(exception: e is FirestoreException ? e : GenericFirestoreException(details: e.toString())));
       }
+    } finally {
+      _backgroundBloc.add(BackgroundStopLoadingAnimation());
     }
   }
 
@@ -149,14 +165,14 @@ class UserBloc extends Bloc<UserEvent, UserState> {
       }
 
       debugPrint('✅ [UserBloc] Username available, creating user...');
-      final userId = _authProvider.currentUser.id;
+      final userId = (await _authProvider.currentUser).id;
       await _firestoreCloudFunctions.createUserAndUsername(
         userId: userId,
         username: event.username,
         userType: event.userType.name,
         name: event.name,
-        phoneNumber: _authProvider.currentUser.phoneNumber ?? '',
-        email: _authProvider.currentUser.email ?? '',
+        phoneNumber: (await _authProvider.currentUser).phoneNumber ?? '',
+        email: (await _authProvider.currentUser).email ?? '',
       );
       currentUser = await _cloudStorage.userService.getUser(userId: userId);
       _currentPrivateData = await _cloudStorage.privateDataService.getPrivateData(userId: userId);
@@ -190,9 +206,22 @@ class UserBloc extends Bloc<UserEvent, UserState> {
 
     try {
       debugPrint('🔄 [UserBloc] Copying user ${currentUser!} with interests...');
-      final updatedUser = currentUser!.copyWith(
-        interests: event.interests,
-      );
+      late final CloudUser updatedUser;
+      if (currentUser is CloudCustomer) {
+        updatedUser = (currentUser as CloudCustomer).copyWith(
+          interests: event.interests,
+        );
+      } else if (currentUser is CloudPromoter) {
+        updatedUser = (currentUser as CloudPromoter).copyWith(
+          interests: event.interests,
+        );
+      } else if (currentUser is CloudScanner) {
+        final exception =
+            UserInformationCorruptedException(details: 'User type mismatch: ${currentUser!.userType} != CloudCustomer or CloudPromoter');
+        await _handleError(exception, 'Setting user interests');
+        emit(NoCurrentUser(exception: exception));
+        return;
+      }
       debugPrint('🔄 [UserBloc] Updating user with interests...');
       await _cloudStorage.userService.updateUser(user: updatedUser);
       debugPrint('🔄 [UserBloc] User updated with interests');
@@ -277,11 +306,44 @@ class UserBloc extends Bloc<UserEvent, UserState> {
       return;
     }
     debugPrint('🔄 [UserBloc] Current user: ${currentUser!}');
-    final updatedUser = currentUser!.copyWith(
-      isProfileCompleted: true,
-    );
+    late final CloudUser updatedUser;
+    if (currentUser is CloudCustomer) {
+      updatedUser = (currentUser as CloudCustomer).copyWith(
+        isProfileCompleted: true,
+      );
+    } else if (currentUser is CloudPromoter) {
+      updatedUser = (currentUser as CloudPromoter).copyWith(
+        isProfileCompleted: true,
+      );
+    } else if (currentUser is CloudScanner) {
+      final exception =
+          UserInformationCorruptedException(details: 'User type mismatch: ${currentUser!.userType} != CloudCustomer or CloudPromoter');
+      await _handleError(exception, 'Setting user profile completed');
+      emit(NoCurrentUser(exception: exception));
+      return;
+    }
     debugPrint('🔄 [UserBloc] Updated user: $updatedUser');
     await _cloudStorage.userService.updateUser(user: updatedUser);
+    currentUser = updatedUser;
+    debugPrint('🔄 [UserBloc] Emitting CurrentUser with updated user');
+    emit(CurrentUser(user: currentUser!, privateData: _currentPrivateData!));
+  }
+
+  void _onSetUserLocationsLocally(SetUserLocationsLocally event, Emitter<UserState> emit) {
+    debugPrint('🔄 [UserBloc] Setting user locations');
+    if (currentUser == null) {
+      emit(NoCurrentUser(exception: NoCurrentUserException()));
+      return;
+    }
+    if (currentUser is! CloudPromoter) {
+      emit(NoCurrentUser(
+          exception: UserInformationCorruptedException(details: 'User type mismatch: ${currentUser!.userType} != CloudPromoter')));
+      return;
+    }
+    final updatedUser = (currentUser as CloudPromoter).copyWith(
+      locations: event.locations.map((location) => location.id).toList(),
+    );
+    debugPrint('🔄 [UserBloc] Updated user: $updatedUser');
     currentUser = updatedUser;
     debugPrint('🔄 [UserBloc] Emitting CurrentUser with updated user');
     emit(CurrentUser(user: currentUser!, privateData: _currentPrivateData!));

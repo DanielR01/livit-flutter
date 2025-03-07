@@ -120,3 +120,12 @@ class NetworkRequestFailedAuthException extends AuthException {
           technicalDetails: details,
         );
 }
+
+class UserTypeClaimMissingAuthException extends AuthException {
+  UserTypeClaimMissingAuthException({String? details})
+      : super(
+          'Tipo de usuario no encontrado',
+          showToUser: true,
+          technicalDetails: details,
+        );
+}

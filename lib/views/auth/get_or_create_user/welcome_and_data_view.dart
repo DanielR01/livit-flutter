@@ -4,6 +4,7 @@ import 'package:livit/constants/enums.dart';
 import 'package:livit/constants/styles/container_style.dart';
 import 'package:livit/constants/styles/livit_text.dart';
 import 'package:livit/constants/styles/spaces.dart';
+import 'package:livit/models/user/cloud_user.dart';
 import 'package:livit/services/background/background_bloc.dart';
 import 'package:livit/services/background/background_events.dart';
 import 'package:livit/services/background/background_states.dart';
@@ -45,9 +46,15 @@ class _WelcomeAndInterestsViewState extends State<WelcomeAndInterestsView> {
   Widget build(BuildContext context) {
     return BlocBuilder<UserBloc, UserState>(
       builder: (context, state) {
-        if (state is CurrentUser) {
+        if (state is CurrentUser && state.user is CloudCustomer) {
           if (_isShowingWelcome) {
-            return _WelcomeView(name: state.user.name, onNext: _onNext, userType: state.user.userType);
+            return _WelcomeView(name: (state.user as CloudCustomer).name, onNext: _onNext, userType: state.user.userType);
+          } else {
+            return const _InterestsView();
+          }
+        } else if (state is CurrentUser && state.user is CloudPromoter) {
+          if (_isShowingWelcome) {
+            return _WelcomeView(name: (state.user as CloudPromoter).name, onNext: _onNext, userType: state.user.userType);
           } else {
             return const _InterestsView();
           }

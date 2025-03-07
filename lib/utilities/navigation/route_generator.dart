@@ -20,6 +20,7 @@ import 'package:livit/views/errors/error_route.dart';
 import 'package:livit/views/errors/splash.dart';
 import 'package:livit/views/main_pages/promoters/main_menu_promoter.dart';
 import 'package:livit/views/auth/get_or_create_user/get_or_create_user.dart';
+import 'package:livit/views/main_pages/scanner/main_view_scanner.dart';
 
 class CustomCupertinoPageRoute<T> extends CupertinoPageRoute<T> {
   CustomCupertinoPageRoute({
@@ -110,7 +111,7 @@ class RouteGenerator {
           switch (userType) {
             // TODO: Add remaining views
             case UserType.scanner:
-              page = const LoadingScreen();
+              page = const MainViewScanner();
               break;
             case UserType.promoter:
               page = const MainMenuPromoter();

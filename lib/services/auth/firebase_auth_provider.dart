@@ -2,6 +2,7 @@
 // import 'package:cloud_functions/cloud_functions.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:livit/constants/enums.dart';
 import 'package:livit/services/auth/auth_user.dart';
 import 'package:livit/services/auth/auth_exceptions.dart';
 import 'package:livit/services/auth/auth_provider.dart';
@@ -10,7 +11,6 @@ import 'package:firebase_auth/firebase_auth.dart'
     show FirebaseAuth, FirebaseAuthException, GoogleAuthProvider, PhoneAuthCredential, PhoneAuthProvider;
 
 class FirebaseAuthProvider implements AuthProvider {
-
   @override
   Future<void> registerEmail({
     required String email,
@@ -43,20 +43,24 @@ class FirebaseAuthProvider implements AuthProvider {
   }
 
   @override
-  AuthUser get currentUser {
+  Future<AuthUser> get currentUser async {
     final user = FirebaseAuth.instance.currentUser;
+    final idTokenResult = await user?.getIdTokenResult();
+    final String? userTypeString = idTokenResult?.claims?['userType'] as String?;
+    final UserType? userType = userTypeString != null ? UserType.values.byName(userTypeString) : null;
+
     if (user == null) {
       throw UserNotLoggedInAuthException(details: 'No current user found');
     }
     if (user.phoneNumber != null) {
-      return AuthUser.fromFirebase(user);
+      return AuthUser.fromFirebase(user, userType);
     } else if (user.email != null) {
       if (!user.emailVerified) {
         throw NotVerifiedEmailAuthException(details: 'Email ${user.email} not verified');
       }
-      return AuthUser.fromFirebase(user);
+      return AuthUser.fromFirebase(user, userType);
     }
-    return AuthUser.fromFirebase(user);
+    return AuthUser.fromFirebase(user, userType);
   }
 
   @override
@@ -123,8 +127,8 @@ class FirebaseAuthProvider implements AuthProvider {
         email: email,
         password: password,
       );
-      debugPrint('✅ [FirebaseAuthProvider] Login successful, current user: ${currentUser.id}');
-      return currentUser;
+      debugPrint('✅ [FirebaseAuthProvider] Login successful, current user: ${(await currentUser).id}');
+      return await currentUser;
     } on FirebaseAuthException catch (e) {
       debugPrint('❌ [FirebaseAuthProvider] Login failed: ${e.code}');
       switch (e.code) {

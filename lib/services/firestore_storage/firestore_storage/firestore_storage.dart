@@ -6,11 +6,12 @@ import 'package:livit/services/firestore_storage/firestore_storage/methods/locat
 import 'package:livit/services/firestore_storage/firestore_storage/methods/private_data_service.dart';
 import 'package:livit/services/firestore_storage/firestore_storage/methods/product_sale_service.dart';
 import 'package:livit/services/firestore_storage/firestore_storage/methods/product_service.dart';
+import 'package:livit/services/firestore_storage/firestore_storage/methods/scanner_service.dart';
 import 'package:livit/services/firestore_storage/firestore_storage/methods/ticket_service.dart';
 import 'package:livit/services/firestore_storage/firestore_storage/methods/user_service.dart';
 import 'package:livit/services/firestore_storage/firestore_storage/methods/event_service.dart';
 import 'package:livit/services/firestore_storage/firestore_storage/methods/username_service.dart';
-
+import 'package:livit/services/firestore_storage/firestore_storage/methods/location_schedule_service.dart';
 
 class FirestoreStorageService {
   static final FirestoreStorageService _shared = FirestoreStorageService._sharedInstance();
@@ -25,4 +26,6 @@ class FirestoreStorageService {
   final LocationService locationService = LocationService();
   final ProductService productService = ProductService();
   final ProductSaleService productSaleService = ProductSaleService();
+  final LocationScheduleService locationScheduleService = LocationScheduleService();
+  final ScannerService scannerService = ScannerService();
 }

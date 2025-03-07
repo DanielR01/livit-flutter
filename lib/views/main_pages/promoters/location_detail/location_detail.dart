@@ -25,6 +25,8 @@ import 'package:livit/services/firestore_storage/bloc/location/location_bloc.dar
 import 'package:livit/services/firestore_storage/bloc/location/location_event.dart';
 import 'package:livit/services/firestore_storage/bloc/location/location_state.dart';
 import 'package:livit/services/firestore_storage/bloc/product/product_bloc.dart';
+import 'package:livit/services/firestore_storage/bloc/scanner/scanner_bloc.dart';
+import 'package:livit/services/firestore_storage/bloc/schedule/schedule_bloc.dart';
 import 'package:livit/services/firestore_storage/bloc/ticket/ticket_bloc.dart';
 import 'package:livit/services/firestore_storage/bloc/ticket/ticket_event.dart';
 import 'package:livit/services/firestore_storage/bloc/ticket/ticket_state.dart';
@@ -35,6 +37,8 @@ import 'package:livit/utilities/buttons/button.dart';
 import 'package:livit/utilities/dialogs/livit_date_picker.dart';
 import 'package:livit/utilities/display/livit_display_area.dart';
 import 'package:livit/utilities/refresh_indicator.dart';
+import 'package:livit/views/main_pages/promoters/location_detail/scanner/location_scanners_preview.dart';
+import 'package:shimmer/shimmer.dart';
 
 part 'ticket/tickets_count_bar.dart';
 part 'location_selector_bar.dart';
@@ -85,9 +89,8 @@ class _LocationDetailViewState extends State<LocationDetailView> {
             if (!isLoading) {
               _location = _locationBloc.currentLocation;
               if (_location != null &&
-                      (_eventsBloc.state is EventsLoaded &&
-                          (_eventsBloc.state as EventsLoaded).loadedEvents[EventViewType.location]![_location!.id] == null) ||
-                  (_eventsBloc.state is EventsInitial)) {
+                  (_eventsBloc.state is EventsLoaded &&
+                      (_eventsBloc.state as EventsLoaded).loadedEvents[EventViewType.location]![_location!.id] == null)) {
                 debugPrint('📥 [LocationDetailView] Fetching next events for location ${_location!.id}');
                 _eventsBloc.add(FetchNextEventsByLocation(locationId: _location!.id));
               }
@@ -100,23 +103,27 @@ class _LocationDetailViewState extends State<LocationDetailView> {
                 },
                 child: Column(
                   children: [
-                    LivitBar(
-                      shadowType: ShadowType.strong,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          LivitText(
-                            isLoading ? 'Cargando' : 'Crear una ubicación',
-                            textType: LivitTextType.smallTitle,
-                          ),
-                          LivitSpaces.s,
-                          if (!isLoading)
-                            Icon(
-                              CupertinoIcons.add_circled,
-                              size: LivitButtonStyle.bigIconSize,
-                              color: LivitColors.whiteActive,
+                    Padding(
+                      padding: LivitContainerStyle.horizontalPaddingFromScreen,
+                      child: LivitBar.touchable(
+                        shadowType: ShadowType.weak,
+                        onTap: () {},
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            LivitText(
+                              isLoading ? 'Cargando' : 'Crear una ubicación',
+                              textType: LivitTextType.smallTitle,
                             ),
-                        ],
+                            LivitSpaces.s,
+                            if (!isLoading)
+                              Icon(
+                                CupertinoIcons.add_circled,
+                                size: LivitButtonStyle.bigIconSize,
+                                color: LivitColors.whiteActive,
+                              ),
+                          ],
+                        ),
                       ),
                     ),
                     Expanded(
@@ -181,6 +188,8 @@ class _LocationDetailViewState extends State<LocationDetailView> {
                               PromoterLocationProductsPreview(),
                               LivitSpaces.xs,
                               LocationLocationPreview(),
+                              LivitSpaces.xs,
+                              LocationScannersPreview(),
                             ],
                           ),
                         ),

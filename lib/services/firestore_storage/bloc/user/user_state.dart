@@ -34,7 +34,7 @@ class NoCurrentUser extends UserState {
 class CurrentUser extends UserState {
   final Exception? exception;
   final CloudUser user;
-  final UserPrivateData privateData;
+  final UserPrivateData? privateData;
   final bool isLoading;
 
   CurrentUser({required this.user, required this.privateData, this.exception, this.isLoading = false});

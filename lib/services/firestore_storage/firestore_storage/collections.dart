@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:livit/models/event/event.dart';
 import 'package:livit/models/location/location.dart';
 import 'package:livit/models/location/private_data/location_private_data.dart';
+import 'package:livit/models/location/schedule/location_schedule.dart';
 import 'package:livit/models/product_sale/product_sale.dart';
 import 'package:livit/models/ticket/ticket.dart';
 import 'package:livit/models/user/cloud_user.dart';
@@ -26,6 +27,8 @@ class Collections {
             return CloudCustomer.fromDocument(snap);
           } else if (data['userType'] == UserType.promoter.name) {
             return CloudPromoter.fromDocument(snap);
+          } else if (data['userType'] == UserType.scanner.name) {
+            return CloudScanner.fromDocument(snap);
           }
           throw UserInformationCorruptedException(details: 'User type not found');
         },
@@ -45,6 +48,12 @@ class Collections {
             toFirestore: (location, _) => location.toMap(),
           );
 
+  final CollectionReference<CloudScanner> scannersCollection =
+      FirebaseFirestore.instance.collection('scanners').withConverter<CloudScanner>(
+            fromFirestore: (snap, _) => CloudScanner.fromDocument(snap),
+            toFirestore: (scanner, _) => scanner.toMap(),
+          );
+
   DocumentReference<LocationPrivateData> locationPrivateDataDocument(String locationId) =>
       locationsCollection.doc(locationId).collection('private').doc('privateData').withConverter<LocationPrivateData>(
             fromFirestore: (snap, _) => LocationPrivateData.fromDocument(snap),
@@ -57,9 +66,15 @@ class Collections {
             toFirestore: (privateData, _) => privateData.toMap(),
           );
 
-          CollectionReference<LivitProductSale> productSalesCollection(String locationId) =>
+  CollectionReference<LivitProductSale> productSalesCollection(String locationId) =>
       locationsCollection.doc(locationId).collection('sales').withConverter<LivitProductSale>(
             fromFirestore: (snap, _) => LivitProductSale.fromDocument(snap),
             toFirestore: (productSale, _) => productSale.toMap(),
+          );
+
+  CollectionReference<SpecialDaySchedule> specialSchedulesCollection(String locationId) =>
+      locationsCollection.doc(locationId).collection('specialSchedules').withConverter<SpecialDaySchedule>(
+            fromFirestore: (snap, _) => SpecialDaySchedule.fromDocument(snap),
+            toFirestore: (specialSchedule, _) => specialSchedule.toMap(),
           );
 }
