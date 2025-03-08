@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:livit/models/location/location.dart';
 import 'package:livit/services/firestore_storage/firestore_storage/collections.dart';
@@ -60,6 +61,47 @@ class LocationService {
     } catch (e) {
       debugPrint('❌ [LocationMethods] Could not delete location ${location.id}: $e');
       throw CouldNotDeleteLocationException(details: e.toString());
+    }
+  }
+
+  Future<List<LivitLocation>> getLocationsByIds(List<String> locationIds) async {
+    try {
+      debugPrint('📥 [LocationMethods] Getting locations by ids $locationIds');
+
+      if (locationIds.isEmpty) {
+        debugPrint('📥 [LocationMethods] Location ids list is empty, returning empty list');
+        return [];
+      }
+
+      // For small lists, use whereIn query (most efficient for small batches)
+      if (locationIds.length <= 10) {
+        final locations = await _collections.locationsCollection.where(FieldPath.documentId, whereIn: locationIds).get();
+
+        debugPrint('📥 [LocationMethods] Found ${locations.docs.length} locations by ids $locationIds');
+        return locations.docs.map((doc) => doc.data()).toList();
+      }
+      // For larger lists, use direct document fetches in batches
+      else {
+        final List<LivitLocation> locations = [];
+
+        // Process in batches of 20 for parallel fetching
+        const batchSize = 20;
+        for (int i = 0; i < locationIds.length; i += batchSize) {
+          final end = (i + batchSize < locationIds.length) ? i + batchSize : locationIds.length;
+          final batch = locationIds.sublist(i, end);
+
+          final batchFutures = batch.map((id) => _collections.locationsCollection.doc(id).get());
+          final batchSnapshots = await Future.wait(batchFutures);
+
+          locations.addAll(batchSnapshots.where((snapshot) => snapshot.exists).map((snapshot) => snapshot.data()!));
+        }
+
+        debugPrint('📥 [LocationMethods] Found ${locations.length} locations by ids $locationIds');
+        return locations;
+      }
+    } catch (e) {
+      debugPrint('❌ [LocationMethods] Could not get locations by ids $locationIds: $e');
+      throw CouldNotGetLocationsByIdsException(details: e.toString());
     }
   }
 }

@@ -26,6 +26,16 @@ class CouldNotGetLocationException extends LocationException {
         );
 }
 
+class CouldNotGetLocationsByIdsException extends LocationException {
+  CouldNotGetLocationsByIdsException({String? details})
+      : super(
+          'No se pudieron obtener las ubicaciones',
+          code: 'could-not-get-locations-by-ids',
+          showToUser: true,
+          technicalDetails: details,
+        );
+}
+
 class CouldNotUpdateLocationException extends LocationException {
   CouldNotUpdateLocationException({String? details})
       : super(

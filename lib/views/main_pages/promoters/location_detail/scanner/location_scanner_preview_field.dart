@@ -1,4 +1,4 @@
-import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import 'package:livit/constants/styles/bar_style.dart';
 import 'package:livit/constants/styles/container_style.dart';
 import 'package:livit/constants/styles/livit_text.dart';
@@ -9,6 +9,16 @@ import 'package:livit/utilities/bars_containers_fields/bar.dart';
 class LocationScannerPreviewField extends StatelessWidget {
   final CloudScanner scanner;
   const LocationScannerPreviewField({super.key, required this.scanner});
+
+  Future<void> onTap(BuildContext context) async {
+    await showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Eliminar escáner'),
+        content: Text('¿Estás seguro de querer eliminar este escáner?'),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {

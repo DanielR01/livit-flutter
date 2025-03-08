@@ -113,6 +113,18 @@ class EventService {
       throw CouldNotGetAllEventsException();
     }
   }
+
+  Future<List<LivitEvent>> getEventsByIds(List<String> eventIds) async {
+    try {
+      debugPrint('📥 [EventService] Getting events by ids: $eventIds');
+      final events = await _collections.eventsCollection.where('id', whereIn: eventIds).get();
+      debugPrint('📥 [EventService] Found ${events.docs.length} events by ids: $eventIds');
+      return events.docs.map((doc) => doc.data()).toList();
+    } catch (_) {
+      debugPrint('❌ [EventService] Could not get events by ids: $eventIds');
+      throw CouldNotGetEventsByIdsException();
+    }
+  }
 }
 
 class PaginatedEvents {

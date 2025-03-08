@@ -101,6 +101,15 @@ class CouldNotGetEventException extends FirestoreException {
         );
 }
 
+class CouldNotGetEventsByIdsException extends FirestoreException {
+  CouldNotGetEventsByIdsException({String? details})
+      : super(
+          'No se pudo obtener los eventos por ids',
+          showToUser: true,
+          technicalDetails: details,
+          severity: ErrorSeverity.normal,
+        );
+}
 class CouldNotGetEventsByLocationException extends FirestoreException {
   CouldNotGetEventsByLocationException({String? details})
       : super(

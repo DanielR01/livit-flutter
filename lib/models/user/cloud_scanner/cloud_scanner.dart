@@ -31,7 +31,7 @@ class CloudScanner extends CloudUser {
       final id = doc.id;
       debugPrint('📄 [CloudScanner.fromDocument] id: $id');
 
-      final email = "${doc.id}@scanners.thelivitapp.com";
+      final email = data['email'] as String;
       debugPrint('📄 [CloudScanner.fromDocument] email: $email');
 
       final createdAt = data['createdAt'] as Timestamp;
