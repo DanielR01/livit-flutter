@@ -1,6 +1,5 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/svg.dart';
 import 'package:livit/constants/colors.dart';
 import 'package:livit/constants/styles/bar_style.dart';
 import 'package:livit/constants/styles/button_style.dart';
@@ -25,7 +24,6 @@ class LivitNavigationBar extends StatelessWidget {
   }) : iconList = [
           CupertinoIcons.building_2_fill,
           CupertinoIcons.calendar,
-          CupertinoIcons.tickets_fill,
           CupertinoIcons.person_fill,
         ];
 

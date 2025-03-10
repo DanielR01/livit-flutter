@@ -120,4 +120,22 @@ class FirestoreCloudFunctions {
       throw GenericCloudFunctionException(details: e.toString());
     }
   }
+
+  Future<void> deleteScannerAccount({
+    required String scannerId,
+  }) async {
+    try {
+      debugPrint('📥 [FirestoreCloudFunctions] Deleting scanner account for $scannerId');
+      final HttpsCallable callable = _functions.httpsCallable('deleteScanner');
+      final response = await callable.call({'scannerId': scannerId});
+      if (response.data['success'] != true) {
+        debugPrint('❌ [FirestoreCloudFunctions] Could not delete scanner account: ${response.data['error']}');
+        throw GenericCloudFunctionException(details: response.data['error']);
+      }
+      debugPrint('✅ [FirestoreCloudFunctions] Scanner account deleted');
+    } catch (e) {
+      debugPrint('❌ [FirestoreCloudFunctions] Could not delete scanner account: $e');
+      throw GenericCloudFunctionException(details: e.toString());
+    }
+  }
 }

@@ -35,4 +35,9 @@ class LivitShadows {
     blurRadius: 9,
     offset: Offset(0, 0),
   );
+  static BoxShadow redShadow = const BoxShadow(
+    color: LivitColors.red,
+    blurRadius: 9,
+    offset: Offset(0, 0),
+  );
 }

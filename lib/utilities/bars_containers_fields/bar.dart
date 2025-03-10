@@ -12,6 +12,7 @@ import 'package:livit/utilities/buttons/button.dart';
 
 class LivitBar extends StatefulWidget {
   final Widget? child;
+  final IconData? icon;
   final ShadowType shadowType;
   final bool noPadding;
   final bool isTouchable;
@@ -28,7 +29,8 @@ class LivitBar extends StatefulWidget {
         onTap = null,
         isTransparent = false,
         buttons = null,
-        titleText = null;
+        titleText = null,
+        icon = null;
 
   const LivitBar.touchable({
     super.key,
@@ -40,7 +42,8 @@ class LivitBar extends StatefulWidget {
     this.isTransparent = false,
   })  : buttons = null,
         titleText = null,
-        isExpandable = false;
+        isExpandable = false,
+        icon = null;
 
   const LivitBar.expandable({
     super.key,
@@ -48,6 +51,7 @@ class LivitBar extends StatefulWidget {
     this.isTransparent = false,
     required this.buttons,
     required this.titleText,
+    this.icon,
   })  : noPadding = true,
         isTouchable = false,
         isExpandable = true,
@@ -64,6 +68,7 @@ class LivitBar extends StatefulWidget {
         isTouchable = false,
         isExpandable = true,
         titleText = null,
+        icon = null,
         onTap = null;
 
   @override
@@ -158,30 +163,29 @@ class _LivitBarState extends State<LivitBar> {
 
     textPainter.layout();
     final double titleTextWidth = textPainter.width;
+    final double iconWidth = widget.icon != null ? LivitButtonStyle.iconSize + LivitSpaces.xsDouble : 0;
+    final double totalTitleWidth = titleTextWidth + iconWidth;
 
     return LayoutBuilder(
       builder: (context, constraints) {
         final double barWidth = constraints.maxWidth;
         final double availableBarWidth = barWidth - LivitContainerStyle.horizontalPadding * 2;
-        final double titleTextPosition = barWidth / 2 - LivitContainerStyle.horizontalPadding - titleTextWidth / 2;
+        final double titleTextPosition = barWidth / 2 - LivitContainerStyle.horizontalPadding - totalTitleWidth / 2;
 
         final buttonsContainer = Opacity(
           opacity: 0,
           child: Container(
-            color: Colors.green,
+            color: Colors.red.withOpacity(0.5),
             key: _buttonsKey,
             constraints: BoxConstraints(maxWidth: availableBarWidth),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                Container(
-                  color: Colors.blue,
-                  child: Icon(
-                    CupertinoIcons.chevron_right,
-                    size: LivitButtonStyle.iconSize,
-                    color: LivitColors.whiteActive,
-                  ),
+                Icon(
+                  CupertinoIcons.chevron_right,
+                  size: LivitButtonStyle.iconSize,
+                  color: LivitColors.whiteActive,
                 ),
                 LivitSpaces.xs,
                 Flexible(
@@ -196,11 +200,19 @@ class _LivitBarState extends State<LivitBar> {
           ),
         );
 
-        final availableTitleWidth = availableBarWidth - (_buttonsWidth ?? 0);
+        // Calculate available width for title when expanded
+        final availableTitleWidth = availableBarWidth - (_isExpanded ? _buttonsWidth ?? 0 : 0);
+
+        // Determine if we need to hide the icon when expanded
+        final bool shouldHideIconWhenExpanded = _isExpanded && totalTitleWidth > availableTitleWidth && widget.icon != null;
+
+        // Calculate available width for text based on whether icon is shown
+        final double availableTextWidth =
+            shouldHideIconWhenExpanded ? availableTitleWidth : availableTitleWidth - (widget.icon != null ? iconWidth : 0);
 
         return Container(
           width: double.infinity,
-          decoration: LivitBarStyle.decoration(isTransparent: widget.isTransparent, shadowType: ShadowType.weak),
+          decoration: LivitBarStyle.decoration(isTransparent: widget.isTransparent, shadowType: widget.shadowType),
           child: Material(
             color: widget.isTransparent ? Colors.transparent : LivitColors.mainBlack,
             borderRadius: LivitBarStyle.borderRadius,
@@ -226,53 +238,76 @@ class _LivitBarState extends State<LivitBar> {
                                 maxWidth: max(availableTitleWidth, 0),
                               )
                             : null,
-                        child: LivitText(
-                          widget.titleText ?? '',
-                          textType: LivitTextType.smallTitle,
-                          overflow: TextOverflow.ellipsis,
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            ConstrainedBox(
+                              constraints: BoxConstraints(
+                                maxWidth: max(0, availableTextWidth),
+                              ),
+                              child: LivitText(
+                                widget.titleText ?? '',
+                                textType: LivitTextType.smallTitle,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            if (widget.icon != null && !shouldHideIconWhenExpanded) ...[
+                              LivitSpaces.xs,
+                              Icon(
+                                widget.icon!,
+                                size: LivitButtonStyle.iconSize,
+                                color: LivitColors.whiteActive,
+                              ),
+                            ],
+                          ],
                         ),
                       ),
                     ),
-                    Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        AnimatedRotation(
-                          duration: kThemeAnimationDuration,
-                          turns: _isExpanded ? 0 : 0.5,
-                          child: Icon(
-                            CupertinoIcons.chevron_right,
-                            size: LivitButtonStyle.iconSize,
-                            color: LivitColors.whiteActive,
-                          ),
-                        ),
-                        AnimatedSize(
-                          duration: kThemeAnimationDuration,
-                          alignment: Alignment.centerRight,
-                          child: AnimatedOpacity(
+                    ConstrainedBox(
+                      constraints: BoxConstraints(
+                        maxWidth: availableBarWidth,
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          AnimatedRotation(
                             duration: kThemeAnimationDuration,
-                            opacity: _isExpanded ? 1 : 0,
-                            child: _isExpanded
-                                ? Container(
-                                    constraints:
-                                        BoxConstraints(maxWidth: availableBarWidth - LivitSpaces.xsDouble - LivitButtonStyle.iconSize - 0),
-                                    child: Padding(
-                                      padding: LivitContainerStyle.padding(padding: [
-                                        (_buttonsHeight ?? 0) > LivitButtonStyle.height ? null : 0,
-                                        0,
-                                        (_buttonsHeight ?? 0) > LivitButtonStyle.height ? null : 0,
-                                        LivitSpaces.xsDouble
-                                      ]),
-                                      child: Wrap(
-                                        spacing: LivitSpaces.sDouble,
-                                        runSpacing: LivitSpaces.sDouble,
-                                        children: widget.buttons ?? [],
-                                      ),
-                                    ),
-                                  )
-                                : SizedBox.shrink(),
+                            turns: _isExpanded ? 0 : 0.5,
+                            child: Icon(
+                              CupertinoIcons.chevron_right,
+                              size: LivitButtonStyle.iconSize,
+                              color: LivitColors.whiteActive,
+                            ),
                           ),
-                        ),
-                      ],
+                          Flexible(
+                            child: AnimatedSize(
+                              duration: kThemeAnimationDuration,
+                              alignment: Alignment.centerRight,
+                              child: AnimatedOpacity(
+                                duration: kThemeAnimationDuration,
+                                opacity: _isExpanded ? 1 : 0,
+                                child: _isExpanded
+                                    ? Padding(
+                                        padding: LivitContainerStyle.padding(
+                                          padding: [
+                                            (_buttonsHeight ?? 0) > LivitButtonStyle.height ? null : 0,
+                                            0,
+                                            (_buttonsHeight ?? 0) > LivitButtonStyle.height ? null : 0,
+                                            LivitSpaces.xsDouble,
+                                          ],
+                                        ),
+                                        child: Wrap(
+                                          spacing: LivitSpaces.sDouble,
+                                          runSpacing: LivitSpaces.sDouble,
+                                          children: widget.buttons ?? [],
+                                        ),
+                                      )
+                                    : SizedBox.shrink(),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                     Positioned(
                       right: 0,

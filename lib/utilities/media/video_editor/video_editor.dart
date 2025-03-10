@@ -650,7 +650,7 @@ class _LivitMediaEditorState extends State<LivitMediaEditor> with TickerProvider
                     children: [
                       cover,
                       Icon(
-                        CupertinoIcons.checkmark_circle,
+                        CupertinoIcons.checkmark_alt_circle,
                         color: const CoverSelectionStyle().selectedBorderColor,
                       )
                     ],

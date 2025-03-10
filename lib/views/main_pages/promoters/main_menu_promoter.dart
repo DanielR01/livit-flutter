@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:livit/utilities/bars_containers_fields/navigation_bar.dart';
-import 'package:livit/views/main_pages/promoters/event_dashboard.dart';
+import 'package:livit/views/main_pages/promoters/event_dashboard/event_dashboard.dart';
 import 'package:livit/views/main_pages/promoters/location_detail/location_detail.dart';
 import 'package:livit/views/main_pages/promoters/promoter_profile.dart';
-import 'package:livit/views/main_pages/promoters/ticket_dashboard.dart';
 
 class MainMenuPromoter extends StatefulWidget {
   const MainMenuPromoter({super.key});
@@ -18,7 +17,6 @@ class _MainMenuPromoterState extends State<MainMenuPromoter> {
   final List<Widget> _pages = [
     const LocationDetailView(), // Grid of locations
     const EventDashboard(), // Events overview
-    const TicketDashboard(), // Ticket management
     const PromoterProfile(), // Profile & settings
   ];
 
