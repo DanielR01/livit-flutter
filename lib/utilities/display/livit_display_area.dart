@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:livit/constants/styles/container_style.dart';
+import 'package:livit/utilities/bars_containers_fields/keyboard_dismissible.dart';
 
 class LivitDisplayArea extends StatelessWidget {
   final Widget child;
@@ -21,27 +22,31 @@ class LivitDisplayArea extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (Platform.isAndroid) {
-      return Container(
-        color: backgroundColor,
-        child: Padding(
-          padding: EdgeInsets.only(
-            left: addHorizontalPadding ? LivitContainerStyle.paddingFromScreen.left : 0,
-            right: addHorizontalPadding ? LivitContainerStyle.paddingFromScreen.right : 0,
-            top: addTopPadding ? LivitContainerStyle.paddingFromScreen.top : 0,
-            bottom: addBottomPadding ? LivitContainerStyle.paddingFromScreen.bottom : 0,
+      return KeyboardDismissible(
+        child: Container(
+          color: backgroundColor,
+          child: Padding(
+            padding: EdgeInsets.only(
+              left: addHorizontalPadding ? LivitContainerStyle.paddingFromScreen.left : 0,
+              right: addHorizontalPadding ? LivitContainerStyle.paddingFromScreen.right : 0,
+              top: addTopPadding ? LivitContainerStyle.paddingFromScreen.top : 0,
+              bottom: addBottomPadding ? LivitContainerStyle.paddingFromScreen.bottom : 0,
+            ),
+            child: child,
           ),
-          child: child,
         ),
       );
     }
-    return SafeArea(
-      child: Container(
-        padding: EdgeInsets.only(
-          left: addHorizontalPadding ? LivitContainerStyle.paddingFromScreen.left : 0,
-          right: addHorizontalPadding ? LivitContainerStyle.paddingFromScreen.right : 0,
+    return KeyboardDismissible(
+      child: SafeArea(
+        child: Container(
+          padding: EdgeInsets.only(
+            left: addHorizontalPadding ? LivitContainerStyle.paddingFromScreen.left : 0,
+            right: addHorizontalPadding ? LivitContainerStyle.paddingFromScreen.right : 0,
+          ),
+          color: backgroundColor,
+          child: child,
         ),
-        color: backgroundColor,
-        child: child,
       ),
     );
   }

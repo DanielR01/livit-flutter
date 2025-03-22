@@ -71,7 +71,7 @@ class DeleteScanner {
                             text: 'Eliminar',
                             rightIcon: CupertinoIcons.trash,
                             isActive: true,
-                            onPressed: () {
+                            onTap: () {
                               confirmDelete = true;
                               Navigator.of(context).pop();
                             },

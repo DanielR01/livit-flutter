@@ -26,12 +26,11 @@ class UserBloc extends Bloc<UserEvent, UserState> {
     required FirestoreStorageService cloudStorage,
     required FirestoreCloudFunctions firestoreCloudFunctions,
     required AuthProvider authProvider,
-    ErrorReporter? errorReporter,
     required BackgroundBloc backgroundBloc,
   })  : _cloudStorage = cloudStorage,
         _firestoreCloudFunctions = firestoreCloudFunctions,
         _authProvider = authProvider,
-        _errorReporter = errorReporter ?? ErrorReporter(),
+        _errorReporter = ErrorReporter(viewName: 'UserBloc'),
         _backgroundBloc = backgroundBloc,
         super(NoCurrentUser(isInitialized: false)) {
     on<GetUser>(_onGetUser);

@@ -48,7 +48,7 @@ class ShareEventButton extends StatelessWidget {
           style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.black),
         ),
         TextSpan(
-          text: 'Location: ${event.location.name}\n',
+          text: 'Location: ${event.locations.first.name}\n',
           style: const TextStyle(fontSize: 18, color: Colors.black),
         ),
       ],

@@ -57,7 +57,7 @@ Future<T?> showGenericDialog<T>({
                           type: buttonType,
                           text: optionTitle,
                           isActive: true,
-                          onPressed: () {
+                          onTap: () {
                             if (value != null) {
                               Navigator.of(context).pop(value);
                             } else {

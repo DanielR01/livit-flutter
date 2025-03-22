@@ -12,6 +12,7 @@ class CropPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    debugPrint('🔄 [CropPage] build');
     return Scaffold(
       backgroundColor: Colors.black,
       body: SafeArea(
@@ -52,7 +53,7 @@ class CropPage extends StatelessWidget {
                 flex: 2,
                 child: Button.whiteText(
                   isActive: true,
-                  onPressed: () => Navigator.pop(context),
+                  onTap: () => Navigator.pop(context),
                   text: "Cancelar",
                 ),
               ),

@@ -17,7 +17,6 @@ import 'package:livit/utilities/bars_containers_fields/bar.dart';
 import 'package:livit/utilities/bars_containers_fields/livit_text_field.dart';
 import 'package:livit/utilities/buttons/button.dart';
 import 'package:livit/utilities/buttons/livit_dropdown_button.dart';
-import 'package:livit/utilities/dialogs/livit_date_picker.dart';
 
 class LocationAddressPromptField extends StatefulWidget {
   final LivitLocation location;
@@ -340,7 +339,7 @@ class _LocationAddressPromptFieldState extends State<LocationAddressPromptField>
                     text: isEditing ? 'Ocultar' : 'Editar',
                     isActive: true,
                     rightIcon: isEditing ? CupertinoIcons.chevron_up : CupertinoIcons.chevron_down,
-                    onPressed: () {
+                    onTap: () {
                       setState(() {
                         isEditing = !isEditing;
                       });

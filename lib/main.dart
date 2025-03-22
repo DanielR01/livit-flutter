@@ -16,6 +16,7 @@ import 'package:livit/services/auth/firebase_auth_provider.dart';
 import 'package:livit/services/background/background_events.dart';
 import 'package:livit/services/error_reporting/error_reporter.dart';
 import 'package:livit/services/files/file_cleanup_manager.dart';
+import 'package:livit/services/files/file_cleanup_service.dart';
 import 'package:livit/services/files/storage_monitor.dart';
 import 'package:livit/services/files/temp_file_manager.dart';
 import 'package:livit/services/firebase_storage/bloc/storage_bloc.dart';
@@ -47,7 +48,7 @@ void main() async {
   await FirebaseCrashlytics.instance.setCrashlyticsCollectionEnabled(true);
   debugPrint('Crashlytics enabled: ${FirebaseCrashlytics.instance.isCrashlyticsCollectionEnabled}');
 
-  final errorReporter = ErrorReporter();
+  final errorReporter = ErrorReporter(viewName: 'Main');
 
   // Catch Flutter errors
   FlutterError.onError = (FlutterErrorDetails details) {
@@ -67,6 +68,9 @@ void main() async {
   // Start periodic cleanup
   FileCleanupManager().startPeriodicCleanup();
   StorageMonitor().startPeriodicMonitoring();
+  TempFileManager.startPeriodicCleanup();
+  FileCleanupService().cleanupTempFiles();
+  StorageMonitor.getStorageInfo();
 
   await initializeAppCheck();
 
@@ -169,8 +173,9 @@ class _StartPageState extends State<_StartPage> with WidgetsBindingObserver {
   @override
   Widget build(BuildContext context) {
     ScreenUtil.init(context, designSize: const Size(390, 844));
-    // Clean up old files on app start
-    TempFileManager.cleanupOldFiles();
+
+    debugPrint('🗑️ [Main] Cleaning up old files');
+    TempFileManager.cleanupAllFiles();
 
     return MultiBlocProvider(
       providers: [
@@ -277,189 +282,3 @@ class _StartPageState extends State<_StartPage> with WidgetsBindingObserver {
     );
   }
 }
-
-// import 'dart:io';
-
-// import 'package:flutter/material.dart';
-// import 'package:inview_notifier_list/inview_notifier_list.dart';
-// import 'package:path_provider/path_provider.dart';
-// import 'package:video_player/video_player.dart';
-
-// class VideoWidget extends StatefulWidget {
-//   final String url;
-//   final bool play;
-
-//   const VideoWidget({super.key, required this.url, required this.play});
-
-//   @override
-//   _VideoWidgetState createState() => _VideoWidgetState();
-// }
-
-// class _VideoWidgetState extends State<VideoWidget> {
-//   late VideoPlayerController _controller;
-//   late Future<void> _initializeVideoPlayerFuture;
-//   String? _filePath;
-
-//   @override
-//   void initState() {
-//     super.initState();
-
-//     WidgetsBinding.instance.addPostFrameCallback((timeStamp) async {
-//       final tempDir = await getTemporaryDirectory();
-//       _filePath = '${tempDir.path}/compressed_26_12_2024_15_2_1735243367997.mp4';
-//       _controller = VideoPlayerController.file(File(
-//           '/var/mobile/Containers/Data/Application/6544FEF5-980F-453C-BB59-424D781D14DE/Library/Caches/compressed_29_12_2024_11_30_1735489835880.mp4'));
-//       _initializeVideoPlayerFuture = _controller.initialize().then((_) {
-//         setState(() {});
-//       });
-
-//       if (widget.play) {
-//         _controller.play();
-//         _controller.setLooping(true);
-//       }
-//     });
-//   }
-
-//   @override
-//   void didUpdateWidget(VideoWidget oldWidget) {
-//     if (oldWidget.play != widget.play) {
-//       if (widget.play) {
-//         _controller.play();
-//         _controller.setLooping(true);
-//       } else {
-//         _controller.pause();
-//       }
-//     }
-//     super.didUpdateWidget(oldWidget);
-//   }
-
-//   @override
-//   void dispose() {
-//     _controller.dispose();
-//     super.dispose();
-//   }
-
-//   @override
-//   Widget build(BuildContext context) {
-//     if (_filePath != null) {
-//       print('filePath: $_filePath');
-//       print('file exists: ${File(_filePath!).existsSync()}');
-//       return FutureBuilder(
-//         future: _initializeVideoPlayerFuture,
-//         builder: (context, snapshot) {
-//           if (snapshot.connectionState == ConnectionState.done) {
-//             return VideoPlayer(_controller);
-//           } else {
-//             return Center(
-//               child: CircularProgressIndicator(),
-//             );
-//           }
-//         },
-//       );
-//     }
-//     return const SizedBox();
-//   }
-// }
-
-// class VideoList extends StatelessWidget {
-//   @override
-//   Widget build(BuildContext context) {
-//     return Stack(
-//       fit: StackFit.expand,
-//       children: <Widget>[
-//         InViewNotifierList(
-//           scrollDirection: Axis.vertical,
-//           initialInViewIds: ['0'],
-//           isInViewPortCondition: (double deltaTop, double deltaBottom, double viewPortDimension) {
-//             return deltaTop < (0.5 * viewPortDimension) && deltaBottom > (0.5 * viewPortDimension);
-//           },
-//           itemCount: 30,
-//           builder: (BuildContext context, int index) {
-//             return Container(
-//               width: double.infinity,
-//               height: 300.0,
-//               alignment: Alignment.center,
-//               margin: EdgeInsets.symmetric(vertical: 50.0),
-//               child: LayoutBuilder(
-//                 builder: (BuildContext context, BoxConstraints constraints) {
-//                   final InViewState? inViewState = InViewNotifierList.of(context);
-//                   if (inViewState == null) return const SizedBox();
-
-//                   inViewState.addContext(context: context, id: '$index');
-//                   return AnimatedBuilder(
-//                     animation: inViewState,
-//                     builder: (BuildContext context, Widget? child) {
-//                       return Container(
-//                         clipBehavior: Clip.hardEdge,
-//                         decoration: BoxDecoration(
-//                           border: Border.all(color: Colors.red),
-//                           borderRadius: BorderRadius.circular(10),
-//                         ),
-//                         child: VideoWidget(
-//                             play: inViewState.inView('$index'),
-//                             url: 'https://flutter.github.io/assets-for-api-docs/assets/videos/butterfly.mp4'),
-//                       );
-//                     },
-//                   );
-//                 },
-//               ),
-//             );
-//           },
-//         ),
-//         Align(
-//           alignment: Alignment.center,
-//           child: Container(
-//             height: 1.0,
-//             color: Colors.redAccent,
-//           ),
-//         )
-//       ],
-//     );
-//   }
-// }
-
-// void main() {
-//   runApp(MyApp());
-// }
-
-// class MyApp extends StatelessWidget {
-//   @override
-//   Widget build(BuildContext context) {
-//     return MaterialApp(
-//       title: 'Flutter Demo',
-//       theme: ThemeData(
-//         primarySwatch: Colors.blue,
-//       ),
-//       home: MyHomePage(title: 'Flutter Demo Home Page'),
-//     );
-//   }
-// }
-
-// class MyHomePage extends StatefulWidget {
-//   MyHomePage({super.key, required this.title});
-
-//   final String title;
-
-//   @override
-//   _MyHomePageState createState() => _MyHomePageState();
-// }
-
-// class _MyHomePageState extends State<MyHomePage> {
-//   @override
-//   Widget build(BuildContext context) {
-//     return Scaffold(
-//       backgroundColor: Colors.black,
-//       appBar: AppBar(
-//         title: Text(widget.title),
-//       ),
-//       body: Center(
-//         child: Column(
-//           mainAxisAlignment: MainAxisAlignment.center,
-//           children: <Widget>[
-//             Expanded(child: VideoList()),
-//           ],
-//         ),
-//       ),
-//     );
-//   }
-// }

@@ -9,7 +9,7 @@ class LivitEvent {
   final String description;
   final List<EventDate> dates;
   final List<Artist?> artists;
-  final EventLocation location;
+  final List<EventLocation> locations;
   final EventMedia media;
   final List<String> promoters;
   final List<EventTicketType> eventTicketTypes;
@@ -22,13 +22,29 @@ class LivitEvent {
     required this.description,
     required this.dates,
     required this.artists,
-    required this.location,
+    required this.locations,
     required this.media,
     required this.promoters,
     required this.eventTicketTypes,
     required this.startTime,
     required this.endTime,
   });
+
+  factory LivitEvent.empty() {
+    return LivitEvent(
+      id: '',
+      name: '',
+      description: '',
+      dates: [],
+      artists: [],
+      locations: [],
+      media: EventMedia(media: []),
+      promoters: [],
+      eventTicketTypes: [],
+      startTime: Timestamp.now(),
+      endTime: Timestamp.now(),
+    );
+  }
 
   factory LivitEvent.fromDocument(DocumentSnapshot doc) {
     debugPrint('🛠️ [LivitEvent] fromDocument: $doc');
@@ -40,7 +56,7 @@ class LivitEvent {
       description: data['description'] ?? '',
       dates: (data['dates'] as List<dynamic>).map((item) => EventDate.fromMap(item)).toList(),
       artists: (data['artists'] as List<dynamic>).map((item) => item != null ? Artist.fromMap(item) : null).toList(),
-      location: EventLocation.fromMap(data['location']),
+      locations: (data['locations'] as List<dynamic>).map((item) => EventLocation.fromMap(item)).toList(),
       media: EventMedia.fromMap(data['media']),
       promoters: List<String>.from(data['promoters'] ?? []),
       eventTicketTypes: (data['ticketTypes'] as List<dynamic>).map((item) => EventTicketType.fromMap(item)).toList(),
@@ -57,7 +73,7 @@ class LivitEvent {
       'description': description,
       'dates': dates.map((date) => date.toMap()).toList(),
       'artists': artists.map((artist) => artist?.toMap() ?? {}).toList(),
-      'location': location.toMap(),
+      'locations': locations.map((location) => location.toMap()).toList(),
       'media': media,
       'promoters': promoters,
       'ticketTypes': eventTicketTypes.map((type) => type.toMap()).toList(),
@@ -70,6 +86,11 @@ class LivitEvent {
     final startDate = startTime.toDate();
     final endDate = endTime.toDate();
     return '${startDate.day}/${startDate.month}/${startDate.year} - ${endDate.day}/${endDate.month}/${endDate.year}';
+  }
+
+  @override
+  String toString() {
+    return 'LivitEvent(id: $id, name: $name, description: $description, dates: $dates, artists: $artists, locations: $locations, media: $media, promoters: $promoters, eventTicketTypes: $eventTicketTypes, startTime: $startTime, endTime: $endTime)';
   }
 }
 
@@ -105,7 +126,6 @@ class EventDate {
   String toString() {
     return 'EventDate(name: $name, startTime: $startTime, endTime: $endTime)';
   }
-
 }
 
 class Artist {
@@ -154,12 +174,20 @@ class EventLocation {
   final String? name;
   final String? locationId;
   final String dateName;
+  final String? address;
+  final String? city;
+  final String? state;
+  final String? description;
 
   EventLocation({
     required this.geopoint,
     required this.name,
     required this.locationId,
     required this.dateName,
+    this.address,
+    this.city,
+    this.state,
+    this.description,
   });
 
   factory EventLocation.fromMap(Map<String, dynamic> data) {
@@ -169,6 +197,10 @@ class EventLocation {
       name: data['name'],
       locationId: data['locationId'],
       dateName: data['dateName'],
+      address: data['address'],
+      city: data['city'],
+      state: data['state'],
+      description: data['description'],
     );
   }
 
@@ -178,6 +210,10 @@ class EventLocation {
       'name': name,
       'locationId': locationId,
       'dateName': dateName,
+      'address': address,
+      'city': city,
+      'state': state,
+      'description': description,
     };
   }
 }
@@ -196,6 +232,16 @@ class EventTicketType {
     required this.description,
     required this.price,
   });
+
+  factory EventTicketType.empty() {
+    return EventTicketType(
+      name: '',
+      totalQuantity: 0,
+      dateName: '',
+      description: '',
+      price: LivitPrice.empty(),
+    );
+  }
 
   factory EventTicketType.fromMap(Map<String, dynamic> data) {
     debugPrint('🛠️ [EventTicketType] fromMap: $data');
@@ -217,5 +263,10 @@ class EventTicketType {
       'description': description,
       'price': price.toMap(),
     };
+  }
+
+  @override
+  String toString() {
+    return 'EventTicketType(name: $name, totalQuantity: $totalQuantity, dateName: $dateName, description: $description, price: $price)';
   }
 }

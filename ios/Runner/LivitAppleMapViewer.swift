@@ -81,9 +81,38 @@ class LivitAppleMapViewer: NSObject, FlutterPlatformView, CLLocationManagerDeleg
                                       message: "Invalid location arguments",
                                       details: nil))
                 }
+            case "hoverCurrentLocation":
+                self.hoverCurrentLocation()
+                result(nil)
+
+            case "hideCurrentLocationMarker":
+                self.hideCurrentLocationMarker()
+                result(nil)
+
+            case "showCurrentLocationMarker":
+                self.showCurrentLocationMarker()
+                result(nil)
+
             default:
                 result(FlutterMethodNotImplemented)
             }
+        }
+    }
+
+    private func hideCurrentLocationMarker() {
+        mapView.showsUserLocation = false
+    }
+
+    private func showCurrentLocationMarker() {
+        mapView.showsUserLocation = true
+    }
+
+    private func hoverCurrentLocation() {
+        if let currentLocation = locationManager.location {
+            let coordinate = currentLocation.coordinate
+            let span = MKCoordinateSpan(latitudeDelta: 0.02, longitudeDelta: 0.02)
+            let region = MKCoordinateRegion(center: coordinate, span: span)
+            mapView.setRegion(region, animated: true)
         }
     }
     

@@ -7,6 +7,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:livit/constants/enums.dart';
+import 'package:livit/constants/routes.dart';
 import 'package:livit/constants/styles/shadows.dart';
 import 'package:livit/models/event/event.dart';
 import 'package:livit/models/location/location.dart';
@@ -17,7 +18,7 @@ import 'package:livit/constants/styles/container_style.dart';
 import 'package:livit/constants/styles/livit_text.dart';
 import 'package:livit/constants/styles/spaces.dart';
 import 'package:livit/models/location/product/location_product.dart';
-import 'package:livit/models/media/location_media_file.dart';
+import 'package:livit/models/media/livit_media_file.dart';
 import 'package:livit/services/firestore_storage/bloc/event/event_bloc.dart';
 import 'package:livit/services/firestore_storage/bloc/event/event_event.dart';
 import 'package:livit/services/firestore_storage/bloc/event/event_state.dart';
@@ -25,13 +26,13 @@ import 'package:livit/services/firestore_storage/bloc/location/location_bloc.dar
 import 'package:livit/services/firestore_storage/bloc/location/location_event.dart';
 import 'package:livit/services/firestore_storage/bloc/location/location_state.dart';
 import 'package:livit/services/firestore_storage/bloc/product/product_bloc.dart';
-import 'package:livit/services/firestore_storage/bloc/scanner/scanner_bloc.dart';
 import 'package:livit/services/firestore_storage/bloc/schedule/schedule_bloc.dart';
 import 'package:livit/services/firestore_storage/bloc/ticket/ticket_bloc.dart';
 import 'package:livit/services/firestore_storage/bloc/ticket/ticket_event.dart';
 import 'package:livit/services/firestore_storage/bloc/ticket/ticket_state.dart';
 import 'package:livit/utilities/bars_containers_fields/bar.dart';
 import 'package:livit/utilities/bars_containers_fields/glass_container.dart';
+import 'package:livit/utilities/bars_containers_fields/livit_text_field.dart';
 import 'package:livit/utilities/bars_containers_fields/preview_field/preview_field.dart';
 import 'package:livit/utilities/buttons/button.dart';
 import 'package:livit/utilities/dialogs/livit_date_picker.dart';
@@ -179,9 +180,9 @@ class _LocationDetailViewState extends State<LocationDetailView> {
                             children: [
                               TicketsCountBar(),
                               LivitSpaces.xs,
-                              LocationDescription(description: _location!.description),
+                              LocationDescription(),
                               LivitSpaces.xs,
-                              NextEventSnippet(locationId: _location!.id),
+                              NextEventSnippet(),
                               LivitSpaces.xs,
                               LocationMediaPreview(),
                               LivitSpaces.xs,

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:livit/utilities/bars_containers_fields/keyboard_dismissible.dart';
 import 'package:livit/utilities/bars_containers_fields/navigation_bar.dart';
 import 'package:livit/views/main_pages/promoters/event_dashboard/event_dashboard.dart';
 import 'package:livit/views/main_pages/promoters/location_detail/location_detail.dart';
@@ -24,7 +25,7 @@ class _MainMenuPromoterState extends State<MainMenuPromoter> {
   Widget build(BuildContext context) {
     debugPrint('🛠️ [MainMenuPromoter] Building');
     return Scaffold(
-      body: _pages[_selectedIndex],
+      body: KeyboardDismissible(child: _pages[_selectedIndex]),
       bottomNavigationBar: LivitNavigationBar.promoter(
           currentIndex: _selectedIndex,
           onItemTapped: (value) {

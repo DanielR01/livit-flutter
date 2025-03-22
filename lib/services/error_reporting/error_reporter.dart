@@ -9,8 +9,9 @@ import 'package:livit/services/cloud_functions/cloud_functions_exceptions.dart';
 
 class ErrorReporter {
   final FirebaseCrashlytics _crashlytics;
+  final String? _viewName;
 
-  ErrorReporter({FirebaseCrashlytics? crashlytics}) : _crashlytics = crashlytics ?? FirebaseCrashlytics.instance;
+  ErrorReporter({FirebaseCrashlytics? crashlytics, String? viewName}) : _crashlytics = crashlytics ?? FirebaseCrashlytics.instance, _viewName = viewName;
 
   Future<void> reportError(
     dynamic error,
@@ -18,7 +19,14 @@ class ErrorReporter {
     String? reason,
   }) async {
     // Handle different exception types
-    debugPrint('🚨 [ErrorReporter] Reporting error: $error');
+    debugPrint('🚨 [ErrorReporter] Reporting error: $error, viewName: $_viewName');
+
+    // Set view information if provided
+    if (_viewName != null) {
+      await _crashlytics.setCustomKey('error_view', _viewName);
+      debugPrint('🚨 [ErrorReporter] Error occurred in view: $_viewName');
+    }
+
     if (error is LivitException) {
       await _handleLivitException(error, stackTrace, reason: reason);
     } else {

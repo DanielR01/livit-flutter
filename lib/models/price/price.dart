@@ -6,6 +6,10 @@ class LivitPrice {
 
   LivitPrice({required this.amount, required this.currency});
 
+  factory LivitPrice.empty() {
+    return LivitPrice(amount: 0, currency: '');
+  }
+
   factory LivitPrice.fromMap(Map<String, dynamic> map) {
     debugPrint('🛠️ [LivitPrice] fromMap: $map');
     final double amount = (map['amount'] is double) ? map['amount'] : map['amount'].toDouble();

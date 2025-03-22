@@ -3,7 +3,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:livit/models/media/location_media_file.dart';
+import 'package:livit/models/media/livit_media_file.dart';
 import 'package:livit/constants/colors.dart';
 import 'package:livit/constants/styles/bar_style.dart';
 import 'package:livit/constants/styles/button_style.dart';
@@ -14,13 +14,13 @@ import 'package:livit/services/error_reporting/error_reporter.dart';
 import 'package:livit/services/files/temp_file_manager.dart';
 import 'package:livit/services/firebase_storage/firebase_storage_constants.dart';
 import 'package:livit/services/video/export_video_service.dart';
-import 'package:livit/utilities/buttons/arrow_back_button.dart';
 import 'package:livit/utilities/buttons/button.dart';
 import 'package:livit/utilities/media/media_file_cleanup.dart';
 import 'package:livit/utilities/media/video_editor/crop_page.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:video_editor/video_editor.dart';
 import 'package:livit/services/video/video_compression_service.dart';
+import 'dart:async';
 
 enum LivitMediaEditorProcess {
   idle,
@@ -34,8 +34,9 @@ enum LivitMediaEditorProcess {
 class LivitMediaEditor extends StatefulWidget {
   final String videoPath;
   final String? coverPath;
+  final bool isInitialEdit;
 
-  const LivitMediaEditor({super.key, required this.videoPath, this.coverPath});
+  const LivitMediaEditor({super.key, required this.videoPath, this.coverPath, required this.isInitialEdit});
 
   @override
   State<LivitMediaEditor> createState() => _LivitMediaEditorState();
@@ -67,7 +68,14 @@ class LivitMediaEditor extends StatefulWidget {
           ),
         ],
       );
-      return croppedFile?.path;
+      if (croppedFile != null) {
+        final croppedFilePath = '${directory.path}/cropped_$timestamp.${sourcePath.split('.').last}';
+        await File(croppedFile.path).copy(croppedFilePath);
+        await MediaFileCleanup.deleteFileByPath(tempFilePath);
+        await MediaFileCleanup.deleteFileByPath(croppedFile.path);
+        return croppedFilePath;
+      }
+      return null;
     } catch (e) {
       debugPrint('🔥 [LivitMediaEditor] Error on cropImage: $e');
       return null;
@@ -91,15 +99,24 @@ class _LivitMediaEditorState extends State<LivitMediaEditor> with TickerProvider
 
   late final TabController _tabController;
 
-  final ErrorReporter _errorReporter = ErrorReporter();
+  final ErrorReporter _errorReporter = ErrorReporter(viewName: 'LivitMediaEditor');
+
+  late bool _shouldDeleteInitialPath;
 
   @override
   void initState() {
     super.initState();
+    _shouldDeleteInitialPath = widget.isInitialEdit;
     _coverPath = widget.coverPath;
     _tabController = TabController(length: 2, vsync: this);
     _controller.initialize(aspectRatio: 9 / 16).then((_) => setState(() {})).catchError((error) {
       if (mounted) {
+        if (_shouldDeleteInitialPath) {
+          MediaFileCleanup.deleteFileByPath(widget.videoPath);
+          if (_coverPath != null) {
+            MediaFileCleanup.deleteFileByPath(_coverPath!);
+          }
+        }
         Navigator.pop(context);
       }
     }, test: (e) => e is VideoMinDurationError);
@@ -113,19 +130,14 @@ class _LivitMediaEditorState extends State<LivitMediaEditor> with TickerProvider
     _controller.dispose();
     _tabController.dispose();
     ExportService.dispose();
-    MediaFileCleanup.deleteFileByPath(widget.videoPath);
-    if (_coverPath != null) {
-      MediaFileCleanup.deleteFileByPath(_coverPath!);
+    if (_shouldDeleteInitialPath) {
+      MediaFileCleanup.deleteFileByPath(widget.videoPath);
+      if (_coverPath != null) {
+        MediaFileCleanup.deleteFileByPath(_coverPath!);
+      }
     }
     super.dispose();
   }
-
-  void _showErrorSnackBar(String message) => ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(message),
-          duration: const Duration(seconds: 1),
-        ),
-      );
 
   Future<void> _exportVideo() async {
     _isExporting.value = true;
@@ -156,9 +168,11 @@ class _LivitMediaEditorState extends State<LivitMediaEditor> with TickerProvider
           }
           _errorReporter.reportError(e, s);
           _exportingProcess.value = LivitMediaEditorProcess.error;
+          _isExporting.value = false;
+          _showErrorDialog();
         },
         onCompleted: (file) async {
-          await TempFileManager.trackFile(file.path);
+          await TempFileManager.trackFile(file.path, false);
 
           compressedFilePath = await VideoCompressionService.compressVideo(
             inputFilePath: file.path,
@@ -170,9 +184,11 @@ class _LivitMediaEditorState extends State<LivitMediaEditor> with TickerProvider
               debugPrint('❌ [LivitMediaEditor] Error on export video: $e');
               _exportingProcess.value = LivitMediaEditorProcess.error;
               _errorReporter.reportError(e, s);
+              _isExporting.value = false;
+              _showErrorDialog();
             },
             onCompleted: (compressedFile) async {
-              await TempFileManager.trackFile(compressedFile.path);
+              await TempFileManager.trackFile(compressedFile.path, true);
               debugPrint('📑 [LivitMediaEditor] compressedFilePath: ${compressedFile.path}');
               debugPrint('📑 [LivitMediaEditor] compressedFilePath size: ${compressedFile.lengthSync() / 1024 / 1024} MB');
               await MediaFileCleanup.deleteFileByPath(file.path);
@@ -189,50 +205,18 @@ class _LivitMediaEditorState extends State<LivitMediaEditor> with TickerProvider
       await MediaFileCleanup.deleteFileByPath(compressedFilePath);
       _exportingProcess.value = LivitMediaEditorProcess.error;
       _errorReporter.reportError(e, StackTrace.current);
+      _showErrorDialog();
     }
   }
 
   Future<void> _exportCover(String videoFilePath) async {
     final tempDir = await getTemporaryDirectory();
     await tempDir.create(recursive: true);
-
-    if (_coverPath != null) {
-      final LivitMediaImage coverImage = LivitMediaImage(
-        filePath: _coverPath!,
-        url: '',
-      );
-      final LivitMediaVideo video = LivitMediaVideo(
-        filePath: videoFilePath,
-        url: '',
-        cover: coverImage,
-      );
-      Navigator.pop(context, video);
-      return;
-    }
-    final config = CoverFFmpegVideoEditorConfig(
-      _controller,
-      outputDirectory: tempDir.path,
-    );
-    final execute = await config.getExecuteConfig();
-    if (execute == null) {
-      debugPrint('❌ [LivitMediaEditor] Error on cover exportation initialization.');
-      _exportingProcess.value = LivitMediaEditorProcess.error;
-      _errorReporter.reportError(Exception('Error on cover exportation initialization.'), StackTrace.current);
-      return;
-    }
-
-    await ExportService.runFFmpegCommand(
-      execute,
-      onError: (e, s) {
-        debugPrint('❌ [LivitMediaEditor] Error on cover exportation: $e');
-        _exportingProcess.value = LivitMediaEditorProcess.error;
-        _errorReporter.reportError(e, s);
-      },
-      onCompleted: (cover) {
-        if (!mounted) return;
-
+    try {
+      if (_coverPath != null) {
+        await TempFileManager.trackFile(_coverPath!, true);
         final LivitMediaImage coverImage = LivitMediaImage(
-          filePath: cover.path,
+          filePath: _coverPath!,
           url: '',
         );
         final LivitMediaVideo video = LivitMediaVideo(
@@ -240,15 +224,352 @@ class _LivitMediaEditorState extends State<LivitMediaEditor> with TickerProvider
           url: '',
           cover: coverImage,
         );
-        Navigator.pop(context, video);
-      },
+        _shouldDeleteInitialPath = true;
+        if (mounted) {
+          Navigator.pop(context, video);
+        }
+        return;
+      }
+      final config = CoverFFmpegVideoEditorConfig(
+        _controller,
+        outputDirectory: tempDir.path,
+        name: 'cover',
+      );
+      final execute = await config.getExecuteConfig();
+      if (execute == null) {
+        debugPrint('❌ [LivitMediaEditor] Error on cover exportation initialization.');
+        _exportingProcess.value = LivitMediaEditorProcess.error;
+        _errorReporter.reportError(Exception('Error on cover exportation initialization.'), StackTrace.current);
+        _isExporting.value = false;
+        _showErrorDialog();
+        return;
+      }
+
+      await ExportService.runFFmpegCommand(
+        execute,
+        onError: (e, s) {
+          debugPrint('❌ [LivitMediaEditor] Error on cover exportation: $e');
+          _exportingProcess.value = LivitMediaEditorProcess.error;
+          _errorReporter.reportError(e, s);
+          _isExporting.value = false;
+          _showErrorDialog();
+        },
+        onCompleted: (cover) async {
+          debugPrint('✅ [LivitMediaEditor] Cover exported: ${cover.path}');
+          await TempFileManager.trackFile(cover.path, true);
+          if (!mounted) return;
+
+          final LivitMediaImage coverImage = LivitMediaImage(
+            filePath: cover.path,
+            url: '',
+          );
+          final LivitMediaVideo video = LivitMediaVideo(
+            filePath: videoFilePath,
+            url: '',
+            cover: coverImage,
+          );
+          _shouldDeleteInitialPath = true;
+          Navigator.pop(context, video);
+        },
+      );
+    } catch (e) {
+      _exportingProcess.value = LivitMediaEditorProcess.error;
+      _errorReporter.reportError(e, StackTrace.current);
+      _isExporting.value = false;
+      _showErrorDialog();
+    }
+  }
+
+  Widget _topNavBar() {
+    return SizedBox(
+      height: height,
+      child: Padding(
+        padding: LivitContainerStyle.paddingFromScreen,
+        child: ValueListenableBuilder(
+          valueListenable: _isExporting,
+          builder: (_, bool exporting, __) {
+            return Row(
+              children: [
+                Button.icon(
+                  isIconBig: true,
+                  deactivateSplash: true,
+                  isActive: !exporting,
+                  icon: CupertinoIcons.chevron_left,
+                  onTap: () => Navigator.pop(context),
+                ),
+                Expanded(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Button.icon(
+                        isIconBig: true,
+                        deactivateSplash: true,
+                        icon: Icons.rotate_left,
+                        isActive: !exporting,
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute<void>(
+                              builder: (context) => CropPage(controller: _controller),
+                            ),
+                          );
+                        },
+                      ),
+                      Button.icon(
+                        isIconBig: true,
+                        deactivateSplash: true,
+                        icon: Icons.crop,
+                        isActive: !exporting,
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute<void>(
+                              builder: (context) => CropPage(controller: _controller),
+                            ),
+                          );
+                        },
+                      ),
+                      Button.icon(
+                        isIconBig: true,
+                        deactivateSplash: true,
+                        icon: Icons.rotate_right,
+                        isActive: !exporting,
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute<void>(
+                              builder: (context) => CropPage(controller: _controller),
+                            ),
+                          );
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+                AnimatedSize(
+                  duration: kThemeAnimationDuration,
+                  curve: Curves.easeInOut,
+                  child: ValueListenableBuilder(
+                    valueListenable: _exportingProcess,
+                    builder: (_, LivitMediaEditorProcess process, __) {
+                      if (process == LivitMediaEditorProcess.idle) {
+                        return Button.main(
+                          isActive: true,
+                          isLoading: process == LivitMediaEditorProcess.exporting ||
+                              process == LivitMediaEditorProcess.compressing ||
+                              process == LivitMediaEditorProcess.exportingCover,
+                          onTap: () async {
+                            await _exportVideo();
+                          },
+                          text: 'Continuar',
+                        );
+                      } else if (process == LivitMediaEditorProcess.error) {
+                        return Button.main(
+                          isActive: false,
+                          onTap: () async {},
+                          text: 'Error',
+                        );
+                      } else {
+                        return Button.icon(
+                          isLoading: true,
+                          isIconBig: false,
+                          isActive: true,
+                          onTap: () async {
+                            _exportingProcess.value = LivitMediaEditorProcess.exporting;
+                            await Future.delayed(kThemeAnimationDuration);
+                            await _exportVideo();
+                          },
+                          activeBackgroundColor: LivitColors.whiteActive,
+                          activeColor: LivitColors.mainBlack,
+                        );
+                      }
+                    },
+                  ),
+                )
+              ],
+            );
+          },
+        ),
+      ),
     );
+  }
+
+  String formatter(Duration duration) =>
+      [duration.inMinutes.remainder(60).toString().padLeft(2, '0'), duration.inSeconds.remainder(60).toString().padLeft(2, '0')].join(":");
+
+  List<Widget> _trimSlider() {
+    return [
+      AnimatedBuilder(
+        animation: Listenable.merge([
+          _controller,
+          _controller.video,
+        ]),
+        builder: (_, __) {
+          final int duration = _controller.videoDuration.inSeconds;
+          final double pos = _controller.trimPosition * duration;
+
+          return Padding(
+            padding: EdgeInsets.symmetric(horizontal: height / 4),
+            child: Row(children: [
+              LivitText(
+                formatter(
+                  Duration(
+                    seconds: pos.toInt(),
+                  ),
+                ),
+              ),
+              const Expanded(child: SizedBox()),
+              AnimatedOpacity(
+                opacity: _controller.isTrimming ? 1 : 0,
+                duration: kThemeAnimationDuration,
+                child: Row(mainAxisSize: MainAxisSize.min, children: [
+                  LivitText(formatter(_controller.startTrim)),
+                  const SizedBox(width: 10),
+                  LivitText(formatter(_controller.endTrim)),
+                ]),
+              ),
+            ]),
+          );
+        },
+      ),
+      Container(
+        width: MediaQuery.of(context).size.width,
+        margin: EdgeInsets.symmetric(vertical: height / 4),
+        child: IgnorePointer(
+          ignoring: _exportingProcess.value != LivitMediaEditorProcess.idle && _exportingProcess.value != LivitMediaEditorProcess.error,
+          child: TrimSlider(
+            controller: _controller,
+            height: height,
+            horizontalMargin: height / 4,
+            child: TrimTimeline(
+              quantity: 10,
+              controller: _controller,
+              padding: const EdgeInsets.only(top: 10),
+            ),
+          ),
+        ),
+      )
+    ];
+  }
+
+  Widget _coverSelection() {
+    if (_coverPath != null) {
+      return Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Button.secondary(
+            isActive: true,
+            onTap: () {
+              MediaFileCleanup.deleteFile(File(_coverPath!));
+              _coverPath = null;
+              setState(() {});
+            },
+            text: 'Eliminar portada',
+          ),
+        ],
+      );
+    }
+    return SingleChildScrollView(
+      child: Padding(
+        padding: LivitContainerStyle.padding(),
+        child: Column(
+          children: [
+            SizedBox(
+              width: double.infinity,
+              child: Button.secondary(
+                isActive: true,
+                onTap: () async {
+                  if (_isExporting.value == true) return;
+                  final XFile? cover = await ImagePicker().pickImage(source: ImageSource.gallery);
+                  if (cover == null) return;
+                  await TempFileManager.trackFile(cover.path, false);
+                  final String? croppedFilePath = await LivitMediaEditor.cropImage(cover.path);
+                  if (croppedFilePath == null) return;
+                  await TempFileManager.trackFile(croppedFilePath, true);
+                  _coverPath = croppedFilePath;
+                  await MediaFileCleanup.deleteFileByPath(cover.path);
+                  setState(() {});
+                },
+                text: 'Subir portada',
+                rightIcon: CupertinoIcons.arrow_up_circle,
+              ),
+            ),
+            LivitSpaces.s,
+            Center(
+              child: CoverSelection(
+                controller: _controller,
+                size: height,
+                quantity: 20,
+                wrap: Wrap(
+                  spacing: LivitSpaces.xsDouble,
+                  runSpacing: LivitSpaces.xsDouble,
+                ),
+                selectedCoverBuilder: (cover, size) {
+                  return Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      cover,
+                      Icon(
+                        CupertinoIcons.checkmark_alt_circle,
+                        color: const CoverSelectionStyle().selectedBorderColor,
+                      )
+                    ],
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showErrorDialog() {
+    final outsideContext = context;
+    showDialog(
+        barrierDismissible: false,
+        barrierColor: Colors.transparent,
+        context: context,
+        builder: (context) {
+          Timer(const Duration(seconds: 10), () {
+            // First close the dialog if it's open
+            if (Navigator.canPop(context) && context.mounted) {
+              Navigator.of(context).pop();
+            }
+
+            // Then pop the editor screen
+            if (Navigator.canPop(outsideContext) && outsideContext.mounted) {
+              Navigator.of(outsideContext).pop();
+            }
+          });
+          return Dialog(
+            child: Container(
+              decoration: LivitContainerStyle.decoration,
+              padding: LivitContainerStyle.padding(),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  LivitText(
+                    'Ha ocurrido un error al exportar el video',
+                    textType: LivitTextType.smallTitle,
+                  ),
+                  LivitSpaces.xs,
+                  LivitText(
+                    'Esta ventana se cerrará automáticamente en 10 segundos',
+                    textType: LivitTextType.small,
+                    color: LivitColors.whiteInactive,
+                  ),
+                ],
+              ),
+            ),
+          );
+        });
   }
 
   @override
   Widget build(BuildContext context) {
     return PopScope(
-      onPopInvokedWithResult: (didPop, result) async {},
+      canPop: false,
       child: Scaffold(
         backgroundColor: LivitColors.mainBlack,
         body: _controller.initialized
@@ -298,9 +619,8 @@ class _LivitMediaEditorState extends State<LivitMediaEditor> with TickerProvider
                                   ],
                                 ),
                               ),
-                              Container(
-                                height: 200,
-                                margin: const EdgeInsets.only(top: 10),
+                              SizedBox(
+                                height: LivitBarStyle.height * 4,
                                 child: Column(
                                   children: [
                                     TabBar(
@@ -318,7 +638,7 @@ class _LivitMediaEditorState extends State<LivitMediaEditor> with TickerProvider
                                           deactivateSplash: true,
                                           text: 'Duración',
                                           isActive: true,
-                                          onPressed: () {
+                                          onTap: () {
                                             setState(() {
                                               _tabController.index = 0;
                                             });
@@ -329,7 +649,7 @@ class _LivitMediaEditorState extends State<LivitMediaEditor> with TickerProvider
                                           deactivateSplash: true,
                                           text: 'Portada',
                                           isActive: true,
-                                          onPressed: () {
+                                          onTap: () {
                                             setState(() {
                                               _tabController.index = 1;
                                             });
@@ -420,246 +740,6 @@ class _LivitMediaEditorState extends State<LivitMediaEditor> with TickerProvider
                   color: LivitColors.whiteActive,
                 ),
               ),
-      ),
-    );
-  }
-
-  Widget _topNavBar() {
-    return SizedBox(
-      height: height,
-      child: Padding(
-        padding: LivitContainerStyle.paddingFromScreen,
-        child: Row(
-          children: [
-            ArrowBackButton(onPressed: () {
-              Navigator.pop(context);
-            }),
-            Expanded(
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Button.whiteText(
-                    isIconBig: true,
-                    deactivateSplash: true,
-                    text: '',
-                    leftIcon: Icons.rotate_left,
-                    isActive: true,
-                    onPressed: () {
-                      if (_isExporting.value == true) return;
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute<void>(
-                          builder: (context) => CropPage(controller: _controller),
-                        ),
-                      );
-                    },
-                  ),
-                  Button.whiteText(
-                    isIconBig: true,
-                    deactivateSplash: true,
-                    text: '',
-                    leftIcon: Icons.crop,
-                    isActive: true,
-                    onPressed: () {
-                      if (_isExporting.value == true) return;
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute<void>(
-                          builder: (context) => CropPage(controller: _controller),
-                        ),
-                      );
-                    },
-                  ),
-                  Button.whiteText(
-                    isIconBig: true,
-                    deactivateSplash: true,
-                    text: '',
-                    leftIcon: Icons.rotate_right,
-                    isActive: true,
-                    onPressed: () {
-                      if (_isExporting.value == true) return;
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute<void>(
-                          builder: (context) => CropPage(controller: _controller),
-                        ),
-                      );
-                    },
-                  ),
-                ],
-              ),
-            ),
-            AnimatedSize(
-              duration: kThemeAnimationDuration,
-              curve: Curves.easeInOut,
-              child: ValueListenableBuilder(
-                valueListenable: _exportingProcess,
-                builder: (_, LivitMediaEditorProcess process, __) {
-                  if (process == LivitMediaEditorProcess.idle) {
-                    return Button.main(
-                      isActive: true,
-                      isLoading: process != LivitMediaEditorProcess.idle && process != LivitMediaEditorProcess.error,
-                      onTap: () async {
-                        await _exportVideo();
-                      },
-                      text: 'Continuar',
-                    );
-                  } else if (process == LivitMediaEditorProcess.error) {
-                    return Button.main(
-                      isActive: true,
-                      onTap: () async {
-                        _exportingProcess.value = LivitMediaEditorProcess.exporting;
-                        await Future.delayed(kThemeAnimationDuration);
-                        await _exportVideo();
-                      },
-                      text: 'Intentar de nuevo',
-                    );
-                  } else {
-                    return Button.icon(
-                      isLoading: true,
-                      isIconBig: false,
-                      isActive: true,
-                      onTap: () async {
-                        _exportingProcess.value = LivitMediaEditorProcess.exporting;
-                        await Future.delayed(kThemeAnimationDuration);
-                        await _exportVideo();
-                      },
-                      activeBackgroundColor: LivitColors.whiteActive,
-                      activeColor: LivitColors.mainBlack,
-                    );
-                  }
-                },
-              ),
-            )
-          ],
-        ),
-      ),
-    );
-  }
-
-  String formatter(Duration duration) =>
-      [duration.inMinutes.remainder(60).toString().padLeft(2, '0'), duration.inSeconds.remainder(60).toString().padLeft(2, '0')].join(":");
-
-  List<Widget> _trimSlider() {
-    return [
-      AnimatedBuilder(
-        animation: Listenable.merge([
-          _controller,
-          _controller.video,
-        ]),
-        builder: (_, __) {
-          final int duration = _controller.videoDuration.inSeconds;
-          final double pos = _controller.trimPosition * duration;
-
-          return Padding(
-            padding: EdgeInsets.symmetric(horizontal: height / 4),
-            child: Row(children: [
-              LivitText(
-                formatter(
-                  Duration(
-                    seconds: pos.toInt(),
-                  ),
-                ),
-              ),
-              const Expanded(child: SizedBox()),
-              AnimatedOpacity(
-                opacity: _controller.isTrimming ? 1 : 0,
-                duration: kThemeAnimationDuration,
-                child: Row(mainAxisSize: MainAxisSize.min, children: [
-                  LivitText(formatter(_controller.startTrim)),
-                  const SizedBox(width: 10),
-                  LivitText(formatter(_controller.endTrim)),
-                ]),
-              ),
-            ]),
-          );
-        },
-      ),
-      Container(
-        width: MediaQuery.of(context).size.width,
-        margin: EdgeInsets.symmetric(vertical: height / 4),
-        child: TrimSlider(
-          controller: _controller,
-          height: height,
-          horizontalMargin: height / 4,
-          child: TrimTimeline(
-            quantity: 10,
-            controller: _controller,
-            padding: const EdgeInsets.only(top: 10),
-          ),
-        ),
-      )
-    ];
-  }
-
-  Widget _coverSelection() {
-    if (_coverPath != null) {
-      return Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Button.secondary(
-            isActive: true,
-            onTap: () {
-              MediaFileCleanup.deleteFile(File(_coverPath!));
-              _coverPath = null;
-              setState(() {});
-            },
-            text: 'Eliminar portada',
-          ),
-        ],
-      );
-    }
-    return SingleChildScrollView(
-      child: Padding(
-        padding: LivitContainerStyle.padding(),
-        child: Column(
-          children: [
-            SizedBox(
-              width: double.infinity,
-              child: Button.secondary(
-                isActive: true,
-                onTap: () async {
-                  if (_isExporting.value == true) return;
-                  final XFile? cover = await ImagePicker().pickImage(source: ImageSource.gallery);
-                  if (cover == null) return;
-                  await TempFileManager.trackFile(cover.path);
-                  final String? croppedFilePath = await LivitMediaEditor.cropImage(cover.path);
-                  if (croppedFilePath == null) return;
-                  await TempFileManager.trackFile(croppedFilePath);
-                  _coverPath = croppedFilePath;
-                  await MediaFileCleanup.deleteFileByPath(cover.path);
-                  setState(() {});
-                },
-                text: 'Subir portada',
-                rightIcon: CupertinoIcons.arrow_up_circle,
-              ),
-            ),
-            LivitSpaces.s,
-            Center(
-              child: CoverSelection(
-                controller: _controller,
-                size: height,
-                quantity: 20,
-                wrap: Wrap(
-                  spacing: LivitSpaces.xsDouble,
-                  runSpacing: LivitSpaces.xsDouble,
-                ),
-                selectedCoverBuilder: (cover, size) {
-                  return Stack(
-                    alignment: Alignment.center,
-                    children: [
-                      cover,
-                      Icon(
-                        CupertinoIcons.checkmark_alt_circle,
-                        color: const CoverSelectionStyle().selectedBorderColor,
-                      )
-                    ],
-                  );
-                },
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }

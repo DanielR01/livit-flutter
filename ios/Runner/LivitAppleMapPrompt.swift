@@ -143,6 +143,9 @@ class LivitAppleMapPrompt: NSObject, FlutterPlatformView, CLLocationManagerDeleg
                                       message: "Invalid location arguments",
                                       details: nil))
                 }
+            case "hoverCurrentLocation":
+                self.hoverCurrentLocation()
+                result(nil)
             case "removeAnnotation":
                 self.removeAnnotation()
                 result(nil)
@@ -158,6 +161,15 @@ class LivitAppleMapPrompt: NSObject, FlutterPlatformView, CLLocationManagerDeleg
             default:
                 result(FlutterMethodNotImplemented)
             }
+        }
+    }
+
+    private func hoverCurrentLocation() {
+        if let currentLocation = locationManager.location {
+            let coordinate = currentLocation.coordinate
+            let span = MKCoordinateSpan(latitudeDelta: 0.02, longitudeDelta: 0.02)
+            let region = MKCoordinateRegion(center: coordinate, span: span)
+            mapView.setRegion(region, animated: true)
         }
     }
     

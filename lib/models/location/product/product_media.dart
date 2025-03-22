@@ -1,4 +1,4 @@
-import 'package:livit/models/media/location_media_file.dart';
+import 'package:livit/models/media/livit_media_file.dart';
 
 class ProductMedia {
   final List<LivitMediaFile?> media;

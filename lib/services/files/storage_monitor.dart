@@ -10,11 +10,12 @@ class StorageMonitor {
   StorageMonitor._internal();
 
   Timer? _monitorTimer;
-  static const Duration monitorInterval = Duration(minutes: 10);
+  static const Duration monitorInterval = Duration(minutes: 15);
 
   void startPeriodicMonitoring() {
     stopPeriodicMonitoring();
     _monitorTimer = Timer.periodic(monitorInterval, (_) async {
+      debugPrint('[StorageMonitor] Monitoring storage');
       final sizes = await getStorageInfo();
       debugPrint('[StorageMonitor] Storage sizes: $sizes');
     });
@@ -61,7 +62,7 @@ class StorageMonitor {
     return sizes;
   }
 
-  static final bool debugAllFiles = false;
+  static final bool debugAllFiles = true;
 
   static Future<int> _getDirSize(Directory dir) async {
     int size = 0;

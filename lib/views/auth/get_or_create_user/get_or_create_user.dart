@@ -3,8 +3,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:livit/models/user/cloud_user.dart';
 import 'package:livit/constants/enums.dart';
 import 'package:livit/constants/routes.dart';
-import 'package:livit/services/auth/bloc/auth_bloc.dart';
-import 'package:livit/services/auth/bloc/auth_event.dart';
 import 'package:livit/services/firestore_storage/bloc/location/location_bloc.dart';
 import 'package:livit/services/firestore_storage/bloc/location/location_event.dart';
 import 'package:livit/services/firestore_storage/bloc/location/location_state.dart';
@@ -63,7 +61,7 @@ class _GetOrCreateUserViewState extends State<GetOrCreateUserView> {
       return isCompleted;
     }
     debugPrint('🔄 [GetOrCreateUserView] Profile is not completed');
-    return false;
+      return false;
   }
 
   Widget _handleNoCurrentUser(NoCurrentUser noCurrentUser) {
@@ -242,12 +240,12 @@ class _GetOrCreateUserViewState extends State<GetOrCreateUserView> {
         }
         try {
           debugPrint('🔄 [GetOrCreateUserView] Building state: ${userState.runtimeType}');
-          switch (userState) {
-            case CurrentUser():
+        switch (userState) {
+          case CurrentUser():
               return _handleCurrentUser(userState);
             case NoCurrentUser():
               return _handleNoCurrentUser(userState);
-            default:
+                        default:
               debugPrint('❌ [GetOrCreateUserView] Unknown state type');
               throw GenericFirestoreException(details: 'Unknown state type');
           }

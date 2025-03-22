@@ -212,7 +212,7 @@ class LocationScannerPreviewField extends StatelessWidget {
                           rightIcon: CupertinoIcons.trash,
                           isIconBig: false,
                           isActive: true,
-                          onPressed: () async {
+                          onTap: () async {
                             // Close the scanner details dialog first
                             Navigator.of(context).pop();
 

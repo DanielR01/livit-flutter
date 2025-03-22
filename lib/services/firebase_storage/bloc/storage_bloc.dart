@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:livit/constants/enums.dart';
-import 'package:livit/models/media/location_media_file.dart';
+import 'package:livit/models/media/livit_media_file.dart';
 import 'package:livit/services/error_reporting/error_reporter.dart';
 import 'package:livit/services/exceptions/base_exception.dart';
 import 'package:livit/services/firebase_storage/bloc/storage_bloc_exception.dart';
@@ -18,7 +18,7 @@ import 'package:livit/services/cloud_functions/firestore_cloud_functions.dart';
 
 class StorageBloc extends Bloc<StorageEvent, StorageState> {
   final StorageService _storageService;
-
+  final ErrorReporter _errorReporter = ErrorReporter(viewName: 'StorageBloc');
   List<FileToUpload> _filesToUpload = [];
   String? _locationId;
 
@@ -76,7 +76,7 @@ class StorageBloc extends Bloc<StorageEvent, StorageState> {
           _loadingStates[file.filePath!] = LoadingState.verified;
         } catch (e) {
           debugPrint('❌ [StorageBloc] Error verifying file: $e');
-          ErrorReporter().reportError(e, StackTrace.current);
+          _errorReporter.reportError(e, StackTrace.current);
           _exceptions[event.location.id] = {
             ..._exceptions[event.location.id] ?? {},
             file.filePath!: e is StorageBlocException ? e : GenericStorageBlocException(details: e.toString())
@@ -174,7 +174,7 @@ class StorageBloc extends Bloc<StorageEvent, StorageState> {
           debugPrint(
               '❌ [StorageBloc] Error uploading file ${uploadedFiles.length + failedFiles.length}/${_filesToUpload.length + failedFiles.length + uploadedFiles.length}, file: $fileToUpload, error: $e');
         } catch (e) {
-          ErrorReporter().reportError(e, StackTrace.current);
+          _errorReporter.reportError(e, StackTrace.current);
           _exceptions[_locationId!] = {..._exceptions[_locationId] ?? {}, fileToUpload.filePath: e is StorageBlocException ? e : GenericStorageBlocException(details: e.toString())};
           _loadingStates[fileToUpload.filePath] = LoadingState.error;
           failedFiles.add(fileToUpload);
@@ -203,7 +203,7 @@ class StorageBloc extends Bloc<StorageEvent, StorageState> {
     } catch (e) {
       final error = e is StorageBlocFileSizeTooLargeException ? e : GenericStorageBlocException(details: e.toString());
       debugPrint('❌ [StorageBloc] Error uploading files: $error');
-      ErrorReporter().reportError(error, StackTrace.current);
+      _errorReporter.reportError(error, StackTrace.current);
       _exceptions[_locationId!] = {..._exceptions[_locationId] ?? {}, 'error': error};
       _loadingStates[_locationId!] = LoadingState.error;
       for (final loadingState in _loadingStates.entries) {

@@ -60,7 +60,7 @@ class _MainBackgroundState extends State<MainBackground> with TickerProviderStat
   late ImageProvider _cachedImage;
   bool _isImagePreloaded = false;
 
-  final errorReporter = ErrorReporter();
+  final errorReporter = ErrorReporter(viewName: 'MainBackground');
 
   @override
   void initState() {

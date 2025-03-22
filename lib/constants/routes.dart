@@ -9,5 +9,6 @@ class Routes {
   static const createUpdateEventRoute = '/createUpdateEvent';
   static const mainviewRoute = '/main';
   static const locationMediaPreviewPlayerRoute = '/locationMediaPreviewPlayer';
+  static const eventCreationRoute = '/eventCreation';
   static const splashRoute = '/splash';
 }

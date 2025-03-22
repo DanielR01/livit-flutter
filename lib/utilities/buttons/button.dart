@@ -71,7 +71,7 @@ class Button extends StatefulWidget {
   factory Button.fromType({
     required ButtonType type,
     required String text,
-    required VoidCallback onPressed,
+    required VoidCallback onTap,
     required bool isActive,
     bool? bold,
     bool? blueStyle,
@@ -86,7 +86,7 @@ class Button extends StatefulWidget {
       case ButtonType.main:
         return Button.main(
           text: text,
-          onTap: onPressed,
+          onTap: onTap,
           isActive: isActive,
           blueStyle: blueStyle ?? false,
           forceOnPressed: forceOnPressed,
@@ -100,7 +100,7 @@ class Button extends StatefulWidget {
       case ButtonType.secondary:
         return Button.secondary(
           text: text,
-          onTap: onPressed,
+          onTap: onTap,
           isActive: isActive,
           blueStyle: blueStyle ?? false,
           forceOnPressed: forceOnPressed,
@@ -112,7 +112,7 @@ class Button extends StatefulWidget {
         );
       case ButtonType.secondaryIcon:
         return Button.secondaryIcon(
-          onPressed: onPressed,
+          onTap: onTap,
           isActive: isActive,
           forceOnPressed: forceOnPressed,
           leftIcon: leftIcon,
@@ -124,7 +124,7 @@ class Button extends StatefulWidget {
       case ButtonType.whiteText:
         return Button.whiteText(
           text: text,
-          onPressed: onPressed,
+          onTap: onTap,
           isActive: isActive,
           bold: bold ?? true,
           forceOnPressed: forceOnPressed,
@@ -137,7 +137,7 @@ class Button extends StatefulWidget {
       case ButtonType.redText:
         return Button.redText(
           text: text,
-          onPressed: onPressed,
+          onTap: onTap,
           isActive: isActive,
           bold: bold ?? true,
           forceOnPressed: forceOnPressed,
@@ -150,7 +150,7 @@ class Button extends StatefulWidget {
       case ButtonType.blueText:
         return Button.blueText(
           text: text,
-          onPressed: onPressed,
+          onTap: onTap,
           isActive: isActive,
           bold: bold ?? false,
           forceOnPressed: forceOnPressed,
@@ -164,7 +164,7 @@ class Button extends StatefulWidget {
         return Button.mainRed(
           text: text,
           isActive: isActive,
-          onPressed: onPressed,
+          onTap: onTap,
           forceOnPressed: forceOnPressed,
           leftIcon: leftIcon,
           rightIcon: rightIcon,
@@ -176,7 +176,7 @@ class Button extends StatefulWidget {
         return Button.secondaryRed(
           text: text,
           isActive: isActive,
-          onPressed: onPressed,
+          onTap: onTap,
           forceOnPressed: forceOnPressed,
           leftIcon: leftIcon,
           rightIcon: rightIcon,
@@ -187,7 +187,7 @@ class Button extends StatefulWidget {
       case ButtonType.grayText:
         return Button.grayText(
           text: text,
-          onPressed: onPressed,
+          onTap: onTap,
           isActive: isActive,
           bold: bold ?? false,
           forceOnPressed: forceOnPressed,
@@ -200,7 +200,7 @@ class Button extends StatefulWidget {
       case ButtonType.icon:
         return Button.icon(
           isActive: isActive,
-          onTap: onPressed,
+          onTap: onTap,
           icon: rightIcon,
           forceOnPressed: forceOnPressed,
           boxShadow: boxShadow,
@@ -287,7 +287,7 @@ class Button extends StatefulWidget {
 
   factory Button.secondaryIcon({
     required bool isActive,
-    required VoidCallback onPressed,
+    required VoidCallback onTap,
     bool? forceOnPressed,
     IconData? leftIcon,
     IconData? rightIcon,
@@ -298,7 +298,7 @@ class Button extends StatefulWidget {
   }) {
     return Button(
       text: null,
-      onTap: onPressed,
+      onTap: onTap,
       isActive: isActive,
       blueStyle: false,
       isShadowActive: true,
@@ -317,7 +317,7 @@ class Button extends StatefulWidget {
   factory Button.secondaryRed({
     required String text,
     required bool isActive,
-    required VoidCallback onPressed,
+    required VoidCallback onTap,
     bool blueStyle = false,
     bool? forceOnPressed,
     IconData? leftIcon,
@@ -328,7 +328,7 @@ class Button extends StatefulWidget {
   }) {
     return Button(
       text: text,
-      onTap: onPressed,
+      onTap: onTap,
       isActive: isActive,
       blueStyle: blueStyle,
       isShadowActive: true,
@@ -351,7 +351,7 @@ class Button extends StatefulWidget {
   factory Button.redText({
     required String text,
     required bool isActive,
-    required VoidCallback onPressed,
+    required VoidCallback onTap,
     bool bold = true,
     bool? forceOnPressed,
     IconData? leftIcon,
@@ -364,7 +364,7 @@ class Button extends StatefulWidget {
     return Button(
       //activeBackgroundColor: LivitColors.red,
       text: text,
-      onTap: onPressed,
+      onTap: onTap,
       isActive: isActive,
       blueStyle: false,
       isShadowActive: false,
@@ -385,7 +385,7 @@ class Button extends StatefulWidget {
   factory Button.whiteText({
     required String text,
     required bool isActive,
-    required VoidCallback onPressed,
+    required VoidCallback onTap,
     bool bold = true,
     bool? forceOnPressed,
     IconData? leftIcon,
@@ -397,7 +397,7 @@ class Button extends StatefulWidget {
   }) {
     return Button(
       text: text,
-      onTap: onPressed,
+      onTap: onTap,
       isActive: isActive,
       blueStyle: false,
       isShadowActive: false,
@@ -418,7 +418,7 @@ class Button extends StatefulWidget {
   factory Button.blueText({
     required String text,
     required bool isActive,
-    required VoidCallback onPressed,
+    required VoidCallback onTap,
     bool bold = true,
     bool? forceOnPressed,
     IconData? leftIcon,
@@ -429,7 +429,7 @@ class Button extends StatefulWidget {
   }) {
     return Button(
       text: text,
-      onTap: onPressed,
+      onTap: onTap,
       isActive: isActive,
       blueStyle: false,
       isShadowActive: false,
@@ -449,7 +449,7 @@ class Button extends StatefulWidget {
   factory Button.mainRed({
     required String text,
     required bool isActive,
-    required VoidCallback onPressed,
+    required VoidCallback onTap,
     bool? forceOnPressed,
     IconData? leftIcon,
     IconData? rightIcon,
@@ -459,7 +459,7 @@ class Button extends StatefulWidget {
   }) {
     return Button(
       text: text,
-      onTap: onPressed,
+      onTap: onTap,
       isActive: isActive,
       blueStyle: false,
       isShadowActive: false,
@@ -481,7 +481,7 @@ class Button extends StatefulWidget {
   factory Button.grayText({
     required String text,
     required bool isActive,
-    required VoidCallback onPressed,
+    required VoidCallback onTap,
     bool isLoading = false,
     bool bold = false,
     bool? forceOnPressed,
@@ -493,7 +493,7 @@ class Button extends StatefulWidget {
   }) {
     return Button(
       text: text,
-      onTap: onPressed,
+      onTap: onTap,
       isActive: isActive,
       blueStyle: false,
       isShadowActive: false,

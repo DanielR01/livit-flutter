@@ -2,11 +2,15 @@ import 'dart:io';
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:async';
 
 class TempFileManager {
   static const String _prefsKey = 'temp_files';
+  static const Duration _cleanupInterval = Duration(minutes: 10);
+  static const Duration _maxFileAge = Duration(hours: 36);
+  static Timer? _cleanupTimer;
 
-  static Future<void> trackFile(String filePath) async {
+  static Future<void> trackFile(String filePath, bool isCompressed) async {
     try {
       final prefs = await SharedPreferences.getInstance();
       final now = DateTime.now().millisecondsSinceEpoch;
@@ -15,6 +19,8 @@ class TempFileManager {
       trackedFiles.add(json.encode({
         'path': filePath,
         'timestamp': now,
+        'size': await File(filePath).length(),
+        'isCompressed': isCompressed,
       }));
 
       await prefs.setStringList(_prefsKey, trackedFiles);
@@ -26,6 +32,7 @@ class TempFileManager {
 
   static Future<List<String>> _getTrackedFiles() async {
     final prefs = await SharedPreferences.getInstance();
+    debugPrint('📝 [TempFileManager] Tracked files: ${prefs.getStringList(_prefsKey)}');
     return prefs.getStringList(_prefsKey) ?? [];
   }
 
@@ -44,7 +51,7 @@ class TempFileManager {
           final filePath = data['path'] as String;
           final timestamp = data['timestamp'] as int;
 
-          if (now - timestamp > const Duration(hours: 1).inMilliseconds) {
+          if (now - timestamp > _maxFileAge.inMilliseconds) {
             final file = File(filePath);
             if (await file.exists()) {
               await file.delete();
@@ -110,6 +117,27 @@ class TempFileManager {
       debugPrint('✅ [TempFileManager] All files cleaned up');
     } catch (e) {
       debugPrint('❌ [TempFileManager] Error cleaning up all temp files: $e');
+    }
+  }
+
+  // Start periodic cleanup
+  static void startPeriodicCleanup() {
+    stopPeriodicCleanup(); // Cancel any existing timer
+
+    _cleanupTimer = Timer.periodic(_cleanupInterval, (_) {
+      debugPrint('🧹 [TempFileManager] Running periodic cleanup (every 5 minutes)');
+      cleanupOldFiles();
+    });
+
+    debugPrint('✅ [TempFileManager] Started periodic cleanup timer');
+  }
+
+  // Stop periodic cleanup
+  static void stopPeriodicCleanup() {
+    if (_cleanupTimer != null && _cleanupTimer!.isActive) {
+      _cleanupTimer!.cancel();
+      _cleanupTimer = null;
+      debugPrint('🛑 [TempFileManager] Stopped periodic cleanup timer');
     }
   }
 }

@@ -31,6 +31,7 @@ class RegularDaySchedule extends DaySchedule {
   }
 
   factory RegularDaySchedule.fromMap(Map<String, dynamic> map) {
+    debugPrint('🔍 [RegularDaySchedule] Creating regular day schedule from map: $map');
     return RegularDaySchedule(
       isOpen: map['isOpen'],
       timeSlot: map['timeSlot'] != null ? TimeSlot.fromMap(map['timeSlot']) : null,

@@ -119,7 +119,7 @@ class _DescriptionPromptState extends State<DescriptionPrompt> {
                               children: [
                                 Button.grayText(
                                   text: _isSkipLoading ? 'Continuando' : 'Completar más tarde',
-                                  onPressed: () {
+                                  onTap: () {
                                     BlocProvider.of<UserBloc>(context).add(SetPromoterUserDescription(context, description: ''));
                                   },
                                   isActive: true,

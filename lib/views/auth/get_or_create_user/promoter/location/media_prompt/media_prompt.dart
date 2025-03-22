@@ -1,9 +1,6 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:livit/constants/colors.dart';
 import 'package:livit/constants/enums.dart';
-import 'package:livit/constants/styles/button_style.dart';
 import 'package:livit/models/location/location.dart';
 import 'package:livit/models/location/location_media.dart';
 import 'package:livit/constants/styles/container_style.dart';
@@ -74,7 +71,7 @@ class _MediaPromptState extends State<MediaPrompt> {
             int uploadingLocations = 0;
             int uploadedLocations = 0;
             int errorLocations = 0;
-            int loadingLocations = 0;
+
             int deletingLocations = 0;
             debugPrint('🔄 [LocationBloc] Loading states: ${state.loadingStates}');
             for (final location in state.loadingStates.entries) {
@@ -88,7 +85,6 @@ class _MediaPromptState extends State<MediaPrompt> {
               } else if (location.value == LoadingState.error) {
                 errorLocations++;
               } else if (location.value == LoadingState.loading) {
-                loadingLocations++;
               } else if (location.value == LoadingState.deleting) {
                 deletingLocations++;
               }
@@ -164,7 +160,7 @@ class _MediaPromptState extends State<MediaPrompt> {
                                       text: state.loadingStates['cloud'] == LoadingState.skipping ? 'Completando' : 'Completar más tarde',
                                       isLoading: state.loadingStates['cloud'] == LoadingState.skipping,
                                       rightIcon: Icons.arrow_forward_ios,
-                                      onPressed: () {
+                                      onTap: () {
                                         _locations = _locations.map((location) => location.copyWith(media: LivitLocationMedia())).toList();
                                         BlocProvider.of<LocationBloc>(context).add(SkipUpdateLocationsMediaToCloud(context));
                                       },

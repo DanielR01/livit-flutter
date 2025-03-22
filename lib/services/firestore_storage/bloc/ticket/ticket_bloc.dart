@@ -35,7 +35,7 @@ class TicketBloc extends Bloc<TicketEvent, TicketState> {
         _locationBloc = locationBloc,
         _backgroundBloc = backgroundBloc,
         _userBloc = userBloc,
-        _errorReporter = ErrorReporter(),
+        _errorReporter = ErrorReporter(viewName: 'TicketBloc'),
         super(TicketInitial()) {
     on<FetchTicketsCountByDate>(_onFetchTicketsCountByDate);
     on<FetchTicketsCountByEvent>(_onFetchTicketsCountByEvent);

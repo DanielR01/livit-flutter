@@ -7,7 +7,7 @@ class FileCleanupService {
   factory FileCleanupService() => _instance;
   FileCleanupService._internal();
 
-  static const Duration _maxFileAge = Duration(hours: 48);
+  static const Duration _maxFileAge = Duration(minutes: 10);
 
   Future<void> cleanupTempFiles() async {
     debugPrint('🧹 [FileCleanupService] Cleaning up temp files');
@@ -35,21 +35,22 @@ class FileCleanupService {
         if (entity is File) {
           final stat = await entity.stat();
           late final Duration fileAge;
-          if (dir == Directory('${(await getApplicationDocumentsDirectory()).parent.path}/tmp')) {
-            final String name = entity.path.split('/').last.split('.').first;
-            final List<String> nameParts = name.split('_');
+
+          final String name = entity.path.split('/').last.split('.').first;
+          final List<String> nameParts = name.split('_');
+          if (nameParts.length > 1) {
             final String typeString = nameParts[0];
             final String dateString = nameParts[1];
-            if (typeString == 'image' && dateString == 'picker'){
-              debugPrint('🗑️ [FileCleanupService] Not deleting image_picker file: ${entity.path}, last accessed: ${stat.accessed}');
+            if ((typeString == 'image' && dateString == 'picker') && dir.path != (await getTemporaryDirectory()).path) {
+              debugPrint('🗑️ [FileCleanupService] Not deleting image_picker file: ${entity.path}, last accessed: ${stat.accessed}, size: ${await entity.length()/1024/1024} MB');
               fileAge = Duration.zero;
-            }
-              else {
+            } else {
               fileAge = DateTime.now().difference(stat.accessed);
             }
           } else {
             fileAge = DateTime.now().difference(stat.accessed);
           }
+
           if (fileAge > _maxFileAge) {
             debugPrint('🗑️ [FileCleanupService] Deleting old file: ${entity.path}, last accessed: ${stat.accessed}, age: $fileAge');
             await entity.delete();

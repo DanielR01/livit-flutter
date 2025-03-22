@@ -18,6 +18,7 @@ import 'package:livit/views/auth/login/phone_login.dart';
 import 'package:livit/views/auth/login/welcome.dart';
 import 'package:livit/views/errors/error_route.dart';
 import 'package:livit/views/errors/splash.dart';
+import 'package:livit/views/main_pages/promoters/event_creation/event_creation.dart';
 import 'package:livit/views/main_pages/promoters/main_menu_promoter.dart';
 import 'package:livit/views/auth/get_or_create_user/get_or_create_user.dart';
 import 'package:livit/views/main_pages/scanner/main_view_scanner.dart';
@@ -193,6 +194,9 @@ class RouteGenerator {
         break;
       case Routes.splashRoute:
         page = const SplashView();
+        break;
+      case Routes.eventCreationRoute:
+        page = const EventCreationView();
         break;
       default:
         page = ErrorView(

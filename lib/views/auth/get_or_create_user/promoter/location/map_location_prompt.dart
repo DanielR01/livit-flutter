@@ -415,7 +415,7 @@ class _MapLocationPromptState extends State<MapLocationPrompt> {
                               isActive: true,
                               deactivateSplash: true,
                               text: 'Ver todas las ubicaciones',
-                              onPressed: () async {
+                              onTap: () async {
                                 _showLocationsDialog(context);
                               },
                             ),

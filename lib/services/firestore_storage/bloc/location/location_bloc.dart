@@ -6,7 +6,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:livit/constants/enums.dart';
 import 'package:livit/models/location/location.dart';
 import 'package:livit/models/location/location_media.dart';
-import 'package:livit/models/media/location_media_file.dart';
+import 'package:livit/models/media/livit_media_file.dart';
 import 'package:livit/constants/routes.dart';
 import 'package:livit/services/background/background_bloc.dart';
 import 'package:livit/services/background/background_events.dart';
@@ -39,7 +39,9 @@ class LocationBloc extends Bloc<LocationEvent, LocationState> {
   Map<String, LoadingState> _loadingStates = {};
   String? _userId;
 
-  LivitLocation? currentLocation;
+  LivitLocation? _currentLocation;
+
+  LivitLocation? get currentLocation => _cloudLocations.firstWhere((location) => location.id == _currentLocation?.id);
 
   LocationBloc({
     required FirestoreStorageService firestoreStorage,
@@ -155,7 +157,7 @@ class LocationBloc extends Bloc<LocationEvent, LocationState> {
       _localSavedLocations = [];
       _localUnsavedLocations = [];
       if (locations.isNotEmpty) {
-        currentLocation = locations.first;
+        _currentLocation = locations.first;
       }
     } catch (e) {
       debugPrint('❌ [LocationBloc] Error getting locations: $e');
@@ -1025,7 +1027,7 @@ class LocationBloc extends Bloc<LocationEvent, LocationState> {
     Emitter<LocationState> emit,
   ) async {
     debugPrint('🛠️ [LocationBloc] Setting current location: ${event.locationId}');
-    currentLocation = _cloudLocations.firstWhere((location) => location.id == event.locationId);
+    _currentLocation = _cloudLocations.firstWhere((location) => location.id == event.locationId);
     emit(LocationsLoaded(
       cloudLocations: _cloudLocations,
       localSavedLocations: _localSavedLocations,

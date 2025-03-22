@@ -5,11 +5,9 @@ import 'package:livit/constants/styles/spaces.dart';
 import 'package:livit/constants/styles/livit_text.dart';
 import 'package:livit/services/auth/bloc/auth_bloc.dart';
 import 'package:livit/services/auth/bloc/auth_event.dart';
-import 'package:livit/services/auth/bloc/auth_state.dart';
 import 'package:livit/services/error_reporting/error_reporter.dart';
 import 'package:livit/services/firestore_storage/firestore_storage/exceptions/firestore_exceptions.dart';
 import 'package:livit/utilities/buttons/button.dart';
-import 'package:livit/views/auth/login/welcome.dart';
 
 class ErrorReauthScreen extends StatefulWidget {
   final Exception exception;
@@ -20,7 +18,7 @@ class ErrorReauthScreen extends StatefulWidget {
 }
 
 class _ErrorReauthScreenState extends State<ErrorReauthScreen> {
-  final _errorReporter = ErrorReporter();
+  final _errorReporter = ErrorReporter(viewName: 'ErrorReauthScreen');
 
   @override
   void initState() {

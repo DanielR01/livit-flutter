@@ -24,7 +24,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     required AuthProvider provider,
     ErrorReporter? errorReporter,
   })  : _provider = provider,
-        _errorReporter = errorReporter ?? ErrorReporter(),
+        _errorReporter = errorReporter ?? ErrorReporter(viewName: 'AuthBloc'),
         super(const AuthStateUninitialized()) {
     debugPrint('🔄 [AuthBloc] Initializing AuthBloc');
 

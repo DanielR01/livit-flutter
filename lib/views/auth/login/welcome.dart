@@ -1,14 +1,10 @@
-import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:livit/constants/routes.dart';
 import 'package:livit/constants/styles/spaces.dart';
 import 'package:livit/constants/styles/livit_text.dart';
 import 'package:livit/constants/enums.dart';
-import 'package:livit/services/background/background_bloc.dart';
-import 'package:livit/services/background/background_events.dart';
 import 'package:livit/services/error_reporting/error_reporter.dart';
 import 'package:livit/utilities/buttons/button.dart';
 
@@ -98,7 +94,7 @@ class _WelcomeViewState extends State<WelcomeView> {
 
 class WelcomeMessage extends StatelessWidget {
   final bool animationsCompleted;
-  static final errorReporter = ErrorReporter();
+  static final errorReporter = ErrorReporter(viewName: 'WelcomeMessage');
 
   const WelcomeMessage({super.key, required this.animationsCompleted});
 

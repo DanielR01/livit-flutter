@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:livit/models/media/location_media_file.dart';
+import 'package:livit/models/media/livit_media_file.dart';
 import 'package:livit/services/firestore_storage/firestore_storage/exceptions/locations_exceptions.dart';
 
 class LivitLocationMedia {

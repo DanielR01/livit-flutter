@@ -1,14 +1,13 @@
 part of '../location_detail.dart';
 
 class NextEventSnippet extends StatelessWidget {
-  final String locationId;
-
-  const NextEventSnippet({super.key, required this.locationId});
+  const NextEventSnippet({super.key});
 
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<EventsBloc, EventsState>(
       builder: (context, state) {
+        final String locationId = context.read<LocationBloc>().currentLocation?.id ?? '';
         debugPrint('🛠️ [LocationDetailView] Building next event snippet, state: $state');
         final bool isLoading = state is EventsLoaded && state.loadingStates[locationId] == LoadingState.loading;
         final List<LivitEvent> events = state is EventsLoaded ? state.loadedEvents[EventViewType.location]![locationId] ?? [] : [];
@@ -34,7 +33,9 @@ class NextEventSnippet extends StatelessWidget {
                       isActive: true,
                       text: 'Crear nuevo evento',
                       rightIcon: CupertinoIcons.calendar_badge_plus,
-                      onTap: () {},
+                      onTap: () {
+                        Navigator.of(context).pushNamed(Routes.eventCreationRoute);
+                      },
                     ),
                   ],
                 ),
@@ -61,7 +62,9 @@ class NextEventSnippet extends StatelessWidget {
                       Button.main(
                         isActive: true,
                         text: 'Crea o programa nuevos eventos',
-                        onTap: () {},
+                        onTap: () {
+                          Navigator.of(context).pushNamed(Routes.eventCreationRoute);
+                        },
                         rightIcon: CupertinoIcons.calendar_badge_plus,
                       ),
                     ],

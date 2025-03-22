@@ -9,7 +9,7 @@ import 'package:livit/constants/styles/livit_text.dart';
 import 'package:livit/constants/styles/spaces.dart';
 import 'package:livit/models/event/event.dart';
 import 'package:livit/models/location/product/location_product.dart';
-import 'package:livit/models/media/location_media_file.dart';
+import 'package:livit/models/media/livit_media_file.dart';
 import 'package:livit/services/firestore_storage/bloc/event/event_bloc.dart';
 import 'package:livit/services/firestore_storage/bloc/ticket/ticket_bloc.dart';
 import 'package:livit/services/firestore_storage/bloc/ticket/ticket_event.dart';

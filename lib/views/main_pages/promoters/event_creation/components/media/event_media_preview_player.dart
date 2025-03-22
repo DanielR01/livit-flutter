@@ -3,10 +3,7 @@ import 'dart:async';
 import 'dart:math';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:livit/models/location/location.dart';
-import 'package:livit/models/location/location_media.dart';
 import 'package:livit/models/media/livit_media_file.dart';
 import 'package:livit/constants/styles/bar_style.dart';
 import 'package:livit/constants/styles/button_style.dart';
@@ -15,35 +12,33 @@ import 'package:livit/constants/styles/livit_text.dart';
 import 'package:livit/constants/styles/spaces.dart';
 import 'package:livit/services/error_reporting/error_reporter.dart';
 import 'package:livit/services/files/temp_file_manager.dart';
-import 'package:livit/services/firestore_storage/bloc/location/location_bloc.dart';
-import 'package:livit/services/firestore_storage/bloc/location/location_event.dart';
-import 'package:livit/services/firestore_storage/bloc/location/location_state.dart';
 import 'package:livit/utilities/bars_containers_fields/bar.dart';
 import 'package:livit/utilities/bars_containers_fields/glass_container.dart';
 import 'package:livit/utilities/buttons/button.dart';
 import 'package:livit/utilities/display/livit_display_area.dart';
+import 'package:livit/utilities/media/media_file_cleanup.dart';
 import 'package:livit/utilities/media/video_editor/video_editor.dart';
 import 'package:video_player/video_player.dart';
 import 'package:livit/constants/colors.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
-class LocationMediaPreviewPlayer extends StatefulWidget {
-  final LivitLocation location;
+class EventMediaPreviewPlayer extends StatefulWidget {
+  final List<LivitMediaFile> initialMedia;
   final int index;
   final bool addMedia;
 
-  const LocationMediaPreviewPlayer({
+  const EventMediaPreviewPlayer({
     super.key,
-    required this.location,
+    required this.initialMedia,
     this.index = 0,
     this.addMedia = false,
   });
 
   @override
-  State<LocationMediaPreviewPlayer> createState() => _LocationMediaPreviewPlayerState();
+  State<EventMediaPreviewPlayer> createState() => _EventMediaPreviewPlayerState();
 }
 
-class _LocationMediaPreviewPlayerState extends State<LocationMediaPreviewPlayer> {
+class _EventMediaPreviewPlayerState extends State<EventMediaPreviewPlayer> {
   VideoPlayerController? _controller;
   bool _isInitialized = false;
   late PageController _thumbnailController;
@@ -63,52 +58,23 @@ class _LocationMediaPreviewPlayerState extends State<LocationMediaPreviewPlayer>
 
   bool get isVideo => _isAddingMedia ? false : _allMedia.isNotEmpty && _allMedia[_currentIndex] is LivitMediaVideo;
 
-  late final LocationBloc _locationBloc;
+  final ErrorReporter _errorReporter = ErrorReporter(viewName: 'EventMediaPreviewPlayer');
 
-  late LivitLocation _location;
+  List<LivitMediaFile> get _allMedia => widget.initialMedia;
 
-  final ErrorReporter _errorReporter = ErrorReporter(viewName: 'LocationMediaPreviewPlayer');
-
-  List<LivitMediaFile> get _allMedia => [
-        ..._location.media?.files?.whereType<LivitMediaFile>() ?? [],
-      ];
+  late List<LivitMediaFile> _savedMedia;
+  bool _hasChanges = false;
 
   @override
   void initState() {
     super.initState();
-    _locationBloc = BlocProvider.of<LocationBloc>(context);
-    _location = _locationBloc.locations.firstWhere((location) => location.id == widget.location.id);
     _setupMediaList();
+    _savedMedia = List.from(widget.initialMedia);
 
     if (widget.addMedia) {
       WidgetsBinding.instance.addPostFrameCallback(
         (_) async {
-          setState(() {
-            _isAddingMedia = true;
-            _currentIndex = _allMedia.length;
-          });
-          final result = await _pickMedia();
-          if (result == null) {
-            setState(() {
-              _isAddingMedia = false;
-              _currentIndex = max(_currentIndex - 1, 0);
-            });
-            return;
-          }
-          final LivitLocationMedia locationMedia = LivitLocationMedia(
-            files: [..._allMedia, result],
-          );
-          if (mounted) {
-            BlocProvider.of<LocationBloc>(context).add(
-              UpdateLocationMediaLocally(context, location: _location, media: locationMedia),
-            );
-          }
-
-          setState(
-            () {
-              _isAddingMedia = false;
-            },
-          );
+          _addMedia();
         },
       );
     }
@@ -131,7 +97,7 @@ class _LocationMediaPreviewPlayerState extends State<LocationMediaPreviewPlayer>
   }
 
   void _initializeController() async {
-    if (_allMedia[_currentIndex].filePath != null) {
+    if (_allMedia.isNotEmpty && _allMedia[_currentIndex].filePath != null) {
       try {
         _controller = VideoPlayerController.file(File(_allMedia[_currentIndex].filePath!));
 
@@ -145,37 +111,43 @@ class _LocationMediaPreviewPlayerState extends State<LocationMediaPreviewPlayer>
           _isInitialized = true;
         });
       } catch (e) {
-        debugPrint('error: $e');
+        if (!File(_allMedia[_currentIndex].filePath!).existsSync()) {
+          debugPrint('🚨 [EventMediaPreviewPlayer] File does not exist: ${_allMedia[_currentIndex].filePath}');
+        } else {
+          debugPrint('🚨 [EventMediaPreviewPlayer] Error initializing controller: $e');
+          _errorReporter.reportError(e, StackTrace.current);
+        }
       }
     }
   }
 
   void _replaceMedia(LivitMediaFile? newMedia) async {
-    final List<LivitMediaFile?> auxMedia = _location.media?.files ?? [];
+    final List<LivitMediaFile?> auxMedia = _allMedia;
+    if (_allMedia.isNotEmpty && _allMedia[_currentIndex].filePath != null) {
+      MediaFileCleanup.deleteFileByPath(_allMedia[_currentIndex].filePath);
+      if (_allMedia[_currentIndex] is LivitMediaVideo && (_allMedia[_currentIndex] as LivitMediaVideo).cover.filePath != null) {
+        MediaFileCleanup.deleteFileByPath((_allMedia[_currentIndex] as LivitMediaVideo).cover.filePath!);
+      }
+    }
 
     if (newMedia != null) {
       auxMedia[_currentIndex] = newMedia;
     } else {
       auxMedia.removeAt(_currentIndex);
     }
-
-    final LivitLocationMedia locationMedia = LivitLocationMedia(
-      files: auxMedia,
-    );
-
-    if (mounted) {
-      BlocProvider.of<LocationBloc>(context).add(
-        UpdateLocationMediaLocally(context, location: _location, media: locationMedia),
-      );
-    }
     await Future.delayed(const Duration(milliseconds: 500));
-    _initializeController();
+    if (_allMedia.isNotEmpty && _allMedia[_currentIndex] is LivitMediaVideo) {
+      _initializeController();
+    }
+    setState(() {
+      _hasChanges = true;
+    });
   }
 
   void _addMedia() async {
     setState(() {
       _isAddingMedia = true;
-      if (_location.media?.files?.isNotEmpty ?? false) {
+      if (_allMedia.isNotEmpty) {
         _currentIndex++;
       }
     });
@@ -188,22 +160,15 @@ class _LocationMediaPreviewPlayerState extends State<LocationMediaPreviewPlayer>
       return;
     }
 
-    final List<LivitMediaFile?> auxMedia = _location.media?.files ?? [];
+    final List<LivitMediaFile?> auxMedia = _allMedia;
 
     auxMedia.insert(_currentIndex, result);
 
-    final LivitLocationMedia locationMedia = LivitLocationMedia(
-      files: auxMedia,
-    );
-
-    if (mounted) {
-      BlocProvider.of<LocationBloc>(context).add(
-        UpdateLocationMediaLocally(context, location: _location, media: locationMedia),
-      );
-    }
-
     setState(() {
       _isAddingMedia = false;
+    });
+    setState(() {
+      _hasChanges = true;
     });
   }
 
@@ -215,25 +180,10 @@ class _LocationMediaPreviewPlayerState extends State<LocationMediaPreviewPlayer>
       _isInitialized = false;
       _currentIndex = max(_currentIndex - 1, 0);
     });
+    setState(() {
+      _hasChanges = true;
+    });
   }
-
-  // Widget _buildMediaView(LivitMediaFile media) {
-  //   final bool isVideo = media is LivitMediaVideo;
-  //   if (isVideo) {
-  //   } else if (media.filePath != null) {
-  //     return Container(
-  //       clipBehavior: Clip.hardEdge,
-  //       decoration: BoxDecoration(
-  //         borderRadius: LivitContainerStyle.borderRadius / 2,
-  //       ),
-  //       child: Image.file(
-  //         File(media.filePath!),
-  //         fit: BoxFit.contain,
-  //       ),
-  //     );
-  //   }
-  //   return const Center(child: Icon(Icons.error));
-  // }
 
   Widget _buildVideoView(LivitMediaVideo media) {
     return _isInitialized && _controller != null
@@ -392,6 +342,20 @@ class _LocationMediaPreviewPlayerState extends State<LocationMediaPreviewPlayer>
   }
 
   Widget _buildImageView(LivitMediaImage media) {
+    if (!File(media.filePath!).existsSync()) {
+      return Container(
+        height: LivitBarStyle.height,
+        width: LivitBarStyle.height * 9 / 16,
+        decoration: BoxDecoration(
+          borderRadius: LivitContainerStyle.borderRadius / 4,
+        ),
+        child: Icon(
+          Icons.error,
+          color: LivitColors.whiteInactive,
+          size: 24.sp,
+        ),
+      );
+    }
     return Container(
       clipBehavior: Clip.hardEdge,
       decoration: BoxDecoration(
@@ -402,9 +366,23 @@ class _LocationMediaPreviewPlayerState extends State<LocationMediaPreviewPlayer>
   }
 
   Widget _buildThumbnail(int index, bool isCurrent) {
-    final media = _allMedia[index];
+    final LivitMediaFile media = _allMedia[index];
     final bool isVideo = media is LivitMediaVideo;
     final String? path = isVideo ? media.cover.filePath : media.filePath;
+    if (path != null && !File(path).existsSync()) {
+      return Container(
+        height: LivitBarStyle.height,
+        width: LivitBarStyle.height * 9 / 16,
+        decoration: BoxDecoration(
+          borderRadius: LivitContainerStyle.borderRadius / 4,
+        ),
+        child: Icon(
+          Icons.error,
+          color: LivitColors.whiteInactive,
+          size: 24.sp,
+        ),
+      );
+    }
 
     return Container(
       height: LivitBarStyle.height,
@@ -512,74 +490,50 @@ class _LocationMediaPreviewPlayerState extends State<LocationMediaPreviewPlayer>
       return null;
     } finally {
       if (await File(pickedFile.path).exists()) {
-        await File(pickedFile.path).delete();
+        await MediaFileCleanup.deleteFileByPath(pickedFile.path);
       }
     }
   }
 
-  Widget _buildTopBar(String? errorMessage) {
+  Widget _buildTopBar() {
     return LivitBar(
       noPadding: true,
       shadowType: ShadowType.none,
-      child: Column(
-        children: [
-          Padding(
-            padding: LivitContainerStyle.padding(padding: [null, null, null, 0]),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      child: Padding(
+        padding: LivitContainerStyle.padding(padding: [0, null, 0, 0]),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Button.icon(
+              deactivateSplash: true,
+              isActive: !_isAddingMedia && !_isReplacingMedia,
+              isIconBig: true,
+              icon: CupertinoIcons.chevron_back,
+              onTap: _onWillPop,
+            ),
+            Row(
               children: [
-                Padding(
-                  padding: LivitContainerStyle.padding(padding: [0, null, 0, 0]),
-                  child: Button.icon(
-                    deactivateSplash: true,
-                    isActive: !_isAddingMedia && !_isReplacingMedia,
-                    isIconBig: true,
-                    icon: CupertinoIcons.chevron_back,
-                    onTap: () async {
-                      if (!_locationBloc.areUnsavedChanges) {
-                        if (mounted) Navigator.pop(context);
-                        return;
-                      }
-                      final shouldPop = await _onWillPop();
-                      if (!shouldPop) return;
-                      if (mounted) {
-                        BlocProvider.of<LocationBloc>(context).add(DiscardChangesLocally(context));
-                        Navigator.pop(context);
-                      }
-                    },
-                  ),
+                Button.icon(
+                  isActive: _allMedia.length < 7 && !_isAddingMedia && !_isReplacingMedia,
+                  isShadowActive: true,
+                  isIconBig: true,
+                  icon: CupertinoIcons.add,
+                  onTap: () {
+                    _addMedia();
+                  },
                 ),
-                Row(
-                  children: [
-                    Button.icon(
-                      isActive: _allMedia.length < 7 && !_isAddingMedia && !_isReplacingMedia,
-                      isShadowActive: true,
-                      isIconBig: true,
-                      icon: CupertinoIcons.add,
-                      onTap: () {
-                        _addMedia();
-                      },
-                    ),
-                    LivitSpaces.s,
-                    Button.main(
-                      text: 'Guardar',
-                      isActive: _locationBloc.areUnsavedChanges && !_isAddingMedia && !_isReplacingMedia,
-                      onTap: () {
-                        BlocProvider.of<LocationBloc>(context).add(SaveChangesLocally(context));
-                      },
-                    ),
-                  ],
+                LivitSpaces.s,
+                Button.main(
+                  text: 'Guardar',
+                  isActive: _hasChanges,
+                  onTap: () {
+                    _saveChanges();
+                  },
                 ),
               ],
             ),
-          ),
-          if (errorMessage != null)
-            LivitText(
-              errorMessage,
-              textType: LivitTextType.small,
-              fontWeight: FontWeight.bold,
-            ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -587,62 +541,66 @@ class _LocationMediaPreviewPlayerState extends State<LocationMediaPreviewPlayer>
   Widget _buildBottomBar() {
     return LivitBar(
       shadowType: ShadowType.none,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        mainAxisSize: MainAxisSize.max,
-        children: [
-          Button.icon(
-            isActive: _allMedia.isNotEmpty && !_isAddingMedia && !_isReplacingMedia,
-            onTap: () async {
-              if (_allMedia[_currentIndex] is LivitMediaVideo) {
-                final result = await Navigator.push<LivitMediaVideo>(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => LivitMediaEditor(
-                      videoPath: _allMedia[_currentIndex].filePath!,
-                      coverPath: (_allMedia[_currentIndex] as LivitMediaVideo).cover.filePath!,
-                      isInitialEdit: false,
+      noPadding: true,
+      child: Padding(
+        padding: LivitContainerStyle.padding(padding: [0, null, 0, null]),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          mainAxisSize: MainAxisSize.max,
+          children: [
+            Button.icon(
+              isActive: _allMedia.isNotEmpty && !_isAddingMedia && !_isReplacingMedia,
+              onTap: () async {
+                if (_allMedia[_currentIndex] is LivitMediaVideo) {
+                  final result = await Navigator.push<LivitMediaVideo>(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => LivitMediaEditor(
+                        videoPath: _allMedia[_currentIndex].filePath!,
+                        coverPath: (_allMedia[_currentIndex] as LivitMediaVideo).cover.filePath!,
+                        isInitialEdit: false,
+                      ),
                     ),
-                  ),
-                );
-                if (result != null) {
-                  _replaceMedia(result);
+                  );
+                  if (result != null) {
+                    _replaceMedia(result);
+                  }
+                } else {
+                  final croppedFilePath = await LivitMediaEditor.cropImage(_allMedia[_currentIndex].filePath!);
+                  if (croppedFilePath == null) return;
+                  _replaceMedia(LivitMediaImage(filePath: croppedFilePath, url: ''));
                 }
-              } else {
-                final croppedFilePath = await LivitMediaEditor.cropImage(_allMedia[_currentIndex].filePath!);
-                if (croppedFilePath == null) return;
-                _replaceMedia(LivitMediaImage(filePath: croppedFilePath, url: ''));
-              }
-            },
-            icon: CupertinoIcons.slider_horizontal_3,
-            isShadowActive: true,
-          ),
-          Button.main(
-            text: _isReplacingMedia ? 'Reemplazando' : 'Reemplazar',
-            isLoading: _isReplacingMedia,
-            isActive: _allMedia.isNotEmpty && !_isAddingMedia && !_isReplacingMedia,
-            onTap: () async {
-              setState(() {
-                _isReplacingMedia = true;
-              });
-              final LivitMediaFile? file = await _pickMedia();
-              if (file != null) {
-                _replaceMedia(file);
-              }
-              setState(() {
-                _isReplacingMedia = false;
-              });
-            },
-          ),
-          Button.icon(
-            isActive: _allMedia.isNotEmpty && !_isAddingMedia && !_isReplacingMedia,
-            onTap: () {
-              _deleteCurrentMedia();
-            },
-            icon: CupertinoIcons.delete,
-            isShadowActive: true,
-          ),
-        ],
+              },
+              icon: CupertinoIcons.slider_horizontal_3,
+              isShadowActive: true,
+            ),
+            Button.main(
+              text: _isReplacingMedia ? 'Reemplazando' : 'Reemplazar',
+              isLoading: _isReplacingMedia,
+              isActive: _allMedia.isNotEmpty && !_isAddingMedia && !_isReplacingMedia,
+              onTap: () async {
+                setState(() {
+                  _isReplacingMedia = true;
+                });
+                final LivitMediaFile? file = await _pickMedia();
+                if (file != null) {
+                  _replaceMedia(file);
+                }
+                setState(() {
+                  _isReplacingMedia = false;
+                });
+              },
+            ),
+            Button.icon(
+              isActive: _allMedia.isNotEmpty && !_isAddingMedia && !_isReplacingMedia,
+              onTap: () {
+                _deleteCurrentMedia();
+              },
+              icon: CupertinoIcons.delete,
+              isShadowActive: true,
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -664,51 +622,61 @@ class _LocationMediaPreviewPlayerState extends State<LocationMediaPreviewPlayer>
     return '$minutes:$seconds';
   }
 
-  Future<bool> _onWillPop() async {
-    if (!_locationBloc.areUnsavedChanges) return true;
-
-    final shouldPop = await showDialog<bool>(
-      context: context,
-      builder: (context) => Dialog(
-        backgroundColor: LivitColors.mainBlack,
-        child: Padding(
-          padding: EdgeInsets.all(LivitSpaces.mDouble),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const LivitText(
-                '¿Deseas descartar los cambios?',
-                textType: LivitTextType.smallTitle,
-              ),
-              LivitSpaces.s,
-              const LivitText(
-                'Los cambios que realizaste se perderán',
-                textType: LivitTextType.small,
-              ),
-              LivitSpaces.m,
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Button.main(
-                    text: 'Cancelar',
-                    isActive: true,
-                    onTap: () => Navigator.of(context).pop(false),
-                  ),
-                  Button.redText(
-                    text: 'Descartar',
-                    isActive: true,
-                    onTap: () => Navigator.of(context).pop(true),
-                  ),
-                ],
-              ),
-            ],
+  Future<void> _onWillPop() async {
+    if (_hasChanges) {
+      final shouldPop = await showDialog<bool>(
+        context: context,
+        builder: (context) => Dialog(
+          backgroundColor: LivitColors.mainBlack,
+          child: Padding(
+            padding: EdgeInsets.all(LivitSpaces.mDouble),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const LivitText(
+                  '¿Deseas descartar los cambios?',
+                  textType: LivitTextType.smallTitle,
+                ),
+                LivitSpaces.s,
+                const LivitText(
+                  'Los cambios que realizaste se perderán',
+                ),
+                LivitSpaces.m,
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Button.main(
+                      text: 'Cancelar',
+                      onTap: () => Navigator.of(context).pop(false),
+                      isActive: true,
+                    ),
+                    Button.redText(
+                      text: 'Descartar',
+                      onTap: () => Navigator.of(context).pop(true),
+                      isActive: true,
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
-      ),
-    );
+      );
 
-    return shouldPop ?? false;
+      if (shouldPop == true && mounted) {
+        Navigator.of(context).pop(_savedMedia);
+      }
+    } else {
+      Navigator.of(context).pop(_savedMedia);
+    }
+  }
+
+  void _saveChanges() {
+    setState(() {
+      _savedMedia = List.from(_allMedia);
+      _hasChanges = false;
+    });
   }
 
   void _cleanupCurrentVideo() {
@@ -716,6 +684,53 @@ class _LocationMediaPreviewPlayerState extends State<LocationMediaPreviewPlayer>
     _controller?.dispose();
     _controller = null;
     _isInitialized = false;
+  }
+
+  void _showDialog(String title, String message, {int autoDismissSeconds = 10}) {
+    showDialog(
+      barrierColor: LivitColors.mainBlackDialog,
+      context: context,
+      builder: (context) {
+        if (autoDismissSeconds > 0) {
+          Timer(Duration(seconds: autoDismissSeconds), () {
+            if (Navigator.canPop(context)) {
+              Navigator.of(context).pop();
+            }
+          });
+        }
+
+        return Dialog(
+          backgroundColor: Colors.transparent,
+          child: Container(
+            decoration: LivitContainerStyle.decoration,
+            child: Padding(
+              padding: LivitContainerStyle.padding(),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  LivitText(
+                    title,
+                    textType: LivitTextType.smallTitle,
+                  ),
+                  LivitSpaces.s,
+                  LivitText(
+                    message,
+                  ),
+                  if (autoDismissSeconds > 0) ...[
+                    LivitSpaces.xs,
+                    LivitText(
+                      'Este mensaje se cerrará automáticamente en $autoDismissSeconds segundos',
+                      textType: LivitTextType.small,
+                      color: LivitColors.whiteInactive,
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
   }
 
   @override
@@ -747,89 +762,96 @@ class _LocationMediaPreviewPlayerState extends State<LocationMediaPreviewPlayer>
       },
     );
 
-    return BlocBuilder<LocationBloc, LocationState>(
-      builder: (context, state) {
-        _location = _locationBloc.locations.firstWhere((location) => location.id == widget.location.id);
-        return PopScope(
-          canPop: !_locationBloc.areUnsavedChanges && !_isAddingMedia && !_isReplacingMedia,
-          child: Scaffold(
-            body: LivitDisplayArea(
-              child: Center(
-                child: Column(
-                  children: [
-                    _buildTopBar(state is LocationsLoaded ? state.errorMessage : null),
-                    LivitSpaces.s,
-                    Flexible(
-                      child: GlassContainer(
-                        opacity: 1,
-                        child: Padding(
-                          padding: LivitContainerStyle.padding(padding: null),
-                          child: Column(
-                            children: [
-                              Flexible(
-                                child: LayoutBuilder(
-                                  builder: (context, constraints) {
-                                    return Container(
-                                      constraints: BoxConstraints(maxWidth: constraints.maxHeight * 9 / 16),
-                                      child: PageView.builder(
-                                        controller: _pageController,
-                                        onPageChanged: (index) {
-                                          setState(() {
-                                            _currentIndex = index;
-                                            _displayedIndex = index;
-                                          });
-                                        },
-                                        itemCount: _allMedia.length + (_isAddingMedia ? 1 : 0),
-                                        itemBuilder: (context, index) {
-                                          if (index == _allMedia.length && _isAddingMedia) {
-                                            return Center(
-                                              child: Column(
-                                                mainAxisSize: MainAxisSize.min,
-                                                children: [
-                                                  SizedBox(
-                                                    width: LivitButtonStyle.bigIconSize,
-                                                    height: LivitButtonStyle.bigIconSize,
-                                                    child: CupertinoActivityIndicator(
-                                                      color: LivitColors.whiteActive,
-                                                      radius: LivitButtonStyle.bigIconSize / 2,
-                                                    ),
-                                                  ),
-                                                  LivitSpaces.s,
-                                                  const LivitText(
-                                                    'Estamos obteniendo el archivo...\nA veces puede tardar un poco',
-                                                  ),
-                                                ],
+    return PopScope(
+      canPop: false,
+      child: Scaffold(
+        body: LivitDisplayArea(
+          child: Center(
+            child: Column(
+              children: [
+                _buildTopBar(),
+                LivitSpaces.xs,
+                Flexible(
+                  child: GlassContainer(
+                    opacity: 1,
+                    child: Padding(
+                      padding: LivitContainerStyle.padding(padding: null),
+                      child: Column(
+                        children: [
+                          Flexible(
+                            child: LayoutBuilder(
+                              builder: (context, constraints) {
+                                return Container(
+                                  constraints: BoxConstraints(maxWidth: constraints.maxHeight * 9 / 16),
+                                  child: PageView.builder(
+                                    controller: _pageController,
+                                    onPageChanged: (index) {
+                                      setState(() {
+                                        _currentIndex = index;
+                                        _displayedIndex = index;
+                                      });
+                                    },
+                                    itemCount: _allMedia.length + (_isAddingMedia ? 1 : 0),
+                                    itemBuilder: (context, index) {
+                                      if (index == _allMedia.length && _isAddingMedia) {
+                                        return Center(
+                                          child: Column(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              SizedBox(
+                                                width: LivitButtonStyle.bigIconSize,
+                                                height: LivitButtonStyle.bigIconSize,
+                                                child: CupertinoActivityIndicator(
+                                                  color: LivitColors.whiteActive,
+                                                  radius: LivitButtonStyle.bigIconSize / 2,
+                                                ),
                                               ),
-                                            );
-                                          }
-                                          final LivitMediaFile media = _allMedia[index];
-                                          if (media is LivitMediaVideo) {
-                                            return _buildVideoView(media);
-                                          } else {
-                                            return _buildImageView(media as LivitMediaImage);
-                                          }
-                                        },
-                                      ),
-                                    );
-                                  },
-                                ),
-                              ),
-                              LivitSpaces.s,
-                              _buildThumbnailView(),
-                            ],
+                                              LivitSpaces.s,
+                                              const LivitText(
+                                                'Estamos obteniendo el archivo...\nA veces puede tardar un poco',
+                                              ),
+                                            ],
+                                          ),
+                                        );
+                                      }
+                                      final LivitMediaFile media = _allMedia[index];
+                                      if (!File(media.filePath!).existsSync()) {
+                                        WidgetsBinding.instance.addPostFrameCallback((_) {
+                                          setState(() {
+                                            _allMedia.removeAt(index);
+                                            _currentIndex = max(_currentIndex - 1, 0);
+                                            _hasChanges = true;
+                                          });
+                                          _saveChanges();
+                                          _showDialog('El archivo no existe', 'Es posible que se haya eliminado automáticamente.');
+                                        });
+                                        return Container();
+                                      }
+                                      if (media is LivitMediaVideo) {
+                                        return _buildVideoView(media);
+                                      } else {
+                                        return _buildImageView(media as LivitMediaImage);
+                                      }
+                                    },
+                                  ),
+                                );
+                              },
+                            ),
                           ),
-                        ),
+                          LivitSpaces.s,
+                          _buildThumbnailView(),
+                        ],
                       ),
                     ),
-                    LivitSpaces.s,
-                    _buildBottomBar(),
-                  ],
+                  ),
                 ),
-              ),
+                LivitSpaces.xs,
+                _buildBottomBar(),
+              ],
             ),
           ),
-        );
-      },
+        ),
+      ),
     );
   }
 }

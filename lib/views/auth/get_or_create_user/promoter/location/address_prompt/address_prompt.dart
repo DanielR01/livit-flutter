@@ -118,7 +118,7 @@ class _AddressPromptState extends State<AddressPrompt> {
                                       text: isUserLoading ? 'Completando' : 'Completar más tarde',
                                       isLoading: isUserLoading,
                                       rightIcon: Icons.arrow_forward_ios,
-                                      onPressed: () {
+                                      onTap: () {
                                         BlocProvider.of<UserBloc>(context).add(
                                           SetPromoterUserNoLocations(context),
                                         );

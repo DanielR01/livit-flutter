@@ -2,7 +2,7 @@ import 'dart:io';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:livit/models/location/location_media.dart';
-import 'package:livit/models/media/location_media_file.dart';
+import 'package:livit/models/media/livit_media_file.dart';
 import 'package:livit/services/firebase_storage/storage_service/file_to_upload.dart';
 import 'package:livit/services/firebase_storage/storage_service/storage_reference.dart';
 import 'package:livit/services/firebase_storage/storage_service/storage_service_exceptions.dart';

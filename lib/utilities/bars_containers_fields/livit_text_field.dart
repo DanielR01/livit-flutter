@@ -41,6 +41,7 @@ class LivitTextField extends StatefulWidget {
   final LivitTextFieldShadow? focusedShadow;
   final LivitTextFieldShadow? unfocusedShadow;
   final bool? alwaysShowValidity;
+  final bool? removeSuffixIcon;
 
   const LivitTextField({
     super.key,
@@ -69,6 +70,7 @@ class LivitTextField extends StatefulWidget {
     this.focusedShadow = LivitTextFieldShadow.strong,
     this.unfocusedShadow = LivitTextFieldShadow.weak,
     this.alwaysShowValidity = false,
+    this.removeSuffixIcon = false,
   });
 
   @override
@@ -161,7 +163,7 @@ class _LivitTextFieldState extends State<LivitTextField> {
                   hintStyle: LivitTextStyle.regularWhiteInactiveText,
                   enabledBorder: const OutlineInputBorder(borderSide: BorderSide.none),
                   focusedBorder: const OutlineInputBorder(borderSide: BorderSide.none),
-                  suffixIcon: _buildSuffixIcon(),
+                  suffixIcon: widget.removeSuffixIcon == true ? null : _buildSuffixIcon(),
                   prefixIcon: widget.prefixIcon != null
                       ? Icon(widget.prefixIcon, color: LivitColors.whiteInactive, size: 16.sp)
                       : (widget.phoneNumberField

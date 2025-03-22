@@ -125,7 +125,7 @@ class LivitLocation {
         description: data['description'] as String?,
         media: data['media'] != null ? LivitLocationMedia.fromMap(data['media'] as Map<String, dynamic>) : null,
         createdAt: data['createdAt'] as Timestamp?,
-        schedule: data['schedule'] != null ? LocationSchedule.fromMap(data['schedule'] as Map<String, dynamic>) : null,
+        schedule: data['schedule'] != null ? LocationSchedule.fromMap(data['schedule']['weekSchedule'] as Map<String, dynamic>) : null,
         allowReservationUntil: data['allowReservationUntil'] as DateTime?,
       );
       debugPrint('📥 [LivitLocation] Location created from document: ${location.name}');

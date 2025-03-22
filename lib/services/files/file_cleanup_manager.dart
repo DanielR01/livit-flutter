@@ -8,11 +8,11 @@ class FileCleanupManager {
   FileCleanupManager._internal();
 
   Timer? _cleanupTimer;
-  static const Duration cleanupInterval = Duration(hours: 1);
+  static const Duration cleanupInterval = Duration(minutes: 1);
 
   void startPeriodicCleanup() {
     stopPeriodicCleanup(); // Ensure no duplicate timers
-    
+
     _cleanupTimer = Timer.periodic(cleanupInterval, (_) {
       debugPrint('Running periodic cleanup');
       FileCleanupService().cleanupTempFiles();
@@ -27,4 +27,4 @@ class FileCleanupManager {
   void cleanupOnAppPause() {
     FileCleanupService().cleanupTempFiles();
   }
-} 
+}
