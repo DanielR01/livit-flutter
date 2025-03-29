@@ -32,7 +32,7 @@ class LocationBloc extends Bloc<LocationEvent, LocationState> {
   final BackgroundBloc _backgroundBloc;
   final StorageBloc _storageBloc;
   final UserBloc _userBloc;
-  final LivitDebugger _debugger = const LivitDebugger('LocationBloc');
+  final LivitDebugger _debugger = const LivitDebugger('LocationBloc', isDebugEnabled: true);
   List<LivitLocation> _cloudLocations = [];
   List<LivitLocation> _localSavedLocations = [];
   List<LivitLocation> _localUnsavedLocations = [];

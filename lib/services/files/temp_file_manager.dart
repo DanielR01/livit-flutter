@@ -20,7 +20,7 @@ class TempFileManager {
       trackedFiles.add(json.encode({
         'path': filePath,
         'timestamp': now,
-        'size': await File(filePath).length(),
+        'size': await File(filePath).length() / 1024 / 1024,
         'isCompressed': isCompressed,
       }));
 

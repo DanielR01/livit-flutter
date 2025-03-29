@@ -165,7 +165,7 @@ class _LocationDetailViewState extends State<LocationDetailView> {
                         BlocProvider.of<LocationBloc>(context).add(GetUserLocations(context));
                         if (_location != null) {
                           _locationBloc.add(GetUserLocations(context));
-                          _eventsBloc.add(RefreshEvents());
+                          _eventsBloc.add(RefreshEventsByLocation());
                           _eventsBloc.add(FetchNextEventsByLocation(locationId: _location!.id));
                           _ticketBloc.add(RefreshTicketsCountByDate());
                           _productBloc.add(LoadLocationProducts(locationId: _location!.id));

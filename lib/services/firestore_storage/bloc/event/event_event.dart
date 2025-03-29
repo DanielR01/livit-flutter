@@ -13,7 +13,7 @@ class FetchNextEventsByLocation extends EventsEvent {
   FetchNextEventsByLocation({required this.locationId});
 }
 
-class RefreshEvents extends EventsEvent {}
+class RefreshEventsByLocation extends EventsEvent {}
 
 class CreateEvent extends EventsEvent {
   final LivitEvent event;

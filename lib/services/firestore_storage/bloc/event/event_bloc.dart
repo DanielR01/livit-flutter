@@ -21,6 +21,7 @@ class EventsBloc extends Bloc<EventsEvent, EventsState> {
   final BackgroundBloc _backgroundBloc;
   final FirestoreCloudFunctions _cloudFunctions;
   final StorageBloc _storageBloc;
+  final LocationBloc _locationBloc;
   final ErrorReporter _errorReporter = ErrorReporter(viewName: 'EventsBloc');
   final _debugger = LivitDebugger('EventsBloc', isDebugEnabled: true);
 
@@ -36,14 +37,16 @@ class EventsBloc extends Bloc<EventsEvent, EventsState> {
     required BackgroundBloc backgroundBloc,
     required FirestoreCloudFunctions cloudFunctions,
     required StorageBloc storageBloc,
+    required LocationBloc locationBloc,
   })  : _storageService = storageService,
         _userBloc = userBloc,
         _backgroundBloc = backgroundBloc,
         _cloudFunctions = cloudFunctions,
         _storageBloc = storageBloc,
+        _locationBloc = locationBloc,
         super(EventsInitial()) {
     on<FetchNextEventsByLocation>(_onFetchNextEventsByLocation);
-    on<RefreshEvents>(_onRefreshEvents);
+    on<RefreshEventsByLocation>(_onRefreshEventsByLocation);
     on<CreateEvent>(_onCreateEvent);
     on<SetEventMedia>(_onSetEventMedia);
   }
@@ -66,11 +69,25 @@ class EventsBloc extends Bloc<EventsEvent, EventsState> {
     }
   }
 
-  Future<void> _onRefreshEvents(RefreshEvents event, Emitter<EventsState> emit) async {
+  Future<void> _onRefreshEventsByLocation(RefreshEventsByLocation event, Emitter<EventsState> emit) async {
+    _debugger.debPrint('Refreshing events by location', DebugMessageType.request);
+
+    // Clear all existing data
     _loadingStates = {};
     _loadedEvents[EventViewType.location]!.clear();
     _loadedEvents[EventViewType.feed]!.clear();
+
+    // Emit the empty state first
     emit(EventsLoaded(loadedEvents: _loadedEvents, loadingStates: _loadingStates));
+
+    // Fetch events for all previously known locations
+    final locationId = _locationBloc.currentLocation?.id;
+    if (locationId != null) {
+      _debugger.debPrint('After refresh, fetching events for location: $locationId', DebugMessageType.request);
+      final fetchEvent = FetchNextEventsByLocation(locationId: locationId);
+      await _onFetchNextEventsByLocation(fetchEvent, emit);
+    }
+  
   }
 
   Future<void> _onCreateEvent(CreateEvent event, Emitter<EventsState> emit) async {

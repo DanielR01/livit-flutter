@@ -7,7 +7,6 @@ class Routes {
   static const getOrCreateUserRoute = '/getOrCreateUser';
   static const mainViewRoute = '/mainView';
   static const createUpdateEventRoute = '/createUpdateEvent';
-  static const mainviewRoute = '/main';
   static const locationMediaPreviewPlayerRoute = '/locationMediaPreviewPlayer';
   static const eventCreationRoute = '/eventCreation';
   static const splashRoute = '/splash';

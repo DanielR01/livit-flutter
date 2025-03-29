@@ -16,7 +16,7 @@ class ScannerBloc extends Bloc<ScannerEvent, ScannerState> {
   final UserBloc _userBloc;
   final Map<String, LoadingState> loadingStates = {};
   final FirestoreStorageService _firestoreStorageService;
-  final _debugger = const LivitDebugger('ScannerBloc');
+  final _debugger = const LivitDebugger('ScannerBloc', isDebugEnabled: true);
 
   List<CloudScanner> scanners = [];
 

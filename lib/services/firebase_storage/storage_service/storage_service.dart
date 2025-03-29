@@ -15,7 +15,7 @@ class StorageService {
   factory StorageService() => _shared;
 
   final FirebaseStorage _storage = FirebaseStorage.instance;
-  final _debugger = const LivitDebugger('StorageService');
+  final _debugger = const LivitDebugger('StorageService', isDebugEnabled: true);
 
   Future<List<String>> uploadLocationMediaFile({required FileToUpload fileToUpload}) async {
     try {
@@ -374,9 +374,7 @@ class StorageService {
           _debugger.debPrint('Updating Firestore document to clear media array', DebugMessageType.updating);
           transaction.update(eventRef, {
             'media': {'media': []}
-          });
-
-          _debugger.debPrint('Event media files deleted successfully', DebugMessageType.done);
+          });          
         } on FirebaseException catch (e) {
           _debugger.debPrint('Firebase error during deletion: ${e.code} - ${e.message}', DebugMessageType.error);
           if (e.code == 'unavailable') {

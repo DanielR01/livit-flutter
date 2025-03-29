@@ -107,7 +107,7 @@ class LivitEvent {
     };
   }
 
-  LivitEvent copyWith({List<String>? promoterIds, String? id}) {
+  LivitEvent copyWith({List<String>? promoterIds, String? id, EventMedia? media}) {
     return LivitEvent(
       id: id ?? this.id,
       name: name,
@@ -115,7 +115,7 @@ class LivitEvent {
       dates: dates,
       artists: artists,
       locations: locations,
-      media: media,
+      media: media ?? this.media,
       promoterIds: promoterIds ?? this.promoterIds,
       eventTicketTypes: eventTicketTypes,
       startTime: startTime,

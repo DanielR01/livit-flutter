@@ -16,29 +16,43 @@ class EventService {
     try {
       final now = DateTime.now();
 
-      // Query events where locations array contains a map with all required fields
-      final querySnapshot = await _collections.eventsCollection.where('location.locationId', isEqualTo: locationId).get();
+      // Option 1: If you've denormalized the data by storing an array of locationIds at the root level
+      QuerySnapshot<LivitEvent> querySnapshot;
+      try {
+        // Try to query using a denormalized field if it exists
+        querySnapshot = await _collections.eventsCollection.where('locationIds', arrayContains: locationId).get();
+        debugPrint('📥 [EventService] Query using locationIds field successful');
+      } catch (e) {
+        debugPrint('📥 [EventService] Could not query by locationIds, falling back to client-side filtering: $e');
+        // Fall back to querying all events and filtering client-side
+        querySnapshot = await _collections.eventsCollection.get();
+      }
 
       if (querySnapshot.docs.isEmpty) {
         debugPrint('📥 [EventService] No events found');
         return [];
       }
 
-      debugPrint('📥 [EventService] Events found: ${querySnapshot.docs.length}');
-
-      // Post-process to filter by dates and sort
+      // Filter client-side if needed
       final events = querySnapshot.docs
           .map((doc) => doc.data())
-          .where((event) => event.dates.any((date) => date.endTime.toDate().isAfter(now)))
+          .where((event) =>
+              // Keep this filter even if the query used locationIds field as an extra safety check
+              event.locations.any((location) => location.locationId == locationId) &&
+              event.dates.any((date) => date.endTime.toDate().isAfter(now)))
           .toList();
+
+      debugPrint('📥 [EventService] Events found for location $locationId: ${events.length}');
 
       // Sort by the nearest upcoming date
       events.sort((a, b) {
-        final aNextDate =
-            a.dates.where((date) => date.endTime.toDate().isAfter(now)).reduce((curr, next) => curr.endTime.toDate().isBefore(next.endTime.toDate()) ? curr : next);
+        final aNextDate = a.dates
+            .where((date) => date.endTime.toDate().isAfter(now))
+            .reduce((curr, next) => curr.endTime.toDate().isBefore(next.endTime.toDate()) ? curr : next);
 
-        final bNextDate =
-            b.dates.where((date) => date.endTime.toDate().isAfter(now)).reduce((curr, next) => curr.endTime.toDate().isBefore(next.endTime.toDate()) ? curr : next);
+        final bNextDate = b.dates
+            .where((date) => date.endTime.toDate().isAfter(now))
+            .reduce((curr, next) => curr.endTime.toDate().isBefore(next.endTime.toDate()) ? curr : next);
 
         return aNextDate.endTime.compareTo(bNextDate.endTime);
       });

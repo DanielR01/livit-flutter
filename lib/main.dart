@@ -217,6 +217,7 @@ class _StartPageState extends State<_StartPage> with WidgetsBindingObserver {
             backgroundBloc: context.read<BackgroundBloc>(),
             cloudFunctions: FirestoreCloudFunctions(),
             storageBloc: context.read<StorageBloc>(),
+            locationBloc: context.read<LocationBloc>(),
           ),
         ),
         BlocProvider<TicketBloc>(

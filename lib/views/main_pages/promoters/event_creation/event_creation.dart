@@ -6,6 +6,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:livit/constants/colors.dart';
+import 'package:livit/constants/routes.dart';
 import 'package:livit/constants/styles/bar_style.dart';
 import 'package:livit/constants/styles/button_style.dart';
 import 'package:livit/constants/styles/container_style.dart';
@@ -34,6 +35,7 @@ import 'package:livit/services/firestore_storage/bloc/user/user_bloc.dart';
 
 part 'dialogs/success_dialog.dart';
 part 'dialogs/loading_dialog.dart';
+part 'dialogs/final_success_dialog.dart';
 
 class EventCreationView extends StatefulWidget {
   const EventCreationView({super.key});
@@ -306,7 +308,7 @@ class _EventCreationViewState extends State<EventCreationView> {
     setState(() {
       _isSaving = true;
     });
-
+    final BuildContext outerContext = context;
     // Show loading dialog
     if (mounted) {
       _showLoadingDialog(context);
@@ -316,16 +318,53 @@ class _EventCreationViewState extends State<EventCreationView> {
       _debugger.debPrint('Creating event through BLoC', DebugMessageType.creating);
 
       // Get BLoC instance from the context
-      final eventsBloc = BlocProvider.of<EventsBloc>(context);
+      late final EventsBloc eventsBloc;
+      if (mounted) {
+        eventsBloc = BlocProvider.of<EventsBloc>(context);
+      } else {
+        return;
+      }
 
       // Set up a listener for the BLoC states
       late final StreamSubscription<EventsState> subscription;
 
-      subscription = eventsBloc.stream.listen((state) {
-        _debugger.debPrint('Received BLoC state: ${state.runtimeType}', DebugMessageType.info);
+      subscription = eventsBloc.stream.listen(
+        (state) {
+          _debugger.debPrint('Received BLoC state: ${state.runtimeType}', DebugMessageType.info);
 
-        if (state is EventCreated) {
-          _debugger.debPrint('Event created successfully with ID: ${state.eventId}', DebugMessageType.done);
+          if (state is EventCreated) {
+            _debugger.debPrint('Event created successfully with ID: ${state.eventId}', DebugMessageType.done);
+
+            if (mounted) {
+              // Dismiss loading dialog if it's showing
+              Navigator.of(context, rootNavigator: true).pop();
+
+              // Upload media for the newly created event
+              _uploadEventMedia(outerContext, state.eventId);
+            }
+
+            subscription.cancel();
+          } else if (state is EventCreationError) {
+            _debugger.debPrint('Error creating event: ${state.message}', DebugMessageType.error);
+
+            if (mounted) {
+              // Dismiss loading dialog if it's showing
+              Navigator.of(context, rootNavigator: true).pop();
+
+              // Show error message
+              showErrorDialog(context, state.message, title: 'Error al crear evento');
+
+              // Reset saving state
+              setState(() {
+                _isSaving = false;
+              });
+            }
+
+            subscription.cancel();
+          }
+        },
+        onError: (error) {
+          _debugger.debPrint('Error in BLoC stream: $error', DebugMessageType.error);
 
           if (mounted) {
             // Dismiss loading dialog if it's showing
@@ -335,48 +374,14 @@ class _EventCreationViewState extends State<EventCreationView> {
             setState(() {
               _isSaving = false;
             });
-
-            // Upload media for the newly created event
-            _uploadEventMedia(state.eventId);
-          }
-
-          subscription.cancel();
-        } else if (state is EventCreationError) {
-          _debugger.debPrint('Error creating event: ${state.message}', DebugMessageType.error);
-
-          if (mounted) {
-            // Dismiss loading dialog if it's showing
-            Navigator.of(context, rootNavigator: true).pop();
 
             // Show error message
-            showErrorDialog(context, state.message, title: 'Error al crear evento');
-
-            // Reset saving state
-            setState(() {
-              _isSaving = false;
-            });
+            showErrorDialog(context, error.toString(), title: 'Error al crear evento');
           }
 
           subscription.cancel();
-        }
-      }, onError: (error) {
-        _debugger.debPrint('Error in BLoC stream: $error', DebugMessageType.error);
-
-        if (mounted) {
-          // Dismiss loading dialog if it's showing
-          Navigator.of(context, rootNavigator: true).pop();
-
-          // Reset saving state
-          setState(() {
-            _isSaving = false;
-          });
-
-          // Show error message
-          showErrorDialog(context, error.toString(), title: 'Error al crear evento');
-        }
-
-        subscription.cancel();
-      });
+        },
+      );
 
       // Dispatch the action to create the event
       eventsBloc.add(CreateEvent(event: _event));
@@ -398,15 +403,22 @@ class _EventCreationViewState extends State<EventCreationView> {
     }
   }
 
-  void _uploadEventMedia(String eventId) {
+  Future<void> _uploadEventMedia(BuildContext outerContext, String eventId) async {
     _debugger.debPrint('Uploading media for event: $eventId', DebugMessageType.uploading);
-
-    // Show success dialog first
-    _showSuccessDialog(context, eventId);
 
     if (_event.media.media.isEmpty) {
       _debugger.debPrint('No media to upload', DebugMessageType.info);
+      await _showFinalSuccessDialog(context, eventId);
+      await Future.delayed(const Duration(milliseconds: 100));
+      if (outerContext.mounted) {
+        _debugger.debPrint('Navigating back to main view', DebugMessageType.info);
+        Navigator.of(outerContext).popUntil((route) {
+          return route.settings.name == Routes.mainViewRoute || route.isFirst;
+        });
+      }
       return;
+    } else {
+      _showSuccessDialog(context, eventId);
     }
 
     try {
@@ -425,13 +437,110 @@ class _EventCreationViewState extends State<EventCreationView> {
       // Get the events bloc
       final eventsBloc = BlocProvider.of<EventsBloc>(context);
 
+      // Set up a listener for the BLoC states
+      late final StreamSubscription<EventsState> subscription;
+
+      subscription = eventsBloc.stream.listen(
+        (state) async {
+          _debugger.debPrint('Received BLoC state for media upload: ${state.runtimeType}', DebugMessageType.info);
+
+          if (state is EventUpdated) {
+            _debugger.debPrint('Media uploaded successfully for event ID: $eventId', DebugMessageType.done);
+
+            if (mounted) {
+              // Dismiss loading dialog if it's showing
+              Navigator.of(context, rootNavigator: true).pop();
+
+              // Show success dialog
+              await _showFinalSuccessDialog(context, eventId);
+              await Future.delayed(const Duration(milliseconds: 100));
+              if (outerContext.mounted) {
+                _debugger.debPrint('Navigating back to main view', DebugMessageType.info);
+                Navigator.of(outerContext).popUntil((route) {
+                  return route.settings.name == Routes.mainViewRoute || route.isFirst;
+                });
+              }
+            }
+
+            subscription.cancel();
+
+            setState(() {
+              _isSaving = false;
+            });
+          } else if (state is EventUpdateError) {
+            _debugger.debPrint('Error uploading media: ${state.message}', DebugMessageType.error);
+
+            if (mounted) {
+              // Dismiss loading dialog if it's showing
+              Navigator.of(context, rootNavigator: true).pop();
+
+              // Show error message
+              showErrorDialog(context, 'Los archivos multimedia no pudieron ser subidos: ${state.message}',
+                  title: 'Error al subir archivos multimedia');
+
+              if (outerContext.mounted) {
+                _debugger.debPrint('Navigating back to main view', DebugMessageType.info);
+                Navigator.of(outerContext).popUntil((route) {
+                  return route.settings.name == Routes.mainViewRoute || route.isFirst;
+                });
+              }
+            }
+
+            subscription.cancel();
+
+            setState(() {
+              _isSaving = false;
+            });
+          }
+        },
+        onError: (error) {
+          _debugger.debPrint('Error in BLoC stream during media upload: $error', DebugMessageType.error);
+
+          if (mounted) {
+            // Dismiss loading dialog if it's showing
+            Navigator.of(context, rootNavigator: true).pop();
+
+            // Show error message
+            showErrorDialog(context, 'Error al subir archivos multimedia: ${error.toString()}', title: 'Error en el servidor');
+            if (outerContext.mounted) {
+              _debugger.debPrint('Navigating back to main view', DebugMessageType.info);
+              Navigator.of(outerContext).popUntil((route) {
+                return route.settings.name == Routes.mainViewRoute || route.isFirst;
+              });
+            }
+          }
+
+          subscription.cancel();
+
+          setState(() {
+            _isSaving = false;
+          });
+        },
+      );
+
       // Dispatch the action to upload media
       eventsBloc.add(SetEventMedia(event: eventWithId, context: context));
 
       _debugger.debPrint('Media upload started for event: $eventId', DebugMessageType.info);
     } catch (e) {
       _debugger.debPrint('Error starting media upload: $e', DebugMessageType.error);
-      showErrorDialog(context, 'Error al subir archivos multimedia: ${e.toString()}');
+
+      setState(() {
+        _isSaving = false;
+      });
+
+      if (mounted) {
+        // Dismiss loading dialog if it's showing
+        Navigator.of(context, rootNavigator: true).pop();
+
+        showErrorDialog(context, 'Error al subir archivos multimedia: ${e.toString()}');
+        if (outerContext.mounted) {
+          _debugger.debPrint('Navigating back to main view', DebugMessageType.info);
+          Navigator.of(outerContext).popUntil((route) {
+            return route.settings.name == Routes.mainViewRoute || route.isFirst;
+          });
+        }
+      }
     }
   }
 
