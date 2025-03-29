@@ -26,6 +26,7 @@ import 'package:livit/utilities/media/video_editor/video_editor.dart';
 import 'package:video_player/video_player.dart';
 import 'package:livit/constants/colors.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:livit/utilities/debug/livit_debugger.dart';
 
 class LocationMediaPreviewPlayer extends StatefulWidget {
   final LivitLocation location;
@@ -68,6 +69,8 @@ class _LocationMediaPreviewPlayerState extends State<LocationMediaPreviewPlayer>
   late LivitLocation _location;
 
   final ErrorReporter _errorReporter = ErrorReporter(viewName: 'LocationMediaPreviewPlayer');
+
+  final _debugger = const LivitDebugger('LocationMediaPreviewPlayer');
 
   List<LivitMediaFile> get _allMedia => [
         ..._location.media?.files?.whereType<LivitMediaFile>() ?? [],
@@ -130,7 +133,7 @@ class _LocationMediaPreviewPlayerState extends State<LocationMediaPreviewPlayer>
     super.dispose();
   }
 
-  void _initializeController() async {
+  Future<void> _initializeController() async {
     if (_allMedia[_currentIndex].filePath != null) {
       try {
         _controller = VideoPlayerController.file(File(_allMedia[_currentIndex].filePath!));
@@ -145,7 +148,7 @@ class _LocationMediaPreviewPlayerState extends State<LocationMediaPreviewPlayer>
           _isInitialized = true;
         });
       } catch (e) {
-        debugPrint('error: $e');
+        _debugger.debPrint('Error initializing controller: $e', DebugMessageType.error);
       }
     }
   }
@@ -503,11 +506,11 @@ class _LocationMediaPreviewPlayerState extends State<LocationMediaPreviewPlayer>
       } else {
         final croppedFilePath = await LivitMediaEditor.cropImage(pickedFile.path);
         if (croppedFilePath == null) return null;
-        debugPrint('🖼️ [LocationMediaPreviewPlayer] Cropped image path: $croppedFilePath');
+        _debugger.debPrint('Cropped image path: $croppedFilePath', DebugMessageType.fileMoving);
         return LivitMediaImage(filePath: croppedFilePath, url: '');
       }
     } catch (e) {
-      debugPrint('🖼️ [LocationMediaPreviewPlayer] Error picking media: $e');
+      _debugger.debPrint('Error picking media: $e', DebugMessageType.error);
       _errorReporter.reportError(e, StackTrace.current);
       return null;
     } finally {

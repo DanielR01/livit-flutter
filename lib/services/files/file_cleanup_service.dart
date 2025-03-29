@@ -1,5 +1,5 @@
 import 'dart:io';
-import 'package:flutter/widgets.dart';
+import 'package:livit/utilities/debug/livit_debugger.dart';
 import 'package:path_provider/path_provider.dart';
 
 class FileCleanupService {
@@ -7,10 +7,12 @@ class FileCleanupService {
   factory FileCleanupService() => _instance;
   FileCleanupService._internal();
 
+  final LivitDebugger _debugger = const LivitDebugger('FileCleanupService');
+
   static const Duration _maxFileAge = Duration(minutes: 10);
 
   Future<void> cleanupTempFiles() async {
-    debugPrint('🧹 [FileCleanupService] Cleaning up temp files');
+    _debugger.debPrint('Cleaning up temp files', DebugMessageType.fileCleaning);
     try {
       final tempDir = await getTemporaryDirectory();
       try {
@@ -20,12 +22,12 @@ class FileCleanupService {
           await _cleanupDirectory(tempDirCustom);
         }
       } catch (e) {
-        debugPrint('❌ [FileCleanupService] Error during cleanup: $e');
+        _debugger.debPrint('Error during cleanup: $e', DebugMessageType.error);
       }
 
       await _cleanupDirectory(tempDir);
     } catch (e) {
-      debugPrint('❌ [FileCleanupService] Error during cleanup: $e');
+      _debugger.debPrint('Error during cleanup: $e', DebugMessageType.error);
     }
   }
 
@@ -42,7 +44,7 @@ class FileCleanupService {
             final String typeString = nameParts[0];
             final String dateString = nameParts[1];
             if ((typeString == 'image' && dateString == 'picker') && dir.path != (await getTemporaryDirectory()).path) {
-              debugPrint('🗑️ [FileCleanupService] Not deleting image_picker file: ${entity.path}, last accessed: ${stat.accessed}, size: ${await entity.length()/1024/1024} MB');
+              _debugger.debPrint('Not deleting image_picker file: ${entity.path}, last accessed: ${stat.accessed}, size: ${await entity.length()/1024/1024} MB', DebugMessageType.skipping);
               fileAge = Duration.zero;
             } else {
               fileAge = DateTime.now().difference(stat.accessed);
@@ -52,13 +54,13 @@ class FileCleanupService {
           }
 
           if (fileAge > _maxFileAge) {
-            debugPrint('🗑️ [FileCleanupService] Deleting old file: ${entity.path}, last accessed: ${stat.accessed}, age: $fileAge');
+            _debugger.debPrint('Deleting old file: ${entity.path}, last accessed: ${stat.accessed}, age: $fileAge', DebugMessageType.deleting);
             await entity.delete();
           }
         }
       }
     } catch (e) {
-      debugPrint('❌ [FileCleanupService] Error cleaning directory ${dir.path}: $e');
+      _debugger.debPrint('Error cleaning directory ${dir.path}: $e', DebugMessageType.error);
     }
   }
 }

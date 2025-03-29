@@ -1,4 +1,6 @@
-import 'package:flutter/cupertino.dart';
+import 'package:livit/utilities/debug/livit_debugger.dart';
+
+final _debugger = LivitDebugger('livit_media_file', isDebugEnabled: false);
 
 enum LivitMediaType {
   image,
@@ -20,7 +22,7 @@ class LivitMediaFile {
   }
 
   factory LivitMediaFile.fromMap(Map<String, dynamic> map) {
-    debugPrint('🛠️ [LivitMediaFile] fromMap: $map');
+    _debugger.debPrint('fromMap: $map', DebugMessageType.reading);
     if (map['type'] == LivitMediaType.image.name) {
       return LivitMediaImage.fromMap(map);
     } else if (map['type'] == LivitMediaType.video.name) {
@@ -47,7 +49,7 @@ class LivitMediaImage extends LivitMediaFile {
   LivitMediaImage({required super.url, required super.filePath}) : super(type: LivitMediaType.image);
 
   factory LivitMediaImage.fromMap(Map<String, dynamic> map) {
-    debugPrint('🛠️ [LivitMediaImage] fromMap: $map');
+    _debugger.debPrint('fromMap: $map', DebugMessageType.reading);
     return LivitMediaImage(
       url: map['url'],
       filePath: null,
@@ -79,7 +81,7 @@ class LivitMediaVideo extends LivitMediaFile {
   }
 
   factory LivitMediaVideo.fromMap(Map<String, dynamic> map) {
-    debugPrint('🛠️ [LivitMediaVideo] fromMap: $map');
+    _debugger.debPrint('fromMap: $map', DebugMessageType.reading);
     return LivitMediaVideo(
       url: map['url'],
       filePath: null,

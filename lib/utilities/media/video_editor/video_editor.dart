@@ -15,6 +15,7 @@ import 'package:livit/services/files/temp_file_manager.dart';
 import 'package:livit/services/firebase_storage/firebase_storage_constants.dart';
 import 'package:livit/services/video/export_video_service.dart';
 import 'package:livit/utilities/buttons/button.dart';
+import 'package:livit/utilities/debug/livit_debugger.dart';
 import 'package:livit/utilities/media/media_file_cleanup.dart';
 import 'package:livit/utilities/media/video_editor/crop_page.dart';
 import 'package:path_provider/path_provider.dart';
@@ -35,6 +36,7 @@ class LivitMediaEditor extends StatefulWidget {
   final String videoPath;
   final String? coverPath;
   final bool isInitialEdit;
+  static const _debugger = LivitDebugger('LivitMediaEditor');
 
   const LivitMediaEditor({super.key, required this.videoPath, this.coverPath, required this.isInitialEdit});
 
@@ -43,12 +45,12 @@ class LivitMediaEditor extends StatefulWidget {
 
   static Future<String?> cropImage(String sourcePath) async {
     try {
-      debugPrint('🔥 [LivitMediaEditor] Copying image to temp directory');
+      _debugger.debPrint('Copying image to temp directory', DebugMessageType.fileMoving);
       final directory = await getTemporaryDirectory();
       final timestamp = DateTime.now().millisecondsSinceEpoch;
       final tempFilePath = '${directory.path}/temp_$timestamp.${sourcePath.split('.').last}';
       await File(sourcePath).copy(tempFilePath);
-      debugPrint('📝 [LivitMediaEditor] Cropping image');
+      _debugger.debPrint('Cropping image', DebugMessageType.fileMoving);
       final croppedFile = await ImageCropper().cropImage(
         sourcePath: tempFilePath,
         aspectRatio: const CropAspectRatio(ratioX: 9, ratioY: 16),
@@ -77,13 +79,14 @@ class LivitMediaEditor extends StatefulWidget {
       }
       return null;
     } catch (e) {
-      debugPrint('🔥 [LivitMediaEditor] Error on cropImage: $e');
+      _debugger.debPrint('Error on cropImage: $e', DebugMessageType.error);
       return null;
     }
   }
 }
 
 class _LivitMediaEditorState extends State<LivitMediaEditor> with TickerProviderStateMixin {
+  final _debugger = const LivitDebugger('LivitMediaEditor');
   final _exportingProgress = ValueNotifier<double>(0.0);
   final _exportingProcess = ValueNotifier<LivitMediaEditorProcess>(LivitMediaEditorProcess.idle);
   final _isExporting = ValueNotifier<bool>(false);
@@ -162,9 +165,9 @@ class _LivitMediaEditorState extends State<LivitMediaEditor> with TickerProvider
           _exportingProcess.value = LivitMediaEditorProcess.exporting;
         },
         onError: (e, s) {
-          debugPrint('❌ [LivitMediaEditor] Error on export video: $e');
+          _debugger.debPrint('Error on export video: $e', DebugMessageType.error);
           if (e is Exception) {
-            debugPrint('❌ [LivitMediaEditor] Exception: ${e.toString()}');
+            _debugger.debPrint('Exception: ${e.toString()}', DebugMessageType.error);
           }
           _errorReporter.reportError(e, s);
           _exportingProcess.value = LivitMediaEditorProcess.error;
@@ -181,7 +184,7 @@ class _LivitMediaEditorState extends State<LivitMediaEditor> with TickerProvider
               _exportingProcess.value = LivitMediaEditorProcess.compressing;
             },
             onError: (e, s) {
-              debugPrint('❌ [LivitMediaEditor] Error on export video: $e');
+              _debugger.debPrint('Error on export video: $e', DebugMessageType.error);
               _exportingProcess.value = LivitMediaEditorProcess.error;
               _errorReporter.reportError(e, s);
               _isExporting.value = false;
@@ -189,8 +192,8 @@ class _LivitMediaEditorState extends State<LivitMediaEditor> with TickerProvider
             },
             onCompleted: (compressedFile) async {
               await TempFileManager.trackFile(compressedFile.path, true);
-              debugPrint('📑 [LivitMediaEditor] compressedFilePath: ${compressedFile.path}');
-              debugPrint('📑 [LivitMediaEditor] compressedFilePath size: ${compressedFile.lengthSync() / 1024 / 1024} MB');
+              _debugger.debPrint('compressedFilePath: ${compressedFile.path}', DebugMessageType.info);
+              _debugger.debPrint('compressedFilePath size: ${compressedFile.lengthSync() / 1024 / 1024} MB', DebugMessageType.info);
               await MediaFileCleanup.deleteFileByPath(file.path);
               _exportingProcess.value = LivitMediaEditorProcess.exportingCover;
               await _exportCover(compressedFile.path);
@@ -237,7 +240,7 @@ class _LivitMediaEditorState extends State<LivitMediaEditor> with TickerProvider
       );
       final execute = await config.getExecuteConfig();
       if (execute == null) {
-        debugPrint('❌ [LivitMediaEditor] Error on cover exportation initialization.');
+        _debugger.debPrint('Error on cover exportation initialization.', DebugMessageType.error);
         _exportingProcess.value = LivitMediaEditorProcess.error;
         _errorReporter.reportError(Exception('Error on cover exportation initialization.'), StackTrace.current);
         _isExporting.value = false;
@@ -248,14 +251,14 @@ class _LivitMediaEditorState extends State<LivitMediaEditor> with TickerProvider
       await ExportService.runFFmpegCommand(
         execute,
         onError: (e, s) {
-          debugPrint('❌ [LivitMediaEditor] Error on cover exportation: $e');
+          _debugger.debPrint('Error on cover exportation: $e', DebugMessageType.error);
           _exportingProcess.value = LivitMediaEditorProcess.error;
           _errorReporter.reportError(e, s);
           _isExporting.value = false;
           _showErrorDialog();
         },
         onCompleted: (cover) async {
-          debugPrint('✅ [LivitMediaEditor] Cover exported: ${cover.path}');
+          _debugger.debPrint('Cover exported: ${cover.path}', DebugMessageType.done);
           await TempFileManager.trackFile(cover.path, true);
           if (!mounted) return;
 

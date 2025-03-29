@@ -11,6 +11,7 @@ import 'package:livit/services/exceptions/base_exception.dart';
 import 'package:livit/services/firestore_storage/bloc/user/user_bloc.dart';
 import 'package:livit/services/firestore_storage/bloc/user/user_state.dart';
 import 'package:livit/utilities/buttons/button.dart';
+import 'package:livit/utilities/debug/livit_debugger.dart';
 import 'package:livit/utilities/error_screens/error_reauth_screen.dart';
 
 class FinalWelcomeMessage extends StatefulWidget {
@@ -22,6 +23,7 @@ class FinalWelcomeMessage extends StatefulWidget {
 }
 
 class _FinalWelcomeMessageState extends State<FinalWelcomeMessage> with TickerProviderStateMixin {
+  final _debugger = const LivitDebugger('FinalWelcomeMessage');
   late AnimationController _titleAnimationController;
   late AnimationController _descriptionAnimationController;
   late AnimationController _secondDescriptionAnimationController;
@@ -37,7 +39,7 @@ class _FinalWelcomeMessageState extends State<FinalWelcomeMessage> with TickerPr
   @override
   void initState() {
     super.initState();
-    debugPrint('🔒 [FinalWelcomeMessage] Locking speed to normal');
+    _debugger.debPrint('Locking speed to normal', DebugMessageType.interaction);
     BlocProvider.of<BackgroundBloc>(context, listen: false).add(BackgroundLockSpeed(AnimationSpeed.normal, 0.05));
 
     _titleAnimationController = AnimationController(
@@ -132,7 +134,7 @@ class _FinalWelcomeMessageState extends State<FinalWelcomeMessage> with TickerPr
             child: BlocBuilder<UserBloc, UserState>(
               builder: (context, state) {
                 if (state is! CurrentUser) {
-                  debugPrint('🔄 [FinalWelcomeMessage] User state is not current user');
+                  _debugger.debPrint('User state is not current user', DebugMessageType.warning);
                   return ErrorReauthScreen(
                     exception: BadStateException('User state is not current user at final_welcome_message.dart'),
                   );

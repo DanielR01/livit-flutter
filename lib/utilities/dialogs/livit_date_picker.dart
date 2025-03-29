@@ -10,6 +10,7 @@ import 'package:livit/constants/styles/spaces.dart';
 import 'package:livit/utilities/bars_containers_fields/bar.dart';
 import 'package:livit/utilities/buttons/button.dart';
 import 'package:livit/utilities/buttons/livit_dropdown_button.dart';
+import 'package:livit/utilities/debug/livit_debugger.dart';
 
 class LivitDatePicker extends StatefulWidget {
   final Function(List<DateTime>?) onSelected;
@@ -32,6 +33,7 @@ class LivitDatePicker extends StatefulWidget {
 class _LivitDatePickerState extends State<LivitDatePicker> {
   late ScrollController _scrollController;
   late TextEditingController _searchController;
+  final _debugger = const LivitDebugger('LivitDatePicker');
 
   int _selectedIndex = 0;
 
@@ -185,7 +187,7 @@ class _LivitDatePickerState extends State<LivitDatePicker> {
                                               DropdownMenuEntry(value: 'año', label: 'Año'),
                                             ],
                                             onSelected: (value) {
-                                              debugPrint('🎨 [LivitDatePicker] Selected dropdown: $value');
+                                              _debugger.debPrint('Selected dropdown: $value', DebugMessageType.info);
                                               dialogSetState(() {
                                                 _selectedDropdown = value!;
                                               });

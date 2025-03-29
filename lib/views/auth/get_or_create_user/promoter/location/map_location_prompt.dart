@@ -19,6 +19,7 @@ import 'package:livit/utilities/bars_containers_fields/glass_container.dart';
 import 'package:livit/utilities/buttons/button.dart';
 import 'package:livit/utilities/livit_scrollbar.dart';
 import 'package:livit/utilities/map_prompt.dart';
+import 'package:livit/utilities/debug/livit_debugger.dart';
 
 class MapLocationPrompt extends StatefulWidget {
   const MapLocationPrompt({super.key});
@@ -28,6 +29,7 @@ class MapLocationPrompt extends StatefulWidget {
 }
 
 class _MapLocationPromptState extends State<MapLocationPrompt> {
+  final _debugger = const LivitDebugger('MapLocationPrompt');
   final Map<String, double?> _coordinates = {
     'latitude': null,
     'longitude': null,
@@ -47,31 +49,31 @@ class _MapLocationPromptState extends State<MapLocationPrompt> {
   @override
   void initState() {
     super.initState();
-    debugPrint('🔄 [MapLocationPrompt] Initializing view...');
+    _debugger.debPrint('Initializing view...', DebugMessageType.initializing);
     _pageController = PageController(keepPage: false, viewportFraction: 0.85);
     _locationBloc = BlocProvider.of<LocationBloc>(context);
     _locations = _locationBloc.locations;
-    debugPrint('📍 [MapLocationPrompt] Getting coordinates for first location: ${_locations.first.name}');
+    _debugger.debPrint('Getting coordinates for first location: ${_locations.first.name}', DebugMessageType.info);
     _getCoordinates(_locations.first);
   }
 
   @override
   void dispose() {
-    debugPrint('🚫 [MapLocationPrompt] Disposing view');
+    _debugger.debPrint('Disposing view', DebugMessageType.stopping);
     _pageController.dispose();
     super.dispose();
   }
 
   Future<void> _getCoordinates(LivitLocation location) async {
     if (!mounted) return;
-    debugPrint('🔍 [MapLocationPrompt] Getting coordinates for location: ${location.name}');
+    _debugger.debPrint('Getting coordinates for location: ${location.name}', DebugMessageType.methodCalling);
     try {
       final fullAddress = '${location.address}, ${location.city}, ${location.state}';
-      debugPrint('🔎 [MapLocationPrompt] Searching full address: $fullAddress');
+      _debugger.debPrint('Searching full address: $fullAddress', DebugMessageType.searchLocation);
       final coordinates = await LocationSearchService.searchLocation(fullAddress);
 
       if (!mounted) return;
-      debugPrint('✅ [MapLocationPrompt] Found coordinates for full address');
+      _debugger.debPrint('Found coordinates for full address', DebugMessageType.done);
       setState(() {
         _coordinates['latitude'] = coordinates['latitude']!;
         _coordinates['longitude'] = coordinates['longitude']!;
@@ -80,14 +82,14 @@ class _MapLocationPromptState extends State<MapLocationPrompt> {
         _shouldZoomToUserLocation = true;
       });
     } catch (e) {
-      debugPrint('⚠️ [MapLocationPrompt] Failed to find full address, trying city only');
+      _debugger.debPrint('Failed to find full address, trying city only', DebugMessageType.error);
       try {
         final cityAddress = '${location.city}, ${location.state}, Colombia';
-        debugPrint('🔎 [MapLocationPrompt] Searching city address: $cityAddress');
+        _debugger.debPrint('Searching city address: $cityAddress', DebugMessageType.searchLocation);
         final cityCoordinates = await LocationSearchService.searchLocation(cityAddress);
 
         if (!mounted) return;
-        debugPrint('✅ [MapLocationPrompt] Found coordinates for city');
+        _debugger.debPrint('Found coordinates for city', DebugMessageType.done);
         setState(() {
           _coordinates['latitude'] = cityCoordinates['latitude']!;
           _coordinates['longitude'] = cityCoordinates['longitude']!;
@@ -96,7 +98,7 @@ class _MapLocationPromptState extends State<MapLocationPrompt> {
           _shouldZoomToUserLocation = false;
         });
       } catch (e) {
-        debugPrint('❌ [MapLocationPrompt] Failed to find any coordinates, using default location');
+        _debugger.debPrint('Failed to find any coordinates, using default location', DebugMessageType.error);
         if (!mounted) return;
         setState(() {
           _coordinates['latitude'] = 0;
@@ -112,7 +114,7 @@ class _MapLocationPromptState extends State<MapLocationPrompt> {
   int _index = 0;
 
   Future<void> _showLocationsDialog(BuildContext context) async {
-    debugPrint('📋 [MapLocationPrompt] Showing locations dialog');
+    _debugger.debPrint('Showing locations dialog', DebugMessageType.methodCalling);
     bool interacted = false;
 
     await showDialog(
@@ -156,7 +158,7 @@ class _MapLocationPromptState extends State<MapLocationPrompt> {
                                 children: [
                                   InkWell(
                                     onTap: () {
-                                      debugPrint('🔍 [MapLocationPrompt] Tapping on location: ${location.name}');
+                                      _debugger.debPrint('Tapping on location: ${location.name}', DebugMessageType.interaction);
                                       interacted = true;
                                       if (index == _index) {
                                         setState(() {
@@ -248,7 +250,7 @@ class _MapLocationPromptState extends State<MapLocationPrompt> {
       },
     );
     if (mounted && !interacted) {
-      debugPrint('🔄 [MapLocationPrompt] Dialog closed without interaction, refreshing view');
+      _debugger.debPrint('Dialog closed without interaction, refreshing view', DebugMessageType.info);
       setState(() {
         _shouldUpdate = true;
         _shouldReinitialize = true;
@@ -257,7 +259,7 @@ class _MapLocationPromptState extends State<MapLocationPrompt> {
         if (!mounted) return;
         Future.delayed(const Duration(milliseconds: 300), () {
           if (!mounted) return;
-          debugPrint('🔍 [MapLocationPrompt] Refreshing coordinates for current location');
+          _debugger.debPrint('Refreshing coordinates for current location', DebugMessageType.methodCalling);
           _getCoordinates(_locations[_index]);
         });
       });
@@ -266,14 +268,15 @@ class _MapLocationPromptState extends State<MapLocationPrompt> {
 
   @override
   Widget build(BuildContext context) {
-    debugPrint('🎨 [MapLocationPrompt] Building view with shouldZoomToUserLocation: $_shouldZoomToUserLocation');
-    debugPrint('🎨 [MapLocationPrompt] Building view with coordinates: ${_coordinates['latitude']}, ${_coordinates['longitude']}');
+    _debugger.debPrint('Building view with shouldZoomToUserLocation: $_shouldZoomToUserLocation', DebugMessageType.building);
+    _debugger.debPrint(
+        'Building view with coordinates: ${_coordinates['latitude']}, ${_coordinates['longitude']}', DebugMessageType.building);
 
     return BlocBuilder<LocationBloc, LocationState>(
       builder: (context, state) {
-        debugPrint('🎨 [MapLocationPrompt] Building view with state: ${state.runtimeType}');
+        _debugger.debPrint('Building view with state: ${state.runtimeType}', DebugMessageType.building);
         if (state is! LocationsLoaded) {
-          debugPrint('❌ [MapLocationPrompt] Invalid state, showing error screen');
+          _debugger.debPrint('Invalid state, showing error screen', DebugMessageType.error);
           throw Exception('Invalid state');
         }
 
@@ -284,7 +287,7 @@ class _MapLocationPromptState extends State<MapLocationPrompt> {
             state.errorMessage != null || state.failedLocations?.isNotEmpty == true ? 'Error actualizando tus ubicaciones' : null;
 
         if (errorMessage != null) {
-          debugPrint('⚠️ [MapLocationPrompt] Error message: $errorMessage');
+          _debugger.debPrint('Error message: $errorMessage', DebugMessageType.error);
         }
 
         return Scaffold(
@@ -315,7 +318,7 @@ class _MapLocationPromptState extends State<MapLocationPrompt> {
                               itemCount: _locations.length,
                               controller: _pageController,
                               onPageChanged: (index) async {
-                                debugPrint('🔍 [MapLocationPrompt] Page changed to index: $index');
+                                _debugger.debPrint('Page changed to index: $index', DebugMessageType.interaction);
                                 if (index == _index) return;
                                 setState(() {
                                   _index = index;
@@ -377,8 +380,8 @@ class _MapLocationPromptState extends State<MapLocationPrompt> {
                                               right: 0,
                                               child: GestureDetector(
                                                 onTap: () {
-                                                  debugPrint(
-                                                      '🔍 [MapLocationPrompt] Removing geopoint from location: ${_locations[index].name}');
+                                                  _debugger.debPrint('Removing geopoint from location: ${_locations[index].name}',
+                                                      DebugMessageType.interaction);
                                                   BlocProvider.of<LocationBloc>(context).add(
                                                     UpdateLocationLocally(context, location: _locations[index].removeGeopoint()),
                                                   );
@@ -441,7 +444,8 @@ class _MapLocationPromptState extends State<MapLocationPrompt> {
                                   });
                                 },
                                 onLocationSelected: (location) {
-                                  debugPrint('🔍 [MapLocationPrompt] Location selected: ${location['latitude']}, ${location['longitude']}');
+                                  _debugger.debPrint(
+                                      'Location selected: ${location['latitude']}, ${location['longitude']}', DebugMessageType.interaction);
                                   BlocProvider.of<LocationBloc>(context).add(
                                     UpdateLocationLocally(
                                       context,
@@ -471,7 +475,7 @@ class _MapLocationPromptState extends State<MapLocationPrompt> {
                             isLoading: isCloudLoading,
                             isActive: _locations.every((location) => location.geopoint != null),
                             onTap: () {
-                              debugPrint('🔍 [MapLocationPrompt] Updating locations to cloud');
+                              _debugger.debPrint('Updating locations to cloud', DebugMessageType.updating);
                               BlocProvider.of<LocationBloc>(context).add(UpdateLocationsToCloudFromLocal(context));
                             },
                           ),

@@ -21,6 +21,7 @@ import 'package:livit/utilities/media/video_editor/video_editor.dart';
 import 'package:video_player/video_player.dart';
 import 'package:livit/constants/colors.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:livit/utilities/debug/livit_debugger.dart';
 
 class EventMediaPreviewPlayer extends StatefulWidget {
   final List<LivitMediaFile> initialMedia;
@@ -59,6 +60,7 @@ class _EventMediaPreviewPlayerState extends State<EventMediaPreviewPlayer> {
   bool get isVideo => _isAddingMedia ? false : _allMedia.isNotEmpty && _allMedia[_currentIndex] is LivitMediaVideo;
 
   final ErrorReporter _errorReporter = ErrorReporter(viewName: 'EventMediaPreviewPlayer');
+  final _debugger = const LivitDebugger('EventMediaPreviewPlayer', isDebugEnabled: false);
 
   List<LivitMediaFile> get _allMedia => widget.initialMedia;
 
@@ -74,6 +76,7 @@ class _EventMediaPreviewPlayerState extends State<EventMediaPreviewPlayer> {
     if (widget.addMedia) {
       WidgetsBinding.instance.addPostFrameCallback(
         (_) async {
+          _currentIndex = _allMedia.length - 1;
           _addMedia();
         },
       );
@@ -112,9 +115,9 @@ class _EventMediaPreviewPlayerState extends State<EventMediaPreviewPlayer> {
         });
       } catch (e) {
         if (!File(_allMedia[_currentIndex].filePath!).existsSync()) {
-          debugPrint('🚨 [EventMediaPreviewPlayer] File does not exist: ${_allMedia[_currentIndex].filePath}');
+          _debugger.debPrint('File does not exist: ${_allMedia[_currentIndex].filePath}', DebugMessageType.error);
         } else {
-          debugPrint('🚨 [EventMediaPreviewPlayer] Error initializing controller: $e');
+          _debugger.debPrint('Error initializing controller: $e', DebugMessageType.error);
           _errorReporter.reportError(e, StackTrace.current);
         }
       }
@@ -145,31 +148,68 @@ class _EventMediaPreviewPlayerState extends State<EventMediaPreviewPlayer> {
   }
 
   void _addMedia() async {
-    setState(() {
-      _isAddingMedia = true;
-      if (_allMedia.isNotEmpty) {
-        _currentIndex++;
+    _debugger.debPrint('Starting _addMedia() function', DebugMessageType.methodEntering);
+    _debugger.debPrint('Current media count: ${_allMedia.length}', DebugMessageType.info);
+    _debugger.debPrint('Current index before addition: $_currentIndex', DebugMessageType.info);
+
+    try {
+      setState(() {
+        _isAddingMedia = true;
+        if (_allMedia.isEmpty) {
+          _currentIndex = 0;
+        } else {
+          _currentIndex++;
+        }
+      });
+      _debugger.debPrint('Updated current index for new media: $_currentIndex', DebugMessageType.info);
+      _debugger.debPrint('Calling _pickMedia() to select file', DebugMessageType.methodCalling);
+
+      final result = await _pickMedia();
+      _debugger.debPrint('_pickMedia() returned: ${result != null ? 'media file' : 'null'}', DebugMessageType.response);
+
+      if (result == null) {
+        _debugger.debPrint('No media selected, resetting state', DebugMessageType.warning);
+        setState(() {
+          _isAddingMedia = false;
+          _currentIndex = max(_currentIndex - 1, 0);
+        });
+        _debugger.debPrint('Reset current index to: $_currentIndex', DebugMessageType.info);
+        return;
       }
-    });
-    final result = await _pickMedia();
-    if (result == null) {
+
+      _debugger.debPrint('Media selected type: ${result.runtimeType}', DebugMessageType.info);
+      _debugger.debPrint('Media file path: ${result.filePath}', DebugMessageType.fileTracking);
+      if (result is LivitMediaVideo) {
+        _debugger.debPrint('Video cover path: ${result.cover.filePath}', DebugMessageType.fileTracking);
+      }
+
+      final List<LivitMediaFile?> auxMedia = _allMedia;
+      _debugger.debPrint('Current media list before insert (count: ${auxMedia.length})', DebugMessageType.info);
+
+      auxMedia.insert(_currentIndex, result);
+      _debugger.debPrint('Media inserted at index $_currentIndex', DebugMessageType.done);
+      _debugger.debPrint('New media list size: ${auxMedia.length}', DebugMessageType.info);
+
       setState(() {
         _isAddingMedia = false;
-        _currentIndex = max(_currentIndex - 1, 0);
       });
-      return;
+      _debugger.debPrint('Reset _isAddingMedia flag', DebugMessageType.info);
+
+      setState(() {
+        _hasChanges = true;
+      });
+      _debugger.debPrint('Set _hasChanges flag to true', DebugMessageType.info);
+      _debugger.debPrint('_addMedia() completed successfully', DebugMessageType.methodExiting);
+    } catch (e) {
+      _debugger.debPrint('Error adding media: $e', DebugMessageType.error);
+      _debugger.debPrint('Error stack trace: ${StackTrace.current}', DebugMessageType.error);
+      _errorReporter.reportError(e, StackTrace.current);
+      setState(() {
+        _isAddingMedia = false;
+      });
+      _debugger.debPrint('Reset _isAddingMedia flag after error', DebugMessageType.info);
+      _showDialog('Error al agregar multimedia', 'Ocurrio un error al agregar el archibo. Intenta nuevamente.');
     }
-
-    final List<LivitMediaFile?> auxMedia = _allMedia;
-
-    auxMedia.insert(_currentIndex, result);
-
-    setState(() {
-      _isAddingMedia = false;
-    });
-    setState(() {
-      _hasChanges = true;
-    });
   }
 
   void _deleteCurrentMedia() async {
@@ -458,40 +498,117 @@ class _EventMediaPreviewPlayerState extends State<EventMediaPreviewPlayer> {
   }
 
   Future<LivitMediaFile?> _pickMedia() async {
+    _debugger.debPrint('Starting _pickMedia() function', DebugMessageType.methodEntering);
+    _debugger.debPrint('Showing system picker for media selection', DebugMessageType.interaction);
+
     final XFile? pickedFile = await ImagePicker().pickMedia(imageQuality: 100);
-    if (pickedFile == null) return null;
+
+    if (pickedFile == null) {
+      _debugger.debPrint('No file selected from picker', DebugMessageType.warning);
+      return null;
+    }
+
+    _debugger.debPrint('File selected: ${pickedFile.path}', DebugMessageType.fileTracking);
+    _debugger.debPrint('File name: ${pickedFile.name}', DebugMessageType.info);
+
+    // Check if file exists
+    final fileExists = await File(pickedFile.path).exists();
+    _debugger.debPrint('File exists check: $fileExists', DebugMessageType.verifying);
+
+    if (!fileExists) {
+      _debugger.debPrint('File does not exist at path!', DebugMessageType.error);
+      return null;
+    }
+
+    // Get file size
+    final fileSize = await File(pickedFile.path).length();
+    _debugger.debPrint('File size: ${(fileSize / 1024 / 1024).toStringAsFixed(2)} MB', DebugMessageType.info);
 
     await TempFileManager.trackFile(pickedFile.path, false);
+    _debugger.debPrint('File added to temp file tracking', DebugMessageType.fileSaving);
 
     final String fileExtension = pickedFile.path.split('.').last.toLowerCase();
+    _debugger.debPrint('File extension: $fileExtension', DebugMessageType.info);
+
     final bool isVideo = ['mp4', 'mov', 'avi'].contains(fileExtension);
+    _debugger.debPrint('File type: ${isVideo ? 'Video' : 'Image'}', DebugMessageType.info);
 
     try {
       if (isVideo) {
+        _debugger.debPrint('Processing video file', DebugMessageType.info);
+
         if (mounted) {
-          return await Navigator.push<LivitMediaVideo>(
+          _debugger.debPrint('Opening video editor for processing', DebugMessageType.navigation);
+
+          final result = await Navigator.push<LivitMediaVideo>(
             context,
             MaterialPageRoute<LivitMediaVideo>(
               builder: (context) => LivitMediaEditor(videoPath: pickedFile.path, isInitialEdit: true),
             ),
           );
+
+          if (result == null) {
+            _debugger.debPrint('Video editor returned null (user cancelled)', DebugMessageType.warning);
+          } else {
+            _debugger.debPrint('Video processed successfully', DebugMessageType.done);
+            _debugger.debPrint('Processed video path: ${result.filePath}', DebugMessageType.fileTracking);
+            _debugger.debPrint('Video cover path: ${result.cover.filePath}', DebugMessageType.fileTracking);
+          }
+
+          return result;
         } else {
+          _debugger.debPrint('Widget not mounted, cannot open editor', DebugMessageType.error);
           return null;
         }
       } else {
+        _debugger.debPrint('Processing image file', DebugMessageType.info);
+        _debugger.debPrint('Opening image cropper', DebugMessageType.navigation);
+
         final croppedFilePath = await LivitMediaEditor.cropImage(pickedFile.path);
-        if (croppedFilePath == null) return null;
-        debugPrint('🖼️ [LocationMediaPreviewPlayer] Cropped image path: $croppedFilePath');
+
+        if (croppedFilePath == null) {
+          _debugger.debPrint('Image cropper returned null (user cancelled)', DebugMessageType.warning);
+          return null;
+        }
+
+        _debugger.debPrint('Cropped image path: $croppedFilePath', DebugMessageType.fileTracking);
+
+        // Verify cropped file exists
+        final croppedExists = await File(croppedFilePath).exists();
+        _debugger.debPrint('Cropped file exists check: $croppedExists', DebugMessageType.verifying);
+
+        if (!croppedExists) {
+          _debugger.debPrint('Cropped file does not exist at path!', DebugMessageType.error);
+          return null;
+        }
+
+        // Get cropped file size
+        final croppedSize = await File(croppedFilePath).length();
+        _debugger.debPrint('Cropped file size: ${(croppedSize / 1024 / 1024).toStringAsFixed(2)} MB', DebugMessageType.info);
+
+        _debugger.debPrint('Image processed successfully', DebugMessageType.done);
         return LivitMediaImage(filePath: croppedFilePath, url: '');
       }
     } catch (e) {
-      debugPrint('🖼️ [LocationMediaPreviewPlayer] Error picking media: $e');
+      _debugger.debPrint('Error picking media: $e', DebugMessageType.error);
+      _debugger.debPrint('Error stack trace: ${StackTrace.current}', DebugMessageType.error);
       _errorReporter.reportError(e, StackTrace.current);
       return null;
     } finally {
-      if (await File(pickedFile.path).exists()) {
+      // Check if original file still exists before deleting
+      final originalStillExists = await File(pickedFile.path).exists();
+      _debugger.debPrint('Original file still exists: $originalStillExists', DebugMessageType.verifying);
+
+      if (originalStillExists) {
+        _debugger.debPrint('Cleaning up original picked file', DebugMessageType.fileCleaning);
         await MediaFileCleanup.deleteFileByPath(pickedFile.path);
+
+        // Verify deletion
+        final deletionSuccessful = !(await File(pickedFile.path).exists());
+        _debugger.debPrint('Original file deleted: $deletionSuccessful', DebugMessageType.verifying);
       }
+
+      _debugger.debPrint('_pickMedia() function completed', DebugMessageType.methodExiting);
     }
   }
 

@@ -3,6 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:livit/models/location/location_media.dart';
 import 'package:livit/models/location/schedule/location_schedule.dart';
 import 'package:livit/services/firestore_storage/firestore_storage/exceptions/locations_exceptions.dart';
+import 'package:livit/utilities/debug/livit_debugger.dart';
+
+final _debugger = LivitDebugger('location', isDebugEnabled: false);
 
 class LivitLocation {
   final String id;
@@ -111,9 +114,9 @@ class LivitLocation {
 
   factory LivitLocation.fromDocument(DocumentSnapshot doc) {
     try {
-      debugPrint('📦 [LivitLocation] Creating location from document');
+      _debugger.debPrint('Creating location from document', DebugMessageType.reading);
       final data = doc.data() as Map<String, dynamic>;
-      debugPrint('📦 [LivitLocation] Data: $data');
+      _debugger.debPrint('Data: $data', DebugMessageType.reading);
       final LivitLocation location = LivitLocation(
         id: doc.id,
         userId: data['userId'] as String,
@@ -128,10 +131,10 @@ class LivitLocation {
         schedule: data['schedule'] != null ? LocationSchedule.fromMap(data['schedule']['weekSchedule'] as Map<String, dynamic>) : null,
         allowReservationUntil: data['allowReservationUntil'] as DateTime?,
       );
-      debugPrint('📥 [LivitLocation] Location created from document: ${location.name}');
+      _debugger.debPrint('Location created from document: ${location.name}', DebugMessageType.done);
       return location;
     } catch (e) {
-      debugPrint('❌ [LivitLocation] Failed to create location from document: $e');
+      _debugger.debPrint('Failed to create location from document: $e', DebugMessageType.error);
       throw CouldNotCreateLocationFromDocumentException(details: e.toString());
     }
   }

@@ -7,6 +7,7 @@ import 'package:livit/services/background/background_bloc.dart';
 import 'package:livit/services/firebase_storage/bloc/storage_bloc.dart';
 import 'package:livit/services/firestore_storage/bloc/location/location_bloc.dart';
 import 'package:livit/services/firestore_storage/bloc/user/user_bloc.dart';
+import 'package:livit/utilities/debug/livit_debugger.dart';
 
 class SplashView extends StatefulWidget {
   const SplashView({super.key});
@@ -16,6 +17,8 @@ class SplashView extends StatefulWidget {
 }
 
 class _SplashViewState extends State<SplashView> {
+  final _debugger = const LivitDebugger('SplashView');
+
   @override
   void initState() {
     super.initState();
@@ -23,21 +26,21 @@ class _SplashViewState extends State<SplashView> {
   }
 
   Future<void> _reinitialize() async {
-    debugPrint('🔄 [SplashView] Reinitializing app...');
+    _debugger.debPrint('Reinitializing app...', DebugMessageType.restarting);
 
     try {
       // Instead of reinitializing Firebase, check if it's initialized
-      debugPrint('🔄 [SplashView] Checking Firebase initialization...');
+      _debugger.debPrint('Checking Firebase initialization...', DebugMessageType.initializing);
       if (Firebase.apps.isEmpty) {
         await Firebase.initializeApp();
       } else {
-        debugPrint('✅ [SplashView] Firebase already initialized');
+        _debugger.debPrint('Firebase already initialized', DebugMessageType.done);
       }
 
       if (!mounted) return;
 
       // Reset all blocs
-      debugPrint('🔄 [SplashView] Resetting blocs...');
+      _debugger.debPrint('Resetting blocs...', DebugMessageType.restarting);
       context.read<AuthBloc>().close();
       context.read<UserBloc>().close();
       context.read<LocationBloc>().close();
@@ -45,7 +48,7 @@ class _SplashViewState extends State<SplashView> {
       context.read<BackgroundBloc>().close();
 
       // Navigate to initial router
-      debugPrint('✅ [SplashView] Reinitialization complete, navigating to initial router');
+      _debugger.debPrint('Reinitialization complete, navigating to initial router', DebugMessageType.done);
       if (mounted) {
         Navigator.of(context).pushNamedAndRemoveUntil(
           '/',
@@ -53,7 +56,7 @@ class _SplashViewState extends State<SplashView> {
         );
       }
     } catch (e) {
-      debugPrint('❌ [SplashView] Error during reinitialization: $e');
+      _debugger.debPrint('Error during reinitialization: $e', DebugMessageType.error);
       if (mounted) {
         Navigator.of(context).pushNamedAndRemoveUntil(
           Routes.welcomeRoute,

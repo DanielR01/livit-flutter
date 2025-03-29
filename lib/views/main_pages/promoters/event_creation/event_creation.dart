@@ -1,6 +1,10 @@
+import 'dart:io';
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:livit/constants/colors.dart';
 import 'package:livit/constants/styles/bar_style.dart';
 import 'package:livit/constants/styles/button_style.dart';
@@ -9,17 +13,27 @@ import 'package:livit/constants/styles/livit_text.dart';
 import 'package:livit/constants/styles/spaces.dart';
 import 'package:livit/models/event/event.dart';
 import 'package:livit/models/event/event_media.dart';
+import 'package:livit/models/media/livit_media_file.dart';
+import 'package:livit/services/firestore_storage/bloc/event/event_bloc.dart';
+import 'package:livit/services/firestore_storage/bloc/event/event_event.dart';
+import 'package:livit/services/firestore_storage/bloc/event/event_state.dart';
 import 'package:livit/utilities/bars_containers_fields/bar.dart';
 import 'package:livit/utilities/bars_containers_fields/glass_container.dart';
 import 'package:livit/utilities/bars_containers_fields/livit_text_field.dart';
 import 'package:livit/utilities/buttons/arrow_back_button.dart';
 import 'package:livit/utilities/buttons/button.dart';
+import 'package:livit/utilities/debug/livit_debugger.dart';
 import 'package:livit/utilities/display/livit_display_area.dart';
 import 'package:livit/views/main_pages/promoters/event_creation/components/event_date_item.dart';
 import 'package:livit/views/main_pages/promoters/event_creation/components/event_date_item_view.dart';
 import 'package:livit/views/main_pages/promoters/event_creation/components/location_selection/location_selection.dart';
 import 'package:livit/views/main_pages/promoters/event_creation/components/media/event_media_field.dart';
 import 'package:livit/views/main_pages/promoters/event_creation/components/tickets_creation/tickets_creation.dart';
+import 'package:livit/views/main_pages/promoters/event_creation/dialogs/error_dialog.dart';
+import 'package:livit/services/firestore_storage/bloc/user/user_bloc.dart';
+
+part 'dialogs/success_dialog.dart';
+part 'dialogs/loading_dialog.dart';
 
 class EventCreationView extends StatefulWidget {
   const EventCreationView({super.key});
@@ -40,9 +54,15 @@ class _EventCreationViewState extends State<EventCreationView> {
   // Event data
   final List<EventDateItem> _eventDates = [];
   LivitEvent _event = LivitEvent.empty();
-  bool _isFormValid = false;
+  bool _isSaving = false;
 
   bool _sameLocationForAllDates = true;
+
+  // Add this field to track ticket types
+  final List<EventTicketType> _ticketTypes = [];
+  final List<LivitMediaFile> _media = [];
+
+  final LivitDebugger _debugger = const LivitDebugger('event_creation', isDebugEnabled: true);
 
   @override
   void initState() {
@@ -70,51 +90,106 @@ class _EventCreationViewState extends State<EventCreationView> {
     for (var dateItem in _eventDates) {
       dateItem.dispose();
     }
-
     super.dispose();
   }
 
   void _addEventDate() {
-    final dateIndex = _eventDates.length + 1;
-    final name = 'Fecha $dateIndex';
-
-    // Create default start/end times
-    final now = DateTime.now();
-    final startTime = DateTime(now.year, now.month, now.day + 7, 20, 0); // Next week at 8 PM
-    final endTime = DateTime(now.year, now.month, now.day + 7, 23, 59); // Ends at midnight
-
-    final dateItem = EventDateItem(
-      initialName: name,
-      startDate: startTime,
-      endDate: endTime,
-      onChanged: (eventDateItem) {
-        setState(() {
-          _updateEvent();
-        });
+    _debugger.debPrint('Adding new event date', DebugMessageType.creating);
+    final String uniqueName = _getUniqueDateName();
+    final eventDate = EventDateItem(
+      initialName: uniqueName,
+      startDate: DateTime.now(),
+      endDate: DateTime.now().add(const Duration(hours: 2)),
+      onChanged: (updatedDate) {
+        _updateEvent();
       },
-      onDelete: _removeEventDate,
+      onDelete: (dateItem) {
+        _removeEventDate(dateItem);
+      },
     );
 
     setState(() {
-      _eventDates.add(dateItem);
+      _eventDates.add(eventDate);
       _updateEvent();
     });
   }
 
-  void _removeEventDate(String dateName) {
+  void _removeEventDate(EventDateItem dateItem) {
+    _debugger.debPrint('Removing event date: ${dateItem.name}', DebugMessageType.deleting);
+    final removedDateName = dateItem.name;
+
     setState(() {
-      _eventDates.removeWhere((date) => date.name == dateName);
-      _updateEvent();
+      _eventDates.remove(dateItem);
+
+      // Update ticket types that reference the removed date
+      if (_eventDates.isNotEmpty) {
+        final firstAvailableDateName = _eventDates[0].name;
+        _debugger.debPrint('Checking tickets referencing removed date, will use: $firstAvailableDateName', DebugMessageType.info);
+
+        for (int i = 0; i < _ticketTypes.length; i++) {
+          if (_ticketTypes[i].validTimeSlots.any((timeSlot) => timeSlot.dateName == removedDateName)) {
+            _debugger.debPrint('Updating ticket ${i + 1} to use date: $firstAvailableDateName', DebugMessageType.updating);
+            // Update the ticket type to use the first available date
+            _ticketTypes[i] = EventTicketType(
+              name: _ticketTypes[i].name,
+              totalQuantity: _ticketTypes[i].totalQuantity,
+              validTimeSlots: [
+                EventDateTimeSlot(
+                    dateName: firstAvailableDateName,
+                    startTime: Timestamp.fromDate(_eventDates[0].startDate),
+                    endTime: Timestamp.fromDate(_eventDates[0].endDate))
+              ],
+              description: _ticketTypes[i].description,
+              price: _ticketTypes[i].price,
+            );
+          }
+        }
+      } else {
+        _debugger.debPrint('No dates left after removal', DebugMessageType.info);
+      }
     });
+    _updateEvent();
+  }
+
+  void _onMediaChanged(List<LivitMediaFile> updatedMedia) {
+    _debugger.debPrint('Updating media, count: ${updatedMedia.length}', DebugMessageType.updating);
+    _media.clear();
+    _media.addAll(updatedMedia);
+    _updateEvent();
+  }
+
+  void _onTicketsChanged(List<EventTicketType> updatedTickets) {
+    _debugger.debPrint('Updating ticket types: $updatedTickets', DebugMessageType.updating);
+
+    _ticketTypes.clear();
+    _ticketTypes.addAll(updatedTickets);
+    _updateEvent();
   }
 
   void _updateEvent() {
-    debugPrint('Updating event');
+    _debugger.debPrint(
+        '🔄 [event_creation] _updateEvent called - build phase: ${WidgetsBinding.instance.buildOwner?.debugBuilding ?? false}',
+        DebugMessageType.info);
 
-    // Check the event description validity
-    final String trimmedDescription = _descriptionController.text.trim();
-    final bool isDescriptionValid = trimmedDescription.isNotEmpty && trimmedDescription.length <= 200;
+    // Check if we're in the build phase
+    if (WidgetsBinding.instance.buildOwner?.debugBuilding ?? false) {
+      _debugger.debPrint('WARNING: _updateEvent called during build phase!', DebugMessageType.warning);
+      // Consider using a post-frame callback instead
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _debugger.debPrint('Deferred _updateEvent running after frame', DebugMessageType.info);
+        _updateEventImpl();
+      });
+      return;
+    }
 
+    _updateEventImpl();
+    _debugger.debPrint('🔄 [event_creation] _updateEvent finished', DebugMessageType.info);
+    _debugger.debPrint('🔄 [event_creation] event: $_event', DebugMessageType.info);
+  }
+
+  // Separate implementation to avoid duplication
+  void _updateEventImpl() {
+    _debugger.debPrint('🔄 [event_creation] Updating event', DebugMessageType.info);
     // Get event dates from the event date items
     final dates = _eventDates
         .map((dateItem) => EventDate(
@@ -179,17 +254,8 @@ class _EventCreationViewState extends State<EventCreationView> {
       }
     }
 
-    // Check the title validity
-    final String trimmedTitle = _titleController.text.trim();
-    final bool isTitleValid = trimmedTitle.isNotEmpty && trimmedTitle.length <= 100;
-
-    // Ensure we have at least one event date
-    final bool hasEventDates = _eventDates.isNotEmpty;
-
     // Update the form validity
     setState(() {
-      _isFormValid = isTitleValid && isDescriptionValid && hasEventDates && isLocationsValid;
-
       // Update the event object
       _event = LivitEvent(
         id: _event.id,
@@ -198,11 +264,13 @@ class _EventCreationViewState extends State<EventCreationView> {
         dates: dates,
         artists: [], // Will be added in another component
         locations: locations,
-        media: EventMedia(media: []), // Will be added in another component
-        promoters: [], // Will be populated on save
-        eventTicketTypes: [], // Will be added in another component
+        media: EventMedia(media: _media),
+        promoterIds: [], // Will be populated on save
+        eventTicketTypes: _ticketTypes,
         startTime: dates.isNotEmpty ? dates.first.startTime : Timestamp.now(),
         endTime: dates.isNotEmpty ? dates.last.endTime : Timestamp.now(),
+        createdAt: null,
+        updatedAt: null,
       );
     });
   }
@@ -214,78 +282,370 @@ class _EventCreationViewState extends State<EventCreationView> {
     });
   }
 
-  void _saveEvent() {
-    // Save event logic here
+  Future<void> _saveEvent() async {
+    _debugger.debPrint('Saving event: $_event', DebugMessageType.saving);
+    _debugger.debPrint('Checking initial event validity', DebugMessageType.verifying);
+    final isValid = _checkInitialEventValidity();
+    if (!isValid) {
+      _debugger.debPrint('Event is not valid', DebugMessageType.error);
+      return;
+    }
+    _debugger.debPrint('Event is initially valid', DebugMessageType.done);
+    _debugger.debPrint('Performing full check', DebugMessageType.verifying);
+    final fullIsValid = await _checkFullEventValidity();
+    if (!fullIsValid['isValid']) {
+      _debugger.debPrint('Event is not valid', DebugMessageType.error);
+      if (mounted) {
+        showErrorDialog(context, fullIsValid['error']);
+      }
+      return;
+    }
+    _debugger.debPrint('Event is valid', DebugMessageType.done);
+
+    // Set loading state
+    setState(() {
+      _isSaving = true;
+    });
+
+    // Show loading dialog
+    if (mounted) {
+      _showLoadingDialog(context);
+    }
+
+    try {
+      _debugger.debPrint('Creating event through BLoC', DebugMessageType.creating);
+
+      // Get BLoC instance from the context
+      final eventsBloc = BlocProvider.of<EventsBloc>(context);
+
+      // Set up a listener for the BLoC states
+      late final StreamSubscription<EventsState> subscription;
+
+      subscription = eventsBloc.stream.listen((state) {
+        _debugger.debPrint('Received BLoC state: ${state.runtimeType}', DebugMessageType.info);
+
+        if (state is EventCreated) {
+          _debugger.debPrint('Event created successfully with ID: ${state.eventId}', DebugMessageType.done);
+
+          if (mounted) {
+            // Dismiss loading dialog if it's showing
+            Navigator.of(context, rootNavigator: true).pop();
+
+            // Reset saving state
+            setState(() {
+              _isSaving = false;
+            });
+
+            // Upload media for the newly created event
+            _uploadEventMedia(state.eventId);
+          }
+
+          subscription.cancel();
+        } else if (state is EventCreationError) {
+          _debugger.debPrint('Error creating event: ${state.message}', DebugMessageType.error);
+
+          if (mounted) {
+            // Dismiss loading dialog if it's showing
+            Navigator.of(context, rootNavigator: true).pop();
+
+            // Show error message
+            showErrorDialog(context, state.message, title: 'Error al crear evento');
+
+            // Reset saving state
+            setState(() {
+              _isSaving = false;
+            });
+          }
+
+          subscription.cancel();
+        }
+      }, onError: (error) {
+        _debugger.debPrint('Error in BLoC stream: $error', DebugMessageType.error);
+
+        if (mounted) {
+          // Dismiss loading dialog if it's showing
+          Navigator.of(context, rootNavigator: true).pop();
+
+          // Reset saving state
+          setState(() {
+            _isSaving = false;
+          });
+
+          // Show error message
+          showErrorDialog(context, error.toString(), title: 'Error al crear evento');
+        }
+
+        subscription.cancel();
+      });
+
+      // Dispatch the action to create the event
+      eventsBloc.add(CreateEvent(event: _event));
+    } catch (e) {
+      _debugger.debPrint('Exception while interacting with BLoC: $e', DebugMessageType.error);
+
+      if (mounted) {
+        // Dismiss loading dialog if it's showing
+        Navigator.of(context, rootNavigator: true).pop();
+
+        // Reset saving state
+        setState(() {
+          _isSaving = false;
+        });
+
+        // Show error message
+        showErrorDialog(context, 'Error al crear evento: ${e.toString()}');
+      }
+    }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    debugPrint('event: $_event');
-    return Scaffold(
-      body: LivitDisplayArea(
-        addHorizontalPadding: false,
-        child: Column(
-          children: [
-            Padding(
-              padding: LivitContainerStyle.horizontalPaddingFromScreen,
-              child: LivitBar(
-                noPadding: true,
-                shadowType: ShadowType.weak,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    ArrowBackButton(onPressed: () {
-                      Navigator.pop(context);
-                    }),
-                    LivitText('Crear nuevo evento', textType: LivitTextType.smallTitle),
-                    Opacity(
-                      opacity: 0,
-                      child: Button.icon(
-                        icon: CupertinoIcons.checkmark_alt_circle,
-                        onTap: () {},
-                        isActive: true,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            Expanded(
-              child: SingleChildScrollView(
-                child: Padding(
-                  padding: LivitContainerStyle.paddingFromScreen,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      _buildTitleContainer(),
-                      LivitSpaces.xs,
-                      _buildDescriptionContainer(),
-                      LivitSpaces.xs,
-                      _buildEventDatesContainer(),
-                      LivitSpaces.xs,
-                      _buildLocationSelection(),
-                      LivitSpaces.xs,
-                      _buildMediaContainer(),
-                      LivitSpaces.xs,
-                      _buildTicketTypesContainer(),
-                      LivitSpaces.xs,
-                      _buildArtistsContainer(),
-                      LivitSpaces.xs,
-                      Button.main(
-                        text: 'Crear evento',
-                        onTap: _saveEvent,
-                        isActive: _isFormValid,
-                        rightIcon: CupertinoIcons.checkmark_alt_circle,
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
+  void _uploadEventMedia(String eventId) {
+    _debugger.debPrint('Uploading media for event: $eventId', DebugMessageType.uploading);
+
+    // Show success dialog first
+    _showSuccessDialog(context, eventId);
+
+    if (_event.media.media.isEmpty) {
+      _debugger.debPrint('No media to upload', DebugMessageType.info);
+      return;
+    }
+
+    try {
+      // Get the user bloc to get promoter ID
+      final userBloc = BlocProvider.of<UserBloc>(context);
+      final String promoterId = userBloc.currentUser?.id ?? '';
+
+      // Create a copy of the event with the new ID and promoter ID
+      final eventWithId = _event.copyWith(
+        id: eventId,
+        promoterIds: [promoterId],
+      );
+
+      _debugger.debPrint('Prepared event for media upload with ID: $eventId and promoter ID: $promoterId', DebugMessageType.info);
+
+      // Get the events bloc
+      final eventsBloc = BlocProvider.of<EventsBloc>(context);
+
+      // Dispatch the action to upload media
+      eventsBloc.add(SetEventMedia(event: eventWithId, context: context));
+
+      _debugger.debPrint('Media upload started for event: $eventId', DebugMessageType.info);
+    } catch (e) {
+      _debugger.debPrint('Error starting media upload: $e', DebugMessageType.error);
+      showErrorDialog(context, 'Error al subir archivos multimedia: ${e.toString()}');
+    }
+  }
+
+  Future<Map<String, dynamic>> _checkFullEventValidity() async {
+    _debugger.debPrint('Checking full event validity', DebugMessageType.verifying);
+    for (var date in _event.dates) {
+      if (date.startTime.toDate().isAfter(date.endTime.toDate())) {
+        _debugger.debPrint('Date start time is after end time', DebugMessageType.error);
+        return {'isValid': false, 'error': 'Date start time is after end time'};
+      } else if (date.startTime.toDate().isBefore(DateTime.now())) {
+        _debugger.debPrint('Date start time is before current date', DebugMessageType.error);
+        return {'isValid': false, 'error': 'Date start time is before current date'};
+      }
+      if (!_event.locations.any((location) => location.dateName == date.name)) {
+        _debugger.debPrint('No location found for date: $date', DebugMessageType.error);
+        return {'isValid': false, 'error': 'No location found for date'};
+      }
+      if (!_event.eventTicketTypes.any((ticketType) => ticketType.validTimeSlots.any((timeSlot) => timeSlot.dateName == date.name))) {
+        _debugger.debPrint('No ticket type found for date: $date', DebugMessageType.error);
+        return {'isValid': false, 'error': 'No ticket type found for date'};
+      }
+    }
+
+    for (var media in _event.media.media) {
+      if (media.filePath == null) {
+        _debugger.debPrint('Media file path is null', DebugMessageType.error);
+        return {'isValid': false, 'error': 'Media file path is null'};
+      }
+      final file = File(media.filePath!);
+      if (!file.existsSync()) {
+        _debugger.debPrint('Media file does not exist', DebugMessageType.error);
+        return {'isValid': false, 'error': 'Media file does not exist'};
+      }
+      final fileSize = await file.length();
+      if (fileSize > 100 * 1024 * 1024) {
+        // 100MB limit
+        _debugger.debPrint('Media file is too large', DebugMessageType.error);
+        return {'isValid': false, 'error': 'Media file is too large'};
+      }
+      if (media is LivitMediaVideo) {
+        if (media.cover.filePath == null) {
+          _debugger.debPrint('Video media cover file path is null', DebugMessageType.error);
+          return {'isValid': false, 'error': 'Video media cover file path is null'};
+        }
+      }
+    }
+
+    if (_event.media.media.length > 7) {
+      _debugger.debPrint('Event media count is greater than 7', DebugMessageType.error);
+      return {'isValid': false, 'error': 'Event media count is greater than 7'};
+    }
+
+    if (_event.eventTicketTypes.any(
+        (ticketType) => ticketType.validTimeSlots.any((timeSlot) => timeSlot.endTime.toDate().isBefore(timeSlot.startTime.toDate())))) {
+      _debugger.debPrint('Ticket type valid time slots end time is before start time', DebugMessageType.error);
+      return {'isValid': false, 'error': 'Ticket type valid time slots end time is before start time'};
+    }
+
+    if (_event.eventTicketTypes
+        .any((ticketType) => ticketType.validTimeSlots.any((timeSlot) => timeSlot.startTime.toDate().isBefore(DateTime.now())))) {
+      _debugger.debPrint('Ticket type valid time slots start time is before current date', DebugMessageType.error);
+      return {'isValid': false, 'error': 'Ticket type valid time slots start time is before current date'};
+    }
+
+    if (_event.eventTicketTypes.any(
+      (ticketType) => ticketType.validTimeSlots.any((timeSlot) {
+        final date = _event.dates.firstWhere((date) => date.name == timeSlot.dateName);
+        if (timeSlot.startTime.toDate().isAfter(date.startTime.toDate())) {
+          return true;
+        }
+        return false;
+      }),
+    )) {
+      _debugger.debPrint('Ticket type valid time slot start time is after date start time', DebugMessageType.error);
+      return {'isValid': false, 'error': 'Ticket type valid time slot start time is after date start time'};
+    }
+
+    if (_event.eventTicketTypes.any(
+      (ticketType) => ticketType.validTimeSlots.any((timeSlot) {
+        final date = _event.dates.firstWhere((date) => date.name == timeSlot.dateName);
+        if (timeSlot.endTime.toDate().isAfter(date.endTime.toDate())) {
+          return true;
+        }
+        return false;
+      }),
+    )) {
+      _debugger.debPrint('Ticket type valid time slot end time is after date end time', DebugMessageType.error);
+      return {'isValid': false, 'error': 'Ticket type valid time slot end time is after date end time'};
+    }
+
+    return {'isValid': true};
+  }
+
+  bool _checkInitialEventValidity() {
+    _debugger.debPrint('Checking initial event validity for $_event', DebugMessageType.info);
+
+    final bool isNameValid = _event.name.trim().isNotEmpty && _event.name.trim().length <= 100;
+    if (!isNameValid) {
+      _debugger.debPrint('Event name is too long or empty', DebugMessageType.error);
+      return false;
+    }
+    final bool isDescriptionValid = _event.description.trim().isNotEmpty && _event.description.trim().length <= 200;
+    if (!isDescriptionValid) {
+      _debugger.debPrint('Event description is too long or empty', DebugMessageType.error);
+      return false;
+    }
+    final bool hasEventDates = _event.dates.isNotEmpty;
+    if (!hasEventDates) {
+      _debugger.debPrint('Event dates are empty', DebugMessageType.error);
+      return false;
+    }
+    final bool hasLocations = _event.locations.isNotEmpty;
+    if (!hasLocations) {
+      _debugger.debPrint('Event locations are empty', DebugMessageType.error);
+      return false;
+    }
+    final bool hasMedia = _event.media.media.isNotEmpty;
+    if (!hasMedia) {
+      _debugger.debPrint('Event media are empty', DebugMessageType.error);
+      return false;
+    }
+    final bool hasTicketTypes = _event.eventTicketTypes.isNotEmpty;
+    if (!hasTicketTypes) {
+      _debugger.debPrint('Event ticket types are empty', DebugMessageType.error);
+      return false;
+    }
+    final bool hasSameNumberOfDatesAndLocations = _event.dates.length == _event.locations.length;
+    if (!hasSameNumberOfDatesAndLocations) {
+      _debugger.debPrint('Event dates and locations have different lengths', DebugMessageType.error);
+      return false;
+    }
+
+    for (var date in _event.dates) {
+      if (date.name.length > 100 || date.name.trim().isEmpty) {
+        _debugger.debPrint('Event date name is too long or empty', DebugMessageType.error);
+        return false;
+      }
+    }
+
+    for (var location in _event.locations) {
+      if (location.locationId == null) {
+        if (location.name == null || location.name!.trim().isEmpty || location.name!.trim().length > 100) {
+          _debugger.debPrint('Location name is too long or null or empty', DebugMessageType.error);
+          return false;
+        }
+        if (location.geopoint == null) {
+          _debugger.debPrint('Location geopoint is null', DebugMessageType.error);
+          return false;
+        }
+        if (location.address == null || (location.address?.length ?? 0) > 100) {
+          _debugger.debPrint('Location address is too long or null', DebugMessageType.error);
+          return false;
+        }
+        if (location.city == null || (location.city?.length ?? 0) > 100) {
+          _debugger.debPrint('Location city is too long or null', DebugMessageType.error);
+          return false;
+        }
+        if (location.state == null || (location.state?.length ?? 0) > 100) {
+          _debugger.debPrint('Location state is too long or null', DebugMessageType.error);
+          return false;
+        }
+      }
+      if (location.description != null && (location.description?.length ?? 0) > 200) {
+        _debugger.debPrint('Location description is too long', DebugMessageType.error);
+        return false;
+      }
+    }
+
+    for (var media in _event.media.media) {
+      if (media is LivitMediaImage) {
+        if (media.filePath == null) {
+          _debugger.debPrint('Image media file path is null', DebugMessageType.error);
+          return false;
+        }
+      } else if (media is LivitMediaVideo) {
+        if (media.filePath == null) {
+          _debugger.debPrint('Video media file path is null', DebugMessageType.error);
+          return false;
+        }
+        if (media.cover.filePath == null) {
+          _debugger.debPrint('Video media cover file path is null', DebugMessageType.error);
+          return false;
+        }
+      }
+    }
+
+    for (var ticketType in _event.eventTicketTypes) {
+      if (ticketType.name == null || ticketType.name!.trim().isEmpty || ticketType.name!.trim().length > 100) {
+        _debugger.debPrint('Ticket type name is too long or null or empty', DebugMessageType.error);
+        return false;
+      }
+      if (ticketType.totalQuantity == null || ticketType.totalQuantity! <= 0) {
+        _debugger.debPrint('Ticket type total quantity is less than or equal to 0', DebugMessageType.error);
+        return false;
+      }
+      if (ticketType.validTimeSlots.isEmpty) {
+        _debugger.debPrint('Ticket type valid time slots are empty', DebugMessageType.error);
+        return false;
+      }
+      if (ticketType.description != null && (ticketType.description?.length ?? 0) > 200) {
+        _debugger.debPrint('Ticket type description is too long', DebugMessageType.error);
+        return false;
+      }
+      if (ticketType.price.currency == null || ticketType.price.currency!.trim().isEmpty || ticketType.price.currency!.trim().length > 3) {
+        _debugger.debPrint('Ticket type price currency is too long or null or empty', DebugMessageType.error);
+        return false;
+      }
+      if (ticketType.price.amount == null || ticketType.price.amount! < 0) {
+        _debugger.debPrint('Ticket type price is less than 0', DebugMessageType.error);
+        return false;
+      }
+    }
+
+    return true;
   }
 
   Widget _buildTicketTypesContainer() {
@@ -296,23 +656,21 @@ class _EventCreationViewState extends State<EventCreationView> {
             shadowType: ShadowType.weak,
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
-              children: [LivitText('Tiquetes', textType: LivitTextType.smallTitle)],
+              children: [LivitText('Tipos de Tiquetes', textType: LivitTextType.smallTitle)],
             ),
           ),
-          Padding(
-            padding: LivitContainerStyle.padding(),
-            child: Column(
-              children: [
-                LivitText(
-                  'Los tiquetes son la forma en la que tus clientes podrán acceder a tu evento. Puedes crear varios tipos, según el precio, fecha, hora de entrada, localidad y beneficios.\n Ademas, puedes definir la cantidad de tiquetes disponibles para cada tipo.',
-                  color: LivitColors.whiteInactive,
-                ),
-                TicketsCreation(eventDates: _event.dates),
-              ],
-            ),
-          ),
+          _buildTicketsCreation(),
         ],
       ),
+    );
+  }
+
+  Widget _buildTicketsCreation() {
+    _debugger.debPrint('🏗️ [event_creation] _buildTicketsCreation called', DebugMessageType.info);
+    return TicketsCreation(
+      eventDates: _event.dates,
+      initialTickets: _ticketTypes,
+      onTicketsChanged: _onTicketsChanged,
     );
   }
 
@@ -331,7 +689,7 @@ class _EventCreationViewState extends State<EventCreationView> {
             padding: LivitContainerStyle.padding(),
             child: Column(
               children: [
-                EventMediaField(initialMedia: _event.media.media),
+                EventMediaField(initialMedia: _event.media.media, onMediaChanged: _onMediaChanged),
               ],
             ),
           ),
@@ -459,7 +817,7 @@ class _EventCreationViewState extends State<EventCreationView> {
               Expanded(
                 child: Padding(
                   padding: LivitContainerStyle.padding(),
-                  child: Button.secondary(
+                  child: Button.main(
                     text: 'Agregar fecha',
                     rightIcon: CupertinoIcons.calendar_badge_plus,
                     onTap: _addEventDate,
@@ -572,6 +930,88 @@ class _EventCreationViewState extends State<EventCreationView> {
           ],
         ),
       ],
+    );
+  }
+
+  // Update the method to use the count of dates
+  String _getUniqueDateName() {
+    int index = _eventDates.length + 1;
+    String name = 'Fecha $index';
+    while (_eventDates.any((date) => date.name == name)) {
+      index++;
+      name = 'Fecha $index';
+    }
+
+    return name;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: LivitDisplayArea(
+        addHorizontalPadding: false,
+        child: Column(
+          children: [
+            Padding(
+              padding: LivitContainerStyle.horizontalPaddingFromScreen,
+              child: LivitBar(
+                noPadding: true,
+                shadowType: ShadowType.weak,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    ArrowBackButton(onPressed: () {
+                      Navigator.pop(context);
+                    }),
+                    LivitText('Crear nuevo evento', textType: LivitTextType.smallTitle),
+                    Opacity(
+                      opacity: 0,
+                      child: Button.icon(
+                        icon: CupertinoIcons.checkmark_alt_circle,
+                        onTap: () {},
+                        isActive: true,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            Expanded(
+              child: SingleChildScrollView(
+                child: Padding(
+                  padding: LivitContainerStyle.paddingFromScreen,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      _buildTitleContainer(),
+                      LivitSpaces.xs,
+                      _buildDescriptionContainer(),
+                      LivitSpaces.xs,
+                      _buildEventDatesContainer(),
+                      LivitSpaces.xs,
+                      _buildLocationSelection(),
+                      LivitSpaces.xs,
+                      _buildMediaContainer(),
+                      LivitSpaces.xs,
+                      _buildTicketTypesContainer(),
+                      LivitSpaces.xs,
+                      _buildArtistsContainer(),
+                      LivitSpaces.xs,
+                      Button.main(
+                        text: _isSaving ? 'Creando evento...' : 'Crear evento',
+                        onTap: _isSaving ? () {} : () => _saveEvent(),
+                        isActive: _checkInitialEventValidity() && !_isSaving,
+                        isLoading: _isSaving,
+                        rightIcon: CupertinoIcons.checkmark_alt_circle,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

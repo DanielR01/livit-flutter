@@ -10,6 +10,7 @@ class TicketsCountBar extends StatefulWidget {
 class _TicketsCountBarState extends State<TicketsCountBar> {
   late final LocationBloc _locationBloc;
   late final TicketBloc _ticketBloc;
+  final _debugger = const LivitDebugger('TicketsCountBar');
 
   List<DateTime> _selectedDateRange = [DateTime.now(), DateTime.now()];
 
@@ -24,7 +25,7 @@ class _TicketsCountBarState extends State<TicketsCountBar> {
   Widget build(BuildContext context) {
     return BlocListener<LocationBloc, LocationState>(
       listener: (context, state) {
-        debugPrint('📞 [TicketsCountBar] Fetching tickets count');
+        _debugger.debPrint('Fetching tickets count', DebugMessageType.methodCalling);
         _ticketBloc.add(FetchTicketsCountByDate(
           startDate: Timestamp.fromDate(DateTime(_selectedDateRange[0].year, _selectedDateRange[0].month, _selectedDateRange[0].day)),
           endDate: Timestamp.fromDate(DateTime(_selectedDateRange[1].year, _selectedDateRange[1].month, _selectedDateRange[1].day)),
@@ -32,7 +33,7 @@ class _TicketsCountBarState extends State<TicketsCountBar> {
       },
       child: BlocBuilder<TicketBloc, TicketState>(
         builder: (context, state) {
-          debugPrint('🛠️ [TicketsCountBar] Building');
+          _debugger.debPrint('Building', DebugMessageType.building);
           late int? ticketsCount;
           late bool isError;
           if (state is TicketCountLoaded && state.loadingStates[_locationBloc.currentLocation!.id] == LoadingState.loading) {
@@ -93,7 +94,7 @@ class _TicketsCountBarState extends State<TicketsCountBar> {
                     Flexible(
                       child: LivitDatePicker(
                         onSelected: (date) {
-                          debugPrint('🛠️ [LocationDetailView] Date selected: $date');
+                          _debugger.debPrint('Date selected: $date', DebugMessageType.info);
                           if (date == null) return;
                           setState(() {
                             _selectedDateRange = date;

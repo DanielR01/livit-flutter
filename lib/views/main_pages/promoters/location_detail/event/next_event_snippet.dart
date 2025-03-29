@@ -7,8 +7,10 @@ class NextEventSnippet extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<EventsBloc, EventsState>(
       builder: (context, state) {
+        final _debugger =
+            (context.findAncestorStateOfType<_LocationDetailViewState>())?._debugger ?? const LivitDebugger('LocationDetailView');
         final String locationId = context.read<LocationBloc>().currentLocation?.id ?? '';
-        debugPrint('🛠️ [LocationDetailView] Building next event snippet, state: $state');
+        _debugger.debPrint('Building next event snippet, state: $state', DebugMessageType.building);
         final bool isLoading = state is EventsLoaded && state.loadingStates[locationId] == LoadingState.loading;
         final List<LivitEvent> events = state is EventsLoaded ? state.loadedEvents[EventViewType.location]![locationId] ?? [] : [];
         final LivitEvent? nextEvent = events.isNotEmpty ? events.first : null;

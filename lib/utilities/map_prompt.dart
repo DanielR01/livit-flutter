@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:livit/utilities/debug/livit_debugger.dart';
 
 const livitAppleMapPrompt = "LivitAppleMapPrompt";
 
@@ -39,6 +40,7 @@ class LivitMapPrompt extends StatefulWidget {
 }
 
 class LivitMapPromptState extends State<LivitMapPrompt> {
+  final _debugger = LivitDebugger('LivitMapPrompt');
   MethodChannel? _channel;
   Key _viewKey = UniqueKey();
   LatLng? _initialTarget;
@@ -98,9 +100,9 @@ class LivitMapPromptState extends State<LivitMapPrompt> {
   }
 
   Future<void> _initializeLocation() async {
-    debugPrint('🏁 [LivitMapViewState] Initializing location');
+    _debugger.debPrint('Initializing location', DebugMessageType.building);
     if (widget.locationCoordinates != null) {
-      debugPrint('🏁 [LivitMapViewState] Setting location to widget.locationCoordinates');
+      _debugger.debPrint('Setting location to widget.locationCoordinates', DebugMessageType.building);
       setState(() {
         _initialTarget = LatLng(widget.locationCoordinates!.latitude, widget.locationCoordinates!.longitude);
       });
@@ -108,28 +110,28 @@ class LivitMapPromptState extends State<LivitMapPrompt> {
     }
 
     try {
-      debugPrint('🏁 [LivitMapViewState] Checking location permission');
+      _debugger.debPrint('Checking location permission', DebugMessageType.info);
       LocationPermission permission = await Geolocator.checkPermission();
       if (permission == LocationPermission.denied) {
-        debugPrint('🏁 [LivitMapViewState] Requesting location permission');
+        _debugger.debPrint('Requesting location permission', DebugMessageType.info);
         permission = await Geolocator.requestPermission();
       }
 
       if (permission == LocationPermission.denied || permission == LocationPermission.deniedForever) {
-        debugPrint('🏁 [LivitMapViewState] Location permission denied');
+        _debugger.debPrint('Location permission denied', DebugMessageType.error);
         setState(() {
           _initialTarget = const LatLng(0, 0);
         });
         return;
       }
 
-      debugPrint('🏁 [LivitMapViewState] Getting current position');
+      _debugger.debPrint('Getting current position', DebugMessageType.downloading);
       final position = await Geolocator.getCurrentPosition();
       setState(() {
         _initialTarget = LatLng(position.latitude, position.longitude);
       });
     } catch (e) {
-      debugPrint('🏁 [LivitMapViewState] Error getting location: $e');
+      _debugger.debPrint('Error getting location: $e', DebugMessageType.error);
       setState(() {
         _initialTarget = const LatLng(0, 0);
       });
@@ -137,7 +139,7 @@ class LivitMapPromptState extends State<LivitMapPrompt> {
   }
 
   Future<void> _hoverLocation() async {
-    debugPrint('🏁 [LivitMapViewState] Hovering location with zoom: ${widget.zoom}');
+    _debugger.debPrint('Hovering location with zoom: ${widget.zoom}', DebugMessageType.building);
     if (Platform.isIOS) {
       if (_channel != null &&
           widget.hoverCoordinates['latitude'] != null &&
@@ -165,9 +167,9 @@ class LivitMapPromptState extends State<LivitMapPrompt> {
   }
 
   Future<void> _setLocation() async {
-    debugPrint('🏁 [LivitMapViewState] Setting location');
+    _debugger.debPrint('Setting location', DebugMessageType.building);
     if (Platform.isIOS) {
-      debugPrint('🏁 [LivitMapViewState] Setting location on iOS');
+      _debugger.debPrint('Setting location on iOS', DebugMessageType.building);
       if (_channel != null && widget.locationCoordinates != null) {
         await _channel!.invokeMethod('setLocation', {
           'latitude': widget.locationCoordinates!.latitude,
@@ -185,12 +187,12 @@ class LivitMapPromptState extends State<LivitMapPrompt> {
   @override
   Widget build(BuildContext context) {
     if (_initialTarget == null) {
-      debugPrint('🏁 [LivitMapViewState] Initial target is null');
+      _debugger.debPrint('Initial target is null', DebugMessageType.info);
       return const Center(child: CircularProgressIndicator());
     }
 
     if (Platform.isAndroid) {
-      debugPrint('🏁 [LivitMapViewState] Building Android map');
+      _debugger.debPrint('Building Android map', DebugMessageType.building);
       return GoogleMap(
         onMapCreated: _onMapCreated,
         initialCameraPosition: CameraPosition(
@@ -198,7 +200,7 @@ class LivitMapPromptState extends State<LivitMapPrompt> {
           zoom: widget.zoom,
         ),
         onLongPress: (LatLng point) {
-          debugPrint('🏁 [LivitMapViewState] Long press at $point');
+          _debugger.debPrint('Long press at $point', DebugMessageType.info);
           widget.onLocationSelected({'latitude': point.latitude, 'longitude': point.longitude});
         },
         markers: widget.locationCoordinates != null

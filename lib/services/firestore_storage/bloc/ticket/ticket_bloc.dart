@@ -13,6 +13,7 @@ import 'package:livit/services/firestore_storage/bloc/ticket/ticket_event.dart';
 import 'package:livit/services/firestore_storage/bloc/ticket/ticket_state.dart';
 import 'package:livit/services/firestore_storage/bloc/user/user_bloc.dart';
 import 'package:livit/services/firestore_storage/firestore_storage/firestore_storage.dart';
+import 'package:livit/utilities/debug/livit_debugger.dart';
 
 class TicketBloc extends Bloc<TicketEvent, TicketState> {
   final FirestoreStorageService _firestoreStorage;
@@ -20,6 +21,7 @@ class TicketBloc extends Bloc<TicketEvent, TicketState> {
   final BackgroundBloc _backgroundBloc;
   final UserBloc _userBloc;
   final ErrorReporter _errorReporter;
+  final _debugger = const LivitDebugger('TicketBloc');
 
   Map<String, LoadingState> loadingStates = {};
   Map<String, int> ticketCounts = {};
@@ -46,7 +48,7 @@ class TicketBloc extends Bloc<TicketEvent, TicketState> {
     FetchTicketsCountByDate event,
     Emitter<TicketState> emit,
   ) async {
-    debugPrint('🛠️ [TicketBloc] Fetching tickets count for ${event.startDate} to ${event.endDate}');
+    _debugger.debPrint('Fetching tickets count for ${event.startDate} to ${event.endDate}', DebugMessageType.methodCalling);
     try {
       _ensureLocationIsSet();
       _ensureUserIsPromoter();
@@ -62,7 +64,7 @@ class TicketBloc extends Bloc<TicketEvent, TicketState> {
         endDate: event.endDate,
         locationId: _locationBloc.currentLocation!.id,
       );
-      debugPrint('🛠️ [TicketBloc] Tickets count for ${event.startDate} to ${event.endDate}: $count');
+      _debugger.debPrint('Tickets count for ${event.startDate} to ${event.endDate}: $count', DebugMessageType.response);
       ticketCounts[_locationBloc.currentLocation!.id] = count;
       loadingStates[_locationBloc.currentLocation!.id] = LoadingState.loaded;
       emit(TicketCountLoaded(
@@ -70,7 +72,7 @@ class TicketBloc extends Bloc<TicketEvent, TicketState> {
         ticketCounts: ticketCounts,
       ));
     } catch (e) {
-      debugPrint('🛠️ [TicketBloc] Error fetching tickets count: ${e.toString()}');
+      _debugger.debPrint('Error fetching tickets count: ${e.toString()}', DebugMessageType.error);
       loadingStates[_locationBloc.currentLocation!.id] = LoadingState.error;
       errorMessages[_locationBloc.currentLocation!.id] = e.toString();
       emit(TicketCountLoaded(
@@ -106,7 +108,7 @@ class TicketBloc extends Bloc<TicketEvent, TicketState> {
       _ensureLocationIsSet();
       _ensureUserIsPromoter();
       loadingStates[event.eventId] = LoadingState.loading;
-      debugPrint('🛠️ [TicketBloc] Fetching tickets count for event: ${event.eventId}');
+      _debugger.debPrint('Fetching tickets count for event: ${event.eventId}', DebugMessageType.methodCalling);
       emit(TicketCountLoaded(
         loadingStates: loadingStates,
         ticketCounts: ticketCounts,
@@ -115,7 +117,7 @@ class TicketBloc extends Bloc<TicketEvent, TicketState> {
         eventId: event.eventId,
         promoterId: _userBloc.currentUser!.id,
       );
-      debugPrint('🛠️ [TicketBloc] Tickets count for ${event.eventId}: $count');
+      _debugger.debPrint('Tickets count for ${event.eventId}: $count', DebugMessageType.response);
       ticketCounts[event.eventId] = count;
       loadingStates[event.eventId] = LoadingState.loaded;
       emit(TicketCountLoaded(
@@ -123,7 +125,7 @@ class TicketBloc extends Bloc<TicketEvent, TicketState> {
         ticketCounts: ticketCounts,
       ));
     } catch (e) {
-      debugPrint('❌ [TicketBloc] Error fetching event tickets count: $e');
+      _debugger.debPrint('Error fetching event tickets count: $e', DebugMessageType.error);
       loadingStates[event.eventId] = LoadingState.error;
       errorMessages[event.eventId] = e.toString();
       emit(TicketCountLoaded(
@@ -136,14 +138,14 @@ class TicketBloc extends Bloc<TicketEvent, TicketState> {
 
   _ensureLocationIsSet() {
     if (_locationBloc.currentLocation?.id == null) {
-      debugPrint('🛠️ [TicketBloc] No location set');
+      _debugger.debPrint('No location set', DebugMessageType.error);
       throw TicketBlocNoLocationException();
     }
   }
 
   _ensureUserIsPromoter() {
     if (_userBloc.currentUser is! CloudPromoter) {
-      debugPrint('🛠️ [TicketBloc] User is not a promoter');
+      _debugger.debPrint('User is not a promoter', DebugMessageType.error);
       throw TicketBlocUserNotPromoterException();
     }
   }

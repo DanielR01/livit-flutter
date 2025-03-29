@@ -1,12 +1,13 @@
 import 'dart:async';
 import 'dart:io';
 import 'package:device_info_plus/device_info_plus.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:livit/services/background/background_events.dart';
 import 'package:livit/services/background/background_states.dart';
+import 'package:livit/utilities/debug/livit_debugger.dart';
 
 class BackgroundBloc extends Bloc<BackgroundEvent, BackgroundState> {
+  final LivitDebugger _debugger = const LivitDebugger('background_bloc', isDebugEnabled: true);
   bool? _isLowEndDevice;
   AnimationSpeed _lastActiveSpeed = AnimationSpeed.normal;
   bool isBackgroundGenerated = false;
@@ -34,13 +35,13 @@ class BackgroundBloc extends Bloc<BackgroundEvent, BackgroundState> {
   }
 
   void _onGeneratedBackground(BackgroundGeneratedBackground event, Emitter<BackgroundState> emit) {
-    debugPrint('🔄 [BackgroundBloc] On generated background from bloc');
+    _debugger.debPrint('On generated background from bloc', DebugMessageType.info);
     isBackgroundGenerated = true;
     emit(state.copyWith(isBackgroundGenerated: true));
   }
 
   void _onOnOrigin(BackgroundOnOrigin event, Emitter<BackgroundState> emit) {
-    debugPrint('🔄 [BackgroundBloc] On on origin from bloc');
+    _debugger.debPrint('On on origin from bloc', DebugMessageType.info);
     final newState = state.copyWith(isGoingToOrigin: false);
     emit(newState);
   }
@@ -50,7 +51,7 @@ class BackgroundBloc extends Bloc<BackgroundEvent, BackgroundState> {
 
     if (Platform.isAndroid) {
       try {
-        debugPrint('📱 [BackgroundBloc] Checking Android device capabilities...');
+        _debugger.debPrint('Checking Android device capabilities...', DebugMessageType.info);
         final androidInfo = await deviceInfo.androidInfo;
 
         final bool isLowApiLevel = androidInfo.version.sdkInt < 24;
@@ -59,16 +60,17 @@ class BackgroundBloc extends Bloc<BackgroundEvent, BackgroundState> {
         final bool isEmulator = !androidInfo.isPhysicalDevice;
 
         _isLowEndDevice = isLowApiLevel || isLowRam || isEmulator;
-        debugPrint('📊 [BackgroundBloc] Android device check - API: ${androidInfo.version.sdkInt}, RAM: $totalRam, Emulator: $isEmulator');
+        _debugger.debPrint(
+            'Android device check - API: ${androidInfo.version.sdkInt}, RAM: $totalRam, Emulator: $isEmulator', DebugMessageType.info);
       } catch (e) {
-        debugPrint('❌ [BackgroundBloc] Error checking Android device: $e');
+        _debugger.debPrint('Error checking Android device: $e', DebugMessageType.error);
         _isLowEndDevice = true;
       }
     }
 
     if (Platform.isIOS) {
       try {
-        debugPrint('📱 [BackgroundBloc] Checking iOS device capabilities...');
+        _debugger.debPrint('Checking iOS device capabilities...', DebugMessageType.info);
         final iosInfo = await deviceInfo.iosInfo;
 
         final String model = iosInfo.modelName.toLowerCase().split(' ')[0];
@@ -77,14 +79,15 @@ class BackgroundBloc extends Bloc<BackgroundEvent, BackgroundState> {
         final bool isSimulator = !iosInfo.isPhysicalDevice;
 
         _isLowEndDevice = isOldDevice || isSimulator;
-        debugPrint('📊 [BackgroundBloc] iOS device check - Model: $model, Generation: $generation, Simulator: $isSimulator');
+        _debugger.debPrint('iOS device check - Model: $model, Generation: $generation, Simulator: $isSimulator', DebugMessageType.info);
       } catch (e) {
-        debugPrint('❌ [BackgroundBloc] Error checking iOS device: $e');
+        _debugger.debPrint('Error checking iOS device: $e', DebugMessageType.error);
         _isLowEndDevice = true;
       }
     }
-    debugPrint(
-        '🔍 [BackgroundBloc] Device capability result: ${_isLowEndDevice == null ? 'Unknown' : _isLowEndDevice! ? 'Low End' : 'High End'}');
+    _debugger.debPrint(
+        'Device capability result: ${_isLowEndDevice == null ? 'Unknown' : _isLowEndDevice! ? 'Low End' : 'High End'}',
+        DebugMessageType.info);
     return _isLowEndDevice ?? true;
   }
 
@@ -106,11 +109,11 @@ class BackgroundBloc extends Bloc<BackgroundEvent, BackgroundState> {
 
   void _onSpeedMax(BackgroundSpeedMax event, Emitter<BackgroundState> emit) {
     if (_isLockedSpeed && !event.overrideLock) {
-      debugPrint('🚫 [BackgroundBloc] Animation is locked, not setting speed to maximum');
+      _debugger.debPrint('Animation is locked, not setting speed to maximum', DebugMessageType.warning);
       return;
     }
     if (_isLowEndDevice ?? true) return;
-    debugPrint('🚀 [BackgroundBloc] Setting speed to maximum');
+    _debugger.debPrint('Setting speed to maximum', DebugMessageType.info);
     _lastActiveSpeed = AnimationSpeed.veryFast;
     _isStopped = false;
     emit(state.copyWith(
@@ -122,11 +125,11 @@ class BackgroundBloc extends Bloc<BackgroundEvent, BackgroundState> {
 
   void _onStartLoadingAnimation(BackgroundStartLoadingAnimation event, Emitter<BackgroundState> emit) {
     if (_isLockedSpeed && !event.overrideLock) {
-      debugPrint('🚫 [BackgroundBloc] Animation is locked, not speeding up');
+      _debugger.debPrint('Animation is locked, not speeding up', DebugMessageType.warning);
       return;
     }
     if (_isLowEndDevice ?? true) return;
-    debugPrint('⚡ [BackgroundBloc] Speeding up animation');
+    _debugger.debPrint('Speeding up animation', DebugMessageType.info);
     _lastActiveSpeed = AnimationSpeed.fast;
     _isStopped = false;
     emit(state.copyWith(
@@ -136,7 +139,7 @@ class BackgroundBloc extends Bloc<BackgroundEvent, BackgroundState> {
     ));
     Future.delayed(const Duration(seconds: 2), () {
       if (!_isStopped) {
-        debugPrint('🔄 [BackgroundBloc] Setting speed to normal');
+        _debugger.debPrint('Setting speed to normal', DebugMessageType.info);
         add(BackgroundSpeedNormal());
       }
     });
@@ -144,11 +147,11 @@ class BackgroundBloc extends Bloc<BackgroundEvent, BackgroundState> {
 
   void _onSpeedNormal(BackgroundSpeedNormal event, Emitter<BackgroundState> emit) {
     if (_isLockedSpeed && !event.overrideLock) {
-      debugPrint('🚫 [BackgroundBloc] Animation is locked, not setting speed to normal');
+      _debugger.debPrint('Animation is locked, not setting speed to normal', DebugMessageType.warning);
       return;
     }
     if (_isLowEndDevice ?? true) return;
-    debugPrint('➡️ [BackgroundBloc] Setting normal speed');
+    _debugger.debPrint('Setting normal speed', DebugMessageType.info);
     _lastActiveSpeed = AnimationSpeed.normal;
     _isStopped = false;
     emit(state.copyWith(
@@ -160,11 +163,11 @@ class BackgroundBloc extends Bloc<BackgroundEvent, BackgroundState> {
 
   void _onSpeedSlow(BackgroundSpeedSlow event, Emitter<BackgroundState> emit) {
     if (_isLockedSpeed && !event.overrideLock) {
-      debugPrint('🚫 [BackgroundBloc] Animation is locked, not setting speed to slow');
+      _debugger.debPrint('Animation is locked, not setting speed to slow', DebugMessageType.warning);
       return;
     }
     if (_isLowEndDevice ?? true) return;
-    debugPrint('🐢 [BackgroundBloc] Slowing down animation');
+    _debugger.debPrint('Slowing down animation', DebugMessageType.info);
     _lastActiveSpeed = AnimationSpeed.slow;
     _isStopped = false;
     emit(state.copyWith(
@@ -176,11 +179,11 @@ class BackgroundBloc extends Bloc<BackgroundEvent, BackgroundState> {
 
   void _onSlowDown(BackgroundSpeedMin event, Emitter<BackgroundState> emit) {
     if (_isLockedSpeed && !event.overrideLock) {
-      debugPrint('🚫 [BackgroundBloc] Animation is locked, not setting speed to minimum');
+      _debugger.debPrint('Animation is locked, not setting speed to minimum', DebugMessageType.warning);
       return;
     }
     if (_isLowEndDevice ?? true) return;
-    debugPrint('🦥 [BackgroundBloc] Setting minimum speed');
+    _debugger.debPrint('Setting minimum speed', DebugMessageType.info);
     _lastActiveSpeed = AnimationSpeed.verySlow;
     _isStopped = false;
     emit(state.copyWith(
@@ -192,15 +195,15 @@ class BackgroundBloc extends Bloc<BackgroundEvent, BackgroundState> {
 
   void _onStopLoadingAnimation(BackgroundStopLoadingAnimation event, Emitter<BackgroundState> emit) {
     if (_isLockedSpeed && !event.overrideLock) {
-      debugPrint('🚫 [BackgroundBloc] Animation is locked, not stopping');
+      _debugger.debPrint('Animation is locked, not stopping', DebugMessageType.warning);
       return;
     }
     if (state.speed == AnimationSpeed.stopped) {
-      debugPrint('⏹️ [BackgroundBloc] Animation already stopped');
+      _debugger.debPrint('Animation already stopped', DebugMessageType.info);
       return;
     }
     _lastActiveSpeed = state.speed;
-    debugPrint('⏹️ [BackgroundBloc] Stopping animation');
+    _debugger.debPrint('Stopping animation', DebugMessageType.stopping);
     _isStopped = true;
     emit(state.copyWith(
       speed: AnimationSpeed.stopped,
@@ -211,10 +214,10 @@ class BackgroundBloc extends Bloc<BackgroundEvent, BackgroundState> {
 
   void _onStartTransitionAnimation(BackgroundStartTransitionAnimation event, Emitter<BackgroundState> emit) {
     if (_isLockedSpeed && !event.overrideLock) {
-      debugPrint('🚫 [BackgroundBloc] Animation is locked, not starting transition animation');
+      _debugger.debPrint('Animation is locked, not starting transition animation', DebugMessageType.warning);
       return;
     }
-    debugPrint('🔄 [BackgroundBloc] Starting transition animation');
+    _debugger.debPrint('Starting transition animation', DebugMessageType.info);
     emit(state.copyWith(
       speed: AnimationSpeed.fast,
       isGoingToOrigin: false,
@@ -224,11 +227,11 @@ class BackgroundBloc extends Bloc<BackgroundEvent, BackgroundState> {
 
   void _onStopTransitionAnimation(BackgroundStopTransitionAnimation event, Emitter<BackgroundState> emit) {
     if (_isLockedSpeed && !event.overrideLock) {
-      debugPrint('🚫 [BackgroundBloc] Animation is locked, not stopping');
+      _debugger.debPrint('Animation is locked, not stopping', DebugMessageType.warning);
       return;
     }
     _isStopped = true;
-    debugPrint('⏹️ [BackgroundBloc] Stopping transition animation');
+    _debugger.debPrint('Stopping transition animation', DebugMessageType.stopping);
     emit(state.copyWith(
       isGoingToOrigin: true,
       speed: AnimationSpeed.stopped,
@@ -238,7 +241,7 @@ class BackgroundBloc extends Bloc<BackgroundEvent, BackgroundState> {
 
   void _onResume(BackgroundResume event, Emitter<BackgroundState> emit) {
     if (_isLowEndDevice ?? true) return;
-    debugPrint('▶️ [BackgroundBloc] Resuming animation at ${_lastActiveSpeed.name} speed');
+    _debugger.debPrint('Resuming animation at ${_lastActiveSpeed.name} speed', DebugMessageType.info);
     emit(state.copyWith(
       speed: _lastActiveSpeed,
       interpolationSpeed: _lastActiveSpeed == AnimationSpeed.fast ? 1.0 : 0.05,
@@ -247,7 +250,7 @@ class BackgroundBloc extends Bloc<BackgroundEvent, BackgroundState> {
   }
 
   void _onLockSpeed(BackgroundLockSpeed event, Emitter<BackgroundState> emit) {
-    debugPrint('🔒 [BackgroundBloc] Locking speed to ${event.speed.name}');
+    _debugger.debPrint('Locking speed to ${event.speed.name}', DebugMessageType.info);
     _isLockedSpeed = true;
     emit(state.copyWith(
       speed: event.speed,
@@ -257,18 +260,18 @@ class BackgroundBloc extends Bloc<BackgroundEvent, BackgroundState> {
   }
 
   void _onUnlockSpeed(BackgroundUnlockSpeed event, Emitter<BackgroundState> emit) {
-    debugPrint('🔓 [BackgroundBloc] Unlocking speed');
+    _debugger.debPrint('Unlocking speed', DebugMessageType.info);
     _isLockedSpeed = false;
   }
 
   void cleanup() {
-    debugPrint('🧹 [BackgroundBloc] Cleaning up animations');
+    _debugger.debPrint('Cleaning up animations', DebugMessageType.info);
     add(BackgroundStopLoadingAnimation());
   }
 
   @override
   Future<void> close() async {
-    debugPrint('🚫 [BackgroundBloc] Closing background bloc');
+    _debugger.debPrint('Closing background bloc', DebugMessageType.stopping);
     cleanup();
     return super.close();
   }

@@ -10,6 +10,7 @@ import 'package:livit/constants/styles/spaces.dart';
 import 'package:livit/models/media/livit_media_file.dart';
 import 'package:livit/utilities/bars_containers_fields/bar.dart';
 import 'package:livit/utilities/buttons/button.dart';
+import 'package:livit/utilities/debug/livit_debugger.dart';
 import 'package:livit/utilities/media/media_file_cleanup.dart';
 import 'package:livit/views/main_pages/promoters/event_creation/components/media/event_media_preview_player.dart';
 
@@ -28,6 +29,8 @@ class EventMediaField extends StatefulWidget {
 }
 
 class _EventMediaFieldState extends State<EventMediaField> {
+  final LivitDebugger _debugger = LivitDebugger('EventMediaField', isDebugEnabled: true);
+
   final List<LivitMediaFile> _media = [];
 
   @override
@@ -49,12 +52,14 @@ class _EventMediaFieldState extends State<EventMediaField> {
   }
 
   void _notifyMediaChanged() {
+    _debugger.debPrint('Notifying media changed, count: ${_media.length}', DebugMessageType.updating);
     if (widget.onMediaChanged != null) {
       widget.onMediaChanged!(_media);
     }
   }
 
   void _showMediaPreviewDialog(int index, bool isAdding) async {
+    _debugger.debPrint('Showing media preview dialog, index: $index, isAdding: $isAdding', DebugMessageType.updating);
     final updatedMedia = await Navigator.push<List<LivitMediaFile>>(
       context,
       MaterialPageRoute<List<LivitMediaFile>>(
@@ -67,12 +72,15 @@ class _EventMediaFieldState extends State<EventMediaField> {
     );
 
     if (updatedMedia != null) {
+      _debugger.debPrint('Updated media, count: ${updatedMedia.length}', DebugMessageType.updating);
       setState(() {
         _media.clear();
         _media.addAll(updatedMedia);
       });
       _notifyMediaChanged();
     }
+
+    _debugger.debPrint('No media updated', DebugMessageType.updating);
   }
 
   Widget _buildMediaPreview(LivitMediaFile file) {

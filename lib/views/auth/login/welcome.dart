@@ -7,6 +7,7 @@ import 'package:livit/constants/styles/livit_text.dart';
 import 'package:livit/constants/enums.dart';
 import 'package:livit/services/error_reporting/error_reporter.dart';
 import 'package:livit/utilities/buttons/button.dart';
+import 'package:livit/utilities/debug/livit_debugger.dart';
 
 class WelcomeView extends StatefulWidget {
   const WelcomeView({super.key});
@@ -16,6 +17,7 @@ class WelcomeView extends StatefulWidget {
 }
 
 class _WelcomeViewState extends State<WelcomeView> {
+  final _debugger = const LivitDebugger('WelcomeView');
   bool displayContent = false;
   bool displayLivit = false;
   bool animationsCompleted = false;
@@ -49,9 +51,8 @@ class _WelcomeViewState extends State<WelcomeView> {
 
   @override
   void dispose() {
+    _debugger.debPrint('Disposing WelcomeView', DebugMessageType.stopping);
     super.dispose();
-
-    debugPrint('🔄 [WelcomeView] Disposing WelcomeView');
   }
 
   @override

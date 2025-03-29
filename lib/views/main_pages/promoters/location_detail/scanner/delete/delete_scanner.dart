@@ -12,9 +12,11 @@ import 'package:livit/services/cloud_functions/firestore_cloud_functions.dart';
 import 'package:livit/services/firestore_storage/bloc/scanner/scanner_bloc.dart';
 import 'package:livit/utilities/bars_containers_fields/bar.dart';
 import 'package:livit/utilities/buttons/button.dart';
+import 'package:livit/utilities/debug/livit_debugger.dart';
 
 class DeleteScanner {
   final FirestoreCloudFunctions _firestoreCloudFunctions = FirestoreCloudFunctions();
+  final _debugger = const LivitDebugger('DeleteScanner');
 
   Future<bool> _showDeleteConfirmationDialog(BuildContext context, CloudScanner scanner) async {
     bool confirmDelete = false;
@@ -93,7 +95,7 @@ class DeleteScanner {
   Future<void> deleteScanner(CloudScanner scanner, BuildContext outerContext) async {
     // Show confirmation dialog
     final shouldDelete = await _showDeleteConfirmationDialog(outerContext, scanner);
-    debugPrint('shouldDelete: $shouldDelete, context.mounted: ${outerContext.mounted}');
+    _debugger.debPrint('shouldDelete: $shouldDelete, context.mounted: ${outerContext.mounted}', DebugMessageType.info);
 
     if (shouldDelete && outerContext.mounted) {
       late final BuildContext afterLoadingContext;

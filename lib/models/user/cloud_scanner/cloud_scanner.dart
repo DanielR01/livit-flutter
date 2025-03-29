@@ -1,5 +1,7 @@
 part of '../cloud_user.dart';
 
+final _debugger = LivitDebugger('cloud_scanner', isDebugEnabled: false);
+
 class CloudScanner extends CloudUser {
   final bool credentialsSent;
   final Timestamp? credentialsSentAt;
@@ -25,41 +27,41 @@ class CloudScanner extends CloudUser {
   factory CloudScanner.fromDocument(DocumentSnapshot doc) {
     try {
       final data = doc.data() as Map<String, dynamic>;
-      debugPrint('🔄 [CloudScanner.fromDocument] Raw Data: $data');
+      _debugger.debPrint('Raw Data: $data', DebugMessageType.reading);
 
       // Extract and debug print each field
       final id = doc.id;
-      debugPrint('📄 [CloudScanner.fromDocument] id: $id');
+      _debugger.debPrint('id: $id', DebugMessageType.info);
 
       final email = data['email'] as String;
-      debugPrint('📄 [CloudScanner.fromDocument] email: $email');
+      _debugger.debPrint('email: $email', DebugMessageType.info);
 
       final createdAt = data['createdAt'] as Timestamp;
-      debugPrint('📄 [CloudScanner.fromDocument] createdAt: $createdAt');
+      _debugger.debPrint('createdAt: $createdAt', DebugMessageType.info);
 
       final credentialsSent = data['credentialsSent'] as bool;
-      debugPrint('📄 [CloudScanner.fromDocument] credentialsSent: $credentialsSent');
+      _debugger.debPrint('credentialsSent: $credentialsSent', DebugMessageType.info);
 
       final credentialsSentAt = data['credentialsSentAt'] as Timestamp?;
-      debugPrint('📄 [CloudScanner.fromDocument] credentialsSentAt: $credentialsSentAt');
+      _debugger.debPrint('credentialsSentAt: $credentialsSentAt', DebugMessageType.info);
 
       final eventIdsRaw = data['eventIds'] as List<dynamic>?;
-      debugPrint('📄 [CloudScanner.fromDocument] raw eventIds: $eventIdsRaw');
+      _debugger.debPrint('raw eventIds: $eventIdsRaw', DebugMessageType.info);
       final eventIds = eventIdsRaw?.cast<String?>();
-      debugPrint('📄 [CloudScanner.fromDocument] parsed eventIds: $eventIds');
+      _debugger.debPrint('parsed eventIds: $eventIds', DebugMessageType.info);
 
       final locationIdsRaw = data['locationIds'] as List<dynamic>?;
-      debugPrint('📄 [CloudScanner.fromDocument] raw locationIds: $locationIdsRaw');
+      _debugger.debPrint('raw locationIds: $locationIdsRaw', DebugMessageType.info);
       final locationIds = locationIdsRaw?.cast<String?>();
-      debugPrint('📄 [CloudScanner.fromDocument] parsed locationIds: $locationIds');
+      _debugger.debPrint('parsed locationIds: $locationIds', DebugMessageType.info);
 
       final promoterId = data['promoterId'] as String;
-      debugPrint('📄 [CloudScanner.fromDocument] promoterId: $promoterId');
+      _debugger.debPrint('promoterId: $promoterId', DebugMessageType.info);
 
       final name = data['name'] as String;
-      debugPrint('📄 [CloudScanner.fromDocument] name: $name');
+      _debugger.debPrint('name: $name', DebugMessageType.info);
 
-      debugPrint('✅ [CloudScanner.fromDocument] All fields extracted successfully');
+      _debugger.debPrint('All fields extracted successfully', DebugMessageType.done);
 
       return CloudScanner(
         id: id,
@@ -74,8 +76,8 @@ class CloudScanner extends CloudUser {
         name: name,
       );
     } catch (e, stackTrace) {
-      debugPrint('❌ [CloudScanner.fromDocument] Error creating CloudScanner: $e');
-      debugPrint('Stack trace: $stackTrace');
+      _debugger.debPrint('Error creating CloudScanner: $e', DebugMessageType.error);
+      ErrorReporter(viewName: 'CloudScanner.fromDocument').reportError(e, stackTrace);
       rethrow;
     }
   }

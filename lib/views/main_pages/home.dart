@@ -7,6 +7,7 @@ import 'package:livit/services/firestore_storage/bloc/event/event_event.dart';
 import 'package:livit/services/firestore_storage/bloc/event/event_state.dart';
 import 'package:livit/services/firestore_storage/bloc/location/location_bloc.dart';
 import 'package:livit/services/firestore_storage/firestore_storage/firestore_storage.dart';
+import 'package:livit/services/cloud_functions/firestore_cloud_functions.dart';
 
 class HomePage extends StatefulWidget {
   final String creatorId;
@@ -26,11 +27,7 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
-    _eventsBloc = EventsBloc(
-      storageService: FirestoreStorageService(),
-      locationBloc: BlocProvider.of<LocationBloc>(context),
-      backgroundBloc: BlocProvider.of<BackgroundBloc>(context),
-    )..add(FetchInitialEvents());
+    _eventsBloc = BlocProvider.of<EventsBloc>(context);
 
     _scrollController.addListener(() {
       if (_scrollController.position.pixels >= _scrollController.position.maxScrollExtent - 200 && _eventsBloc.state is! EventsLoaded) {
@@ -51,6 +48,21 @@ class _HomePageState extends State<HomePage> {
     return BlocBuilder<EventsBloc, EventsState>(
       bloc: _eventsBloc,
       builder: (context, state) {
+        if (state is EventsInitial) {
+          return const Center(child: CircularProgressIndicator());
+        } else if (state is EventsLoaded) {
+          // Handle loaded events
+          return const Center(child: Text('Events loaded - Implement UI'));
+        } else if (state is EventsError) {
+          return Center(child: Text('Error: ${state.message}'));
+        } else if (state is EventCreating) {
+          return const Center(child: CircularProgressIndicator());
+        } else if (state is EventCreated) {
+          // Event was successfully created
+          return Center(child: Text('Event created with ID: ${state.eventId}'));
+        } else if (state is EventCreationError) {
+          return Center(child: Text('Error creating event: ${state.message}'));
+        }
 
         return const Center(child: Text('Unexpected State'));
       },

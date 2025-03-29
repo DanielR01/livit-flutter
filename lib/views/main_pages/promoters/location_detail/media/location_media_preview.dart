@@ -25,6 +25,9 @@ class _LocationMediaPreviewState extends State<LocationMediaPreview> {
     final mediaDisplayWidth = remainingWidth / 4;
     final mediaDisplayHeight = mediaDisplayWidth * 16 / 9;
 
+    // Get parent's debugger instance
+    final _debugger = (context.findAncestorStateOfType<_LocationDetailViewState>())?._debugger ?? const LivitDebugger('LocationDetailView');
+
     return BlocBuilder<LocationBloc, LocationState>(
       builder: (context, state) {
         final hasMedia = _locationBloc.currentLocation?.media?.files?.isNotEmpty ?? false;
@@ -128,8 +131,10 @@ class _LocationMediaPreviewState extends State<LocationMediaPreview> {
   }
 
   Widget _buildMediaPreview(LivitMediaFile file) {
+    final _debugger = const LivitDebugger('LocationDetailView');
+
     if (file is LivitMediaImage) {
-      debugPrint('🛠️ [LocationDetailView] Building media preview for image: ${file.url}');
+      _debugger.debPrint('Building media preview for image: ${file.url}', DebugMessageType.building);
       return Image.network(
         (file.url ?? ''),
         fit: BoxFit.cover,
@@ -144,7 +149,8 @@ class _LocationMediaPreviewState extends State<LocationMediaPreview> {
         },
       );
     } else if (file is LivitMediaVideo) {
-      debugPrint('🛠️ [LocationDetailView] Building media preview for video with cover: ${file.cover.url} and video: ${file.url}');
+      _debugger.debPrint(
+          'Building media preview for video with cover: ${file.cover.url} and video: ${file.url}', DebugMessageType.building);
       return Stack(
         alignment: Alignment.center,
         children: [

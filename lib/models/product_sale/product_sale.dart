@@ -1,5 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/foundation.dart';
+import 'package:livit/utilities/debug/livit_debugger.dart';
+
+final _debugger = LivitDebugger('product_sale', isDebugEnabled: false);
 
 enum LivitProductSalePaymentMethod {
   cash,
@@ -59,13 +61,13 @@ class LivitProductSale {
 
   static Future<DocumentReference?> getReference(String saleId) async {
     try {
-      debugPrint('🔍 [LivitProductSale] Finding sale reference for ID: $saleId');
+      _debugger.debPrint('Finding sale reference for ID: $saleId', DebugMessageType.reading);
 
       final QuerySnapshot querySnapshot =
           await FirebaseFirestore.instance.collectionGroup('sales').where(FieldPath.documentId, isEqualTo: saleId).limit(1).get();
 
       if (querySnapshot.docs.isEmpty) {
-        debugPrint('❌ [LivitProductSale] No sale found with ID: $saleId');
+        _debugger.debPrint('No sale found with ID: $saleId', DebugMessageType.error);
         return null;
       }
 
@@ -73,7 +75,7 @@ class LivitProductSale {
       final String path = querySnapshot.docs.first.reference.path;
       return FirebaseFirestore.instance.doc(path);
     } catch (e) {
-      debugPrint('❌ [LivitProductSale] Error getting sale reference: $e');
+      _debugger.debPrint('Error getting sale reference: $e', DebugMessageType.error);
       rethrow;
     }
   }

@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:livit/constants/enums.dart';
@@ -7,6 +6,7 @@ import 'package:livit/models/product_sale/product_sale.dart';
 import 'package:livit/services/exceptions/base_exception.dart';
 import 'package:livit/services/firestore_storage/bloc/product/product_bloc_exception.dart';
 import 'package:livit/services/firestore_storage/firestore_storage/firestore_storage.dart';
+import 'package:livit/utilities/debug/livit_debugger.dart';
 
 part 'product_event.dart';
 part 'product_state.dart';
@@ -16,6 +16,7 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
   final Map<String, LivitException> _errors = {};
 
   final FirestoreStorageService _firestoreStorageService;
+  final _debugger = const LivitDebugger('ProductBloc');
 
   ProductBloc({
     required FirestoreStorageService firestoreStorageService,
@@ -32,11 +33,11 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
     Emitter<ProductState> emit,
   ) async {
     try {
-      debugPrint('🛠️ [ProductBloc] Loading location products for location: ${event.locationId}');
+      _debugger.debPrint('Loading location products for location: ${event.locationId}', DebugMessageType.methodCalling);
       _loadingStates[event.locationId] = LoadingState.loading;
       emit(ProductsLoaded(products: [], loadingStates: _loadingStates));
       final products = await _firestoreStorageService.productService.getProductsByLocationId(event.locationId);
-      debugPrint('✅ [ProductBloc] Products loaded: ${products.length}');
+      _debugger.debPrint('Products loaded: ${products.length}', DebugMessageType.done);
       _loadingStates[event.locationId] = LoadingState.loaded;
       emit(ProductsLoaded(products: products, loadingStates: _loadingStates));
       if (event.loadProductSales) {
@@ -44,17 +45,17 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
         for (LocationProduct product in products) {
           productSalesMap[product] =
               await _firestoreStorageService.productSaleService.getProductsSalesByLocationIdAndProductId(event.locationId, product.id);
-          debugPrint('✅ [ProductBloc] Product sales loaded: ${productSalesMap[product]!}');
+          _debugger.debPrint('Product sales loaded: ${productSalesMap[product]!}', DebugMessageType.done);
         }
         emit(ProductsLoaded(products: products, loadingStates: _loadingStates, productSales: productSalesMap));
       }
     } on FirebaseException catch (e) {
-      debugPrint('❌ [ProductBloc] Error loading location products: $e');
+      _debugger.debPrint('Error loading location products: $e', DebugMessageType.error);
       _loadingStates[event.locationId] = LoadingState.error;
       _errors[event.locationId] = GenericProductBlocException(details: e.toString());
       emit(ProductsLoaded(products: [], loadingStates: _loadingStates, errors: _errors));
     } catch (e) {
-      debugPrint('❌ [ProductBloc] Error loading location products: $e');
+      _debugger.debPrint('Error loading location products: $e', DebugMessageType.error);
       _loadingStates[event.locationId] = LoadingState.error;
       _errors[event.locationId] = e is LivitException ? e : GenericProductBlocException(details: e.toString());
       emit(ProductsLoaded(products: [], loadingStates: _loadingStates, errors: _errors));

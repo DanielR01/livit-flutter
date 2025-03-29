@@ -1,5 +1,7 @@
-import 'package:flutter/cupertino.dart';
 import 'package:livit/models/media/livit_media_file.dart';
+import 'package:livit/utilities/debug/livit_debugger.dart';
+
+final _debugger = LivitDebugger('event_media');
 
 class EventMedia {
   final List<LivitMediaFile> media;
@@ -13,7 +15,7 @@ class EventMedia {
   }
 
   factory EventMedia.fromMap(Map<String, dynamic> map) {
-    debugPrint('🛠️ [EventMedia] fromMap: $map');
+    _debugger.debPrint('fromMap: $map', DebugMessageType.reading);
     return EventMedia(
       media: (map['files'] as List<dynamic>?)
               ?.map((mediaFile) => LivitMediaFile.fromMap(mediaFile as Map<String, dynamic>))

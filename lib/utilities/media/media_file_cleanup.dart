@@ -1,19 +1,20 @@
 import 'dart:io';
-
-import 'package:flutter/material.dart';
 import 'package:livit/models/media/livit_media_file.dart';
+import 'package:livit/utilities/debug/livit_debugger.dart';
 
 class MediaFileCleanup {
+  static const _debugger = LivitDebugger('MediaFileCleanup');
+
   static Future<void> deleteFile(File? file) async {
     if (file != null && await file.exists()) {
       try {
-        debugPrint('🗑️ [MediaFileCleanup] Deleting file: ${file.path}');
+        _debugger.debPrint('Deleting file: ${file.path}', DebugMessageType.fileDeleting);
         await file.delete();
       } catch (e) {
-        debugPrint('🗑️ [MediaFileCleanup] Error deleting file: $e');
+        _debugger.debPrint('Error deleting file: $e', DebugMessageType.error);
       }
     } else {
-      debugPrint('🗑️ [MediaFileCleanup] File cannot be deleted because it does not exist: ${file?.path}');
+      _debugger.debPrint('File cannot be deleted because it does not exist: ${file?.path}', DebugMessageType.warning);
     }
   }
 

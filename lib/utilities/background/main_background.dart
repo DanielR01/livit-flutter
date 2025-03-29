@@ -13,6 +13,7 @@ import 'package:livit/services/error_reporting/error_reporter.dart';
 import 'package:livit/utilities/background/background_defaults.dart';
 import 'package:livit/utilities/background/background_exception.dart';
 import 'package:livit/utilities/background/blend_mask.dart';
+import 'package:livit/utilities/debug/livit_debugger.dart';
 import 'package:path_provider/path_provider.dart';
 
 class MainBackground extends StatefulWidget {
@@ -61,6 +62,7 @@ class _MainBackgroundState extends State<MainBackground> with TickerProviderStat
   bool _isImagePreloaded = false;
 
   final errorReporter = ErrorReporter(viewName: 'MainBackground');
+  final _debugger = LivitDebugger('MainBackground');
 
   @override
   void initState() {
@@ -231,7 +233,7 @@ class _MainBackgroundState extends State<MainBackground> with TickerProviderStat
         }
       }
       if (await File(_cachedBackgroundPath!).exists()) {
-        debugPrint('✅ [MainBackground] Cached background file exists');
+        _debugger.debPrint('Cached background file exists', DebugMessageType.fileTracking);
         await _preloadImage();
         _isBackgroundCached = true;
         if (!_backgroundBloc.state.isBackgroundGenerated) {
@@ -239,7 +241,7 @@ class _MainBackgroundState extends State<MainBackground> with TickerProviderStat
         }
         return true;
       } else {
-        debugPrint('❌ [MainBackground] Cached background file does not exist');
+        _debugger.debPrint('Cached background file does not exist', DebugMessageType.warning);
         if (mounted) {
           await generateAndCacheBackground(context);
           if (await File(_cachedBackgroundPath!).exists()) {
@@ -255,7 +257,7 @@ class _MainBackgroundState extends State<MainBackground> with TickerProviderStat
       }
     } catch (e) {
       errorReporter.reportError(e, StackTrace.current);
-      debugPrint('🚨 [MainBackground] Error checking cached background: $e');
+      _debugger.debPrint('Error checking cached background: $e', DebugMessageType.error);
       return false;
     }
     errorReporter.reportError(Exception('Unknown error getting cached background'), StackTrace.current);
@@ -269,7 +271,7 @@ class _MainBackgroundState extends State<MainBackground> with TickerProviderStat
     final overlay = Overlay.of(context);
     if (_isGeneratingBackground) return;
     _isGeneratingBackground = true;
-    debugPrint('🔄 [MainBackground] Generating and caching background');
+    _debugger.debPrint('Generating and caching background', DebugMessageType.building);
 
     if (_isLowEndDevice == null) {
       await _checkDeviceCapabilities();
@@ -325,20 +327,20 @@ class _MainBackgroundState extends State<MainBackground> with TickerProviderStat
       );
       if (mounted) {
         overlay.insert(overlayEntry);
-        debugPrint('✅ [MainBackground] Overlay inserted');
+        _debugger.debPrint('Overlay inserted', DebugMessageType.done);
       }
       final maxAttempts = 100;
       final minAttempts = _isLowEndDevice ?? false ? 10 : 3;
       int attempts = 0;
       while (attempts < maxAttempts) {
-        debugPrint('🔄 [MainBackground] Attempt ${attempts + 1} of $maxAttempts');
+        _debugger.debPrint('Attempt ${attempts + 1} of $maxAttempts', DebugMessageType.building);
         await Future.delayed(const Duration(milliseconds: 100));
 
         final boundary = boundaryKey.currentContext?.findRenderObject() as RenderRepaintBoundary?;
         if (boundary != null) {
           // Check if the boundary is laid out and ready
           if (boundary.hasSize && boundary.size.width > 0 && boundary.size.height > 0 && !boundary.debugNeedsPaint) {
-            debugPrint('✅ [MainBackground] Boundary is ready for capture');
+            _debugger.debPrint('Boundary is ready for capture', DebugMessageType.done);
             if (attempts >= minAttempts) {
               break;
             }
@@ -350,49 +352,49 @@ class _MainBackgroundState extends State<MainBackground> with TickerProviderStat
       // After loop, verify boundary is really ready
       final boundary = boundaryKey.currentContext?.findRenderObject() as RenderRepaintBoundary?;
       if (boundary == null || !boundary.hasSize) {
-        throw Exception('🚨 [MainBackground] Failed to get a valid boundary after $maxAttempts attempts');
+        throw Exception('Failed to get a valid boundary after $maxAttempts attempts');
       }
 
       final image = await boundary.toImage(pixelRatio: devicePixelRatio);
-      debugPrint('✅ [MainBackground] Image captured');
+      _debugger.debPrint('Image captured', DebugMessageType.done);
       final byteData = await image.toByteData(format: ImageByteFormat.png);
-      debugPrint('✅ [MainBackground] Byte data captured');
+      _debugger.debPrint('Byte data captured', DebugMessageType.done);
       final buffer = byteData!.buffer.asUint8List();
-      debugPrint('✅ [MainBackground] Buffer captured');
+      _debugger.debPrint('Buffer captured', DebugMessageType.done);
 
       await File(_cachedBackgroundPath!).writeAsBytes(buffer);
-      debugPrint('✅ [MainBackground] File written');
+      _debugger.debPrint('File written', DebugMessageType.fileSaving);
 
       overlayEntry.remove();
-      debugPrint('✅ [MainBackground] Overlay removed');
+      _debugger.debPrint('Overlay removed', DebugMessageType.done);
       _isGeneratingBackground = false;
       if (mounted) setState(() {});
-      debugPrint('✅ [MainBackground] Background cached');
+      _debugger.debPrint('Background cached', DebugMessageType.done);
     } catch (e) {
       errorReporter.reportError(BackgroundGenerateException(details: e.toString()), StackTrace.current);
-      debugPrint('🚨 [MainBackground] Error generating cached background: $e');
+      _debugger.debPrint('Error generating cached background: $e', DebugMessageType.error);
     }
   }
 
   Future<void> _preloadImage() async {
     try {
       if (_cachedBackgroundPath == null) {
-        throw Exception('🚨 [MainBackground] Cached background path is null');
+        throw Exception('Cached background path is null');
       }
       if (!await File(_cachedBackgroundPath!).exists()) {
-        throw Exception('🚨 [MainBackground] Cached background file does not exist');
+        throw Exception('Cached background file does not exist');
       }
       _cachedImage = FileImage(File(_cachedBackgroundPath!));
       if (mounted) {
         await precacheImage(_cachedImage, context);
-        debugPrint('✅ [MainBackground] Image preloaded');
+        _debugger.debPrint('Image preloaded', DebugMessageType.done);
         setState(() {
           _isImagePreloaded = true;
         });
       }
     } catch (e) {
       errorReporter.reportError(BackgroundPreloadException(details: e.toString()), StackTrace.current);
-      debugPrint('🚨 [MainBackground] Error preloading cached background: $e');
+      _debugger.debPrint('Error preloading cached background: $e', DebugMessageType.error);
     }
   }
 

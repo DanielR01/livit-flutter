@@ -9,8 +9,11 @@ import 'package:livit/services/auth/auth_provider.dart';
 
 import 'package:firebase_auth/firebase_auth.dart'
     show FirebaseAuth, FirebaseAuthException, GoogleAuthProvider, PhoneAuthCredential, PhoneAuthProvider;
+import 'package:livit/utilities/debug/livit_debugger.dart';
 
 class FirebaseAuthProvider implements AuthProvider {
+  final _debugger = LivitDebugger('firebase_auth_provider', isDebugEnabled: false);
+  
   @override
   Future<void> registerEmail({
     required String email,
@@ -122,15 +125,15 @@ class FirebaseAuthProvider implements AuthProvider {
     required String password,
   }) async {
     try {
-      debugPrint('🔑 [FirebaseAuthProvider] Logging in with email and password: $email, $password');
+      _debugger.debPrint('Logging in with email and password: $email, $password', DebugMessageType.loginIn);
       await FirebaseAuth.instance.signInWithEmailAndPassword(
         email: email,
         password: password,
       );
-      debugPrint('✅ [FirebaseAuthProvider] Login successful, current user: ${(await currentUser).id}');
+      _debugger.debPrint('Login successful, current user: ${(await currentUser).id}', DebugMessageType.logged);
       return await currentUser;
     } on FirebaseAuthException catch (e) {
-      debugPrint('❌ [FirebaseAuthProvider] Login failed: ${e.code}');
+      _debugger.debPrint('Login failed: ${e.code}', DebugMessageType.error);
       switch (e.code) {
         case 'invalid-credential':
           throw InvalidCredentialsAuthException(details: e.message);

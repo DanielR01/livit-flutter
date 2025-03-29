@@ -14,7 +14,7 @@ class EventDateItem {
   DateTime startDate;
   DateTime endDate;
   final Function(EventDateItem) onChanged;
-  final Function(String)? onDelete;
+  final Function(EventDateItem)? onDelete;
 
   // Controllers
   final TextEditingController nameController;
@@ -260,7 +260,7 @@ class EventDateItem {
                   activeBackgroundColor: Colors.transparent,
                   isIconBig: false,
                   isActive: true,
-                  onTap: () => onDelete!(name),
+                  onTap: () => onDelete!(this),
                   icon: CupertinoIcons.delete,
                 ),
               ]

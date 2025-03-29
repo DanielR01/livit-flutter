@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/widgets.dart';
+import 'package:livit/utilities/debug/livit_debugger.dart';
 import 'package:path_provider/path_provider.dart';
 
 class StorageMonitor {
@@ -9,15 +10,17 @@ class StorageMonitor {
   factory StorageMonitor() => _instance;
   StorageMonitor._internal();
 
+  static final LivitDebugger _debugger = const LivitDebugger('StorageMonitor');
+
   Timer? _monitorTimer;
   static const Duration monitorInterval = Duration(minutes: 15);
 
   void startPeriodicMonitoring() {
     stopPeriodicMonitoring();
     _monitorTimer = Timer.periodic(monitorInterval, (_) async {
-      debugPrint('[StorageMonitor] Monitoring storage');
+      _debugger.debPrint('Monitoring storage', DebugMessageType.monitoring);
       final sizes = await getStorageInfo();
-      debugPrint('[StorageMonitor] Storage sizes: $sizes');
+      _debugger.debPrint('Storage sizes: $sizes', DebugMessageType.info);
     });
   }
 
@@ -50,14 +53,14 @@ class StorageMonitor {
     }
 
     // Print all directory paths for debugging
-    debugPrint('[StorageMonitor] App Documents: ${appDir.path}');
-    debugPrint('[StorageMonitor] Temp: ${tempDir.path}');
-    debugPrint('[StorageMonitor] Support: ${supportDir.path}');
+    _debugger.debPrint('App Documents: ${appDir.path}', DebugMessageType.info);
+    _debugger.debPrint('Temp: ${tempDir.path}', DebugMessageType.info);
+    _debugger.debPrint('Support: ${supportDir.path}', DebugMessageType.info);
     if (Platform.isIOS) {
       final libraryDir = await getLibraryDirectory();
-      debugPrint('[StorageMonitor] Library: ${libraryDir.path}');
+      _debugger.debPrint('Library: ${libraryDir.path}', DebugMessageType.info);
     }
-    debugPrint('[StorageMonitor] Temp custom: ${tempDirCustom.path}');
+    _debugger.debPrint('Temp custom: ${tempDirCustom.path}', DebugMessageType.info);
 
     return sizes;
   }
@@ -71,13 +74,13 @@ class StorageMonitor {
         if (entity is File) {
           final length = await entity.length();
           if (debugAllFiles) {
-            debugPrint('[StorageMonitor] File: ${entity.path} - Size: ${length / (1024 * 1024)} MB');
+            _debugger.debPrint('File: ${entity.path} - Size: ${length / (1024 * 1024)} MB', DebugMessageType.info);
           }
           size += length;
         }
       }
     } catch (e) {
-      debugPrint('[StorageMonitor] Error calculating size for ${dir.path}: $e');
+      _debugger.debPrint('Error calculating size for ${dir.path}: $e', DebugMessageType.error);
     }
     return size;
   }

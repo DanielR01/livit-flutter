@@ -10,6 +10,7 @@ import 'package:livit/utilities/background/main_background.dart';
 import 'package:livit/utilities/buttons/button.dart';
 import 'package:livit/utilities/dialogs/generic_dialog.dart';
 import 'package:livit/utilities/navigation/route_generator.dart';
+import 'package:livit/utilities/debug/livit_debugger.dart';
 
 class RootWidgetBackground extends StatefulWidget {
   const RootWidgetBackground({super.key});
@@ -20,7 +21,7 @@ class RootWidgetBackground extends StatefulWidget {
 
 class _RootWidgetBackgroundState extends State<RootWidgetBackground> {
   final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
-
+  final _debugger = LivitDebugger('RootWidgetBackground');
   bool _isLoggedOut = true;
 
   @override
@@ -36,7 +37,7 @@ class _RootWidgetBackgroundState extends State<RootWidgetBackground> {
                 listener: (context, state) {
                   if (state is AuthStateLoggedOut && !_isLoggedOut) {
                     _isLoggedOut = true;
-                    debugPrint('🚪 [RootWidgetBackground] Routing to welcome');
+                    _debugger.debPrint('Routing to welcome', DebugMessageType.navigation);
                     navigatorKey.currentState?.pushNamedAndRemoveUntil(Routes.welcomeRoute, (route) => false);
                   } else if (state is AuthStateLoggedIn) {
                     _isLoggedOut = false;
@@ -77,7 +78,7 @@ class _RootWidgetBackgroundState extends State<RootWidgetBackground> {
             if (shouldPop ?? false) {
               // Here you would typically call a method to exit the app
               // For example: SystemNavigator.pop();
-              debugPrint('Exiting app');
+              _debugger.debPrint('Exiting app', DebugMessageType.stopping);
             }
           }
         },

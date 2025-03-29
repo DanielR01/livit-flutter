@@ -35,6 +35,7 @@ import 'package:livit/utilities/bars_containers_fields/glass_container.dart';
 import 'package:livit/utilities/bars_containers_fields/livit_text_field.dart';
 import 'package:livit/utilities/bars_containers_fields/preview_field/preview_field.dart';
 import 'package:livit/utilities/buttons/button.dart';
+import 'package:livit/utilities/debug/livit_debugger.dart';
 import 'package:livit/utilities/dialogs/livit_date_picker.dart';
 import 'package:livit/utilities/display/livit_display_area.dart';
 import 'package:livit/utilities/refresh_indicator.dart';
@@ -57,6 +58,7 @@ class LocationDetailView extends StatefulWidget {
 }
 
 class _LocationDetailViewState extends State<LocationDetailView> {
+  final _debugger = const LivitDebugger('LocationDetailView');
   LivitLocation? _location;
 
   late final LocationBloc _locationBloc;
@@ -75,7 +77,7 @@ class _LocationDetailViewState extends State<LocationDetailView> {
 
   @override
   Widget build(BuildContext context) {
-    debugPrint('🛠️ [LocationDetailView] Building');
+    _debugger.debPrint('Building', DebugMessageType.building);
     return Scaffold(
       body: LivitDisplayArea(
         addHorizontalPadding: false,
@@ -92,12 +94,12 @@ class _LocationDetailViewState extends State<LocationDetailView> {
               if (_location != null &&
                   (_eventsBloc.state is EventsLoaded &&
                       (_eventsBloc.state as EventsLoaded).loadedEvents[EventViewType.location]![_location!.id] == null)) {
-                debugPrint('📥 [LocationDetailView] Fetching next events for location ${_location!.id}');
+                _debugger.debPrint('Fetching next events for location ${_location!.id}', DebugMessageType.downloading);
                 _eventsBloc.add(FetchNextEventsByLocation(locationId: _location!.id));
               }
             }
             if (_location == null) {
-              debugPrint('✅ [LocationDetailView] Returning empty location detail view');
+              _debugger.debPrint('Returning empty location detail view', DebugMessageType.info);
               return LivitRefreshIndicator(
                 onRefresh: () async {
                   BlocProvider.of<LocationBloc>(context).add(GetUserLocations(context));
@@ -149,7 +151,7 @@ class _LocationDetailViewState extends State<LocationDetailView> {
                 ),
               );
             } else {
-              debugPrint('✅ [LocationDetailView] Returning location detail view');
+              _debugger.debPrint('Returning location detail view', DebugMessageType.done);
               return Column(
                 children: [
                   Padding(

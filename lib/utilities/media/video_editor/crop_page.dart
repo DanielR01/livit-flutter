@@ -3,6 +3,7 @@ import 'package:fraction/fraction.dart';
 import 'package:livit/constants/colors.dart';
 import 'package:livit/constants/styles/livit_text.dart';
 import 'package:livit/utilities/buttons/button.dart';
+import 'package:livit/utilities/debug/livit_debugger.dart';
 import 'package:video_editor/video_editor.dart';
 
 class CropPage extends StatelessWidget {
@@ -12,7 +13,8 @@ class CropPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    debugPrint('🔄 [CropPage] build');
+    const debugger = LivitDebugger('CropPage');
+    debugger.debPrint('build', DebugMessageType.building);
     return Scaffold(
       backgroundColor: Colors.black,
       body: SafeArea(

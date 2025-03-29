@@ -1,7 +1,5 @@
 import 'dart:async';
 import 'dart:io';
-
-import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:livit/constants/enums.dart';
 import 'package:livit/models/location/location.dart';
@@ -26,6 +24,7 @@ import 'package:livit/services/firestore_storage/firestore_storage/exceptions/lo
 import 'package:livit/services/firestore_storage/firestore_storage/firestore_storage.dart';
 import 'package:livit/services/navigation/navigation_service.dart';
 import 'package:livit/utilities/media/media_file_cleanup.dart';
+import 'package:livit/utilities/debug/livit_debugger.dart';
 
 class LocationBloc extends Bloc<LocationEvent, LocationState> {
   final FirestoreStorageService _firestoreStorage;
@@ -33,6 +32,7 @@ class LocationBloc extends Bloc<LocationEvent, LocationState> {
   final BackgroundBloc _backgroundBloc;
   final StorageBloc _storageBloc;
   final UserBloc _userBloc;
+  final LivitDebugger _debugger = const LivitDebugger('LocationBloc');
   List<LivitLocation> _cloudLocations = [];
   List<LivitLocation> _localSavedLocations = [];
   List<LivitLocation> _localUnsavedLocations = [];
@@ -100,11 +100,11 @@ class LocationBloc extends Bloc<LocationEvent, LocationState> {
     Emitter<LocationState> emit,
   ) async {
     if (_userBloc.state is! CurrentUser) {
-      debugPrint('❌ [LocationBloc] UserBloc is not initialized');
+      _debugger.debPrint('UserBloc is not initialized', DebugMessageType.error);
       return;
     }
     _userId = (_userBloc.state as CurrentUser).user.id;
-    debugPrint('🔄 [LocationBloc] Initializing bloc for user: $_userId');
+    _debugger.debPrint('Initializing bloc for user: $_userId', DebugMessageType.initializing);
     await _onGetUserLocations(GetUserLocations(event.context), emit);
   }
 
@@ -115,7 +115,7 @@ class LocationBloc extends Bloc<LocationEvent, LocationState> {
     Emitter<LocationState> emit,
   ) async {
     _ensureInitialized();
-    debugPrint('📥 [LocationBloc] Getting user locations from cloud');
+    _debugger.debPrint('Getting user locations from cloud', DebugMessageType.downloading);
     _backgroundBloc.add(BackgroundStartLoadingAnimation());
 
     _loadingStates = {..._loadingStates, 'cloud': LoadingState.loading};
@@ -128,7 +128,7 @@ class LocationBloc extends Bloc<LocationEvent, LocationState> {
 
     try {
       final locations = await _firestoreStorage.locationService.getUserLocations(_userId!);
-      debugPrint('✅ [LocationBloc] Got ${locations.length} locations from cloud');
+      _debugger.debPrint('Got ${locations.length} locations from cloud', DebugMessageType.done);
       _loadingStates = {..._loadingStates, 'cloud': LoadingState.loaded};
       //await Future.delayed(const Duration(milliseconds: 10000));
       emit(LocationsLoaded(
@@ -160,7 +160,7 @@ class LocationBloc extends Bloc<LocationEvent, LocationState> {
         _currentLocation = locations.first;
       }
     } catch (e) {
-      debugPrint('❌ [LocationBloc] Error getting locations: $e');
+      _debugger.debPrint('Error getting locations: $e', DebugMessageType.error);
       emit(LocationsLoaded(
           cloudLocations: _cloudLocations,
           localSavedLocations: _localSavedLocations,
@@ -177,7 +177,7 @@ class LocationBloc extends Bloc<LocationEvent, LocationState> {
     Emitter<LocationState> emit,
   ) async {
     try {
-      debugPrint('📤 [LocationBloc] Creating ${event.locations.length} locations to cloud');
+      _debugger.debPrint('Creating ${event.locations.length} locations to cloud', DebugMessageType.uploading);
       _ensureInitialized();
       event.context.read<BackgroundBloc>().add(BackgroundStartLoadingAnimation());
       _loadingStates = {};
@@ -191,20 +191,20 @@ class LocationBloc extends Bloc<LocationEvent, LocationState> {
       final Map<LivitLocation, Map<String, LivitException>> failedLocations = {};
       for (var location in event.locations) {
         try {
-          debugPrint('📥 [LocationBloc] Creating location ${location.name}');
+          _debugger.debPrint('Creating location ${location.name}', DebugMessageType.creating);
           await _cloudFunctions.createLocation(location: location);
           _loadingStates = {..._loadingStates, location.id: LoadingState.loaded};
         } catch (e) {
-          debugPrint('❌ [LocationBloc] Failed to create location ${location.name}: $e');
+          _debugger.debPrint('Failed to create location ${location.name}: $e', DebugMessageType.error);
           failedLocations[location] = {'error': e is LivitException ? e : GenericLocationBlocException()};
           _loadingStates = {..._loadingStates, location.id: LoadingState.error};
         }
       }
-      debugPrint('📥 [LocationBloc] Getting user data and locations from cloud after creating locations');
+      _debugger.debPrint('Getting user data and locations from cloud after creating locations', DebugMessageType.downloading);
       final locations = await _firestoreStorage.locationService.getUserLocations(_userId!);
       // ignore: use_build_context_synchronously
       _userBloc.add(GetUserWithPrivateData(event.context));
-      debugPrint('✅ [LocationBloc] Got ${locations.length} locations from cloud after creating locations');
+      _debugger.debPrint('Got ${locations.length} locations from cloud after creating locations', DebugMessageType.done);
       _cloudLocations = locations;
       _loadingStates = {..._loadingStates, 'cloud': LoadingState.loaded};
       _localUnsavedLocations = failedLocations.isEmpty ? [] : event.locations;
@@ -217,9 +217,9 @@ class LocationBloc extends Bloc<LocationEvent, LocationState> {
         failedLocations: failedLocations,
       ));
       _backgroundBloc.add(BackgroundStopLoadingAnimation());
-      debugPrint('✅ [LocationBloc] Finished creating locations');
+      _debugger.debPrint('Finished creating locations', DebugMessageType.done);
     } catch (e) {
-      debugPrint('❌ [LocationBloc] Failed to create locations: $e');
+      _debugger.debPrint('Failed to create locations: $e', DebugMessageType.error);
       _backgroundBloc.add(BackgroundStopLoadingAnimation());
       emit(LocationsLoaded(
         cloudLocations: _cloudLocations,
@@ -236,7 +236,7 @@ class LocationBloc extends Bloc<LocationEvent, LocationState> {
     Emitter<LocationState> emit,
   ) async {
     try {
-      debugPrint('📤 [LocationBloc] Creating ${locations.length} locations to cloud from local');
+      _debugger.debPrint('Creating ${locations.length} locations to cloud from local', DebugMessageType.uploading);
       _ensureInitialized();
       event.context.read<BackgroundBloc>().add(BackgroundStartLoadingAnimation());
 
@@ -257,7 +257,7 @@ class LocationBloc extends Bloc<LocationEvent, LocationState> {
         add(CreateLocationsToCloud(event.context, _localSavedLocations));
       }
     } catch (e) {
-      debugPrint('❌ [LocationBloc] Failed to create locations from local: $e');
+      _debugger.debPrint('Failed to create locations from local: $e', DebugMessageType.error);
     }
   }
 
@@ -316,7 +316,7 @@ class LocationBloc extends Bloc<LocationEvent, LocationState> {
     UpdateLocationsToCloud event,
     Emitter<LocationState> emit,
   ) async {
-    debugPrint('📤 [LocationBloc] Updating ${event.locations.length} locations to cloud');
+    _debugger.debPrint('Updating ${event.locations.length} locations to cloud', DebugMessageType.uploading);
     _ensureInitialized();
     _loadingStates = {..._loadingStates, 'cloud': LoadingState.loading};
     emit(LocationsLoaded(
@@ -329,11 +329,11 @@ class LocationBloc extends Bloc<LocationEvent, LocationState> {
     final Map<LivitLocation, Map<String, LivitException>> failedLocations = {};
     for (var location in event.locations) {
       try {
-        debugPrint('📥 [LocationBloc] Updating location ${location.name}');
+        _debugger.debPrint('Updating location ${location.name}', DebugMessageType.updating);
         await _firestoreStorage.locationService.updateLocation(location);
         _loadingStates = {..._loadingStates, location.id: LoadingState.loaded};
       } catch (e) {
-        debugPrint('❌ [LocationBloc] Failed to update location ${location.name}: $e');
+        _debugger.debPrint('Failed to update location ${location.name}: $e', DebugMessageType.error);
         failedLocations[location] = {'error': e is LivitException ? e : GenericLocationBlocException()};
         _loadingStates = {..._loadingStates, location.id: LoadingState.error};
       }
@@ -351,7 +351,7 @@ class LocationBloc extends Bloc<LocationEvent, LocationState> {
       failedLocations: failedLocations,
     ));
     _backgroundBloc.add(BackgroundStopLoadingAnimation());
-    debugPrint('✅ [LocationBloc] Finished updating locations');
+    _debugger.debPrint('Finished updating locations', DebugMessageType.done);
   }
 
   Future<void> _onUpdateLocationsToCloudFromLocal(
@@ -380,7 +380,7 @@ class LocationBloc extends Bloc<LocationEvent, LocationState> {
     UpdateLocationsMediaToCloudFromLocal event,
     Emitter<LocationState> emit,
   ) async {
-    debugPrint('📤 [LocationBloc] Updating media for ${_localSavedLocations.length} locations from local');
+    _debugger.debPrint('Updating media for ${_localSavedLocations.length} locations from local', DebugMessageType.uploading);
     final completer = Completer<void>();
 
     final subscription = stream.listen((state) {
@@ -415,20 +415,20 @@ class LocationBloc extends Bloc<LocationEvent, LocationState> {
     final List<LivitLocation> locationsToUpload = locations.map((location) => location.copyWith(media: emptyLocationMedia)).toList();
     try {
       Map<LivitLocation, String> failedLocations = {};
-      debugPrint('⏭️ [LocationBloc] Skipping updating media for ${locationsToUpload.length} locations');
+      _debugger.debPrint('Skipping updating media for ${locationsToUpload.length} locations', DebugMessageType.skipping);
       for (var location in locationsToUpload) {
         try {
           await _firestoreStorage.locationService.updateLocation(location);
           _loadingStates = {..._loadingStates, location.id: LoadingState.loaded};
         } catch (e) {
-          debugPrint('❌ [LocationBloc] Failed to update location ${location.name}: $e');
+          _debugger.debPrint('Failed to update location ${location.name}: $e', DebugMessageType.error);
           failedLocations[location] = e.toString();
           _loadingStates = {..._loadingStates, location.id: LoadingState.error};
         }
       }
       add(GetUserLocations(event.context));
     } catch (e) {
-      debugPrint('❌ [LocationBloc] Failed to skip updating media for locations: $e');
+      _debugger.debPrint('Failed to skip updating media for locations: $e', DebugMessageType.error);
       for (var location in locationsToUpload) {
         _loadingStates = {..._loadingStates, location.id: LoadingState.error};
       }
@@ -451,6 +451,7 @@ class LocationBloc extends Bloc<LocationEvent, LocationState> {
   ) async {
     _ensureInitialized();
     _loadingStates = {..._loadingStates, 'cloud': LoadingState.loading, event.location.id: LoadingState.loading};
+    _debugger.debPrint('Loading states: $_loadingStates', DebugMessageType.info);
     emit(LocationsLoaded(
       cloudLocations: _cloudLocations,
       localSavedLocations: _localSavedLocations,
@@ -496,26 +497,26 @@ class LocationBloc extends Bloc<LocationEvent, LocationState> {
     UpdateLocationsMediaToCloud event,
     Emitter<LocationState> emit,
   ) async {
-    debugPrint('📤 [LocationBloc] Updating media for ${event.locations.length} locations');
+    _debugger.debPrint('Updating media for ${event.locations.length} locations', DebugMessageType.uploading);
     _ensureInitialized();
     _loadingStates = {};
     for (final location in event.locations) {
       _loadingStates = {..._loadingStates, location.id: LoadingState.loading};
     }
     _loadingStates = {..._loadingStates, 'cloud': LoadingState.loading};
-    debugPrint('🔍 [LocationBloc] Loading states: $_loadingStates');
+    _debugger.debPrint('Loading states: $_loadingStates', DebugMessageType.info);
     emit(LocationsLoaded(
       cloudLocations: _cloudLocations,
       localSavedLocations: _localSavedLocations,
       localUnsavedLocations: _localUnsavedLocations,
       loadingStates: _loadingStates,
     ));
-    debugPrint('▶️ [LocationBloc] Starting background loading animation');
+    _debugger.debPrint('Starting background loading animation', DebugMessageType.info);
     event.context.read<BackgroundBloc>().add(BackgroundStartLoadingAnimation());
     final Map<LivitLocation, Map<String, LivitException>> failedLocations = {};
     try {
       for (final location in event.locations) {
-        debugPrint('🔍 [LocationBloc] Verifying location ${location.id} media');
+        _debugger.debPrint('Verifying location ${location.id} media', DebugMessageType.building);
         if (location.media?.files?.any((file) {
               if (file is LivitMediaVideo) {
                 return file.cover.filePath == null ||
@@ -526,7 +527,7 @@ class LocationBloc extends Bloc<LocationEvent, LocationState> {
               return file?.filePath == null || !File(file?.filePath ?? '').existsSync();
             }) ==
             true) {
-          debugPrint('❌ [LocationBloc] Location ${location.id} has a media file with no path');
+          _debugger.debPrint('Location ${location.id} has a media file with no path', DebugMessageType.error);
           _loadingStates = {..._loadingStates, location.id: LoadingState.error};
           failedLocations[location] = {'error': FileWithNoPathException()};
           location.media?.files?.forEach((file) {
@@ -549,14 +550,14 @@ class LocationBloc extends Bloc<LocationEvent, LocationState> {
         }
         if (location.media?.files?.isNotEmpty == true) {
           if ((location.media?.files?.length ?? 0) > FirebaseStorageConstants.maxFiles) {
-            debugPrint('❌ [LocationBloc] Location ${location.id} has more than ${FirebaseStorageConstants.maxFiles} files');
+            _debugger.debPrint('Location ${location.id} has more than ${FirebaseStorageConstants.maxFiles} files', DebugMessageType.error);
             _loadingStates = {..._loadingStates, location.id: LoadingState.error};
             failedLocations[location] = {'error': LocationWithMoreThanMaxFilesException()};
           }
         }
 
         if (failedLocations.containsKey(location)) {
-          debugPrint('⏭️ [LocationBloc] Skipping location ${location.id} because it has failed');
+          _debugger.debPrint('Skipping location ${location.id} because it has failed', DebugMessageType.skipping);
           continue;
         }
         _storageBloc.add(VerifyLocationMedia(location: location));
@@ -564,9 +565,9 @@ class LocationBloc extends Bloc<LocationEvent, LocationState> {
           if (state is StorageLoaded) {
             final loadingState = state.loadingStates[location.id];
             if (loadingState == LoadingState.verified) {
-              debugPrint('✅ [LocationBloc] Location ${location.id} media verified');
+              _debugger.debPrint('Location ${location.id} media verified', DebugMessageType.done);
               _loadingStates = {..._loadingStates, location.id: LoadingState.verified};
-              debugPrint('🔍 [LocationBloc] Loading states: $_loadingStates');
+              _debugger.debPrint('Loading states: $_loadingStates', DebugMessageType.info);
               emit(LocationsLoaded(
                 cloudLocations: _cloudLocations,
                 localSavedLocations: _localSavedLocations,
@@ -575,9 +576,9 @@ class LocationBloc extends Bloc<LocationEvent, LocationState> {
               ));
               break;
             } else if (loadingState == LoadingState.verifying) {
-              debugPrint('🔄 [LocationBloc] Location ${location.id} media verifying');
+              _debugger.debPrint('Location ${location.id} media verifying', DebugMessageType.building);
               _loadingStates = {..._loadingStates, location.id: LoadingState.verifying};
-              debugPrint('🔍 [LocationBloc] Loading states: $_loadingStates');
+              _debugger.debPrint('Loading states: $_loadingStates', DebugMessageType.info);
               emit(LocationsLoaded(
                 cloudLocations: _cloudLocations,
                 localSavedLocations: _localSavedLocations,
@@ -585,10 +586,11 @@ class LocationBloc extends Bloc<LocationEvent, LocationState> {
                 loadingStates: _loadingStates,
               ));
             } else if (loadingState == LoadingState.error) {
-              debugPrint('❌ [LocationBloc] Location ${location.id} media verifying failed: ${state.exceptions?[location.id]}');
+              _debugger.debPrint(
+                  'Location ${location.id} media verifying failed: ${state.exceptions?[location.id]}', DebugMessageType.error);
               failedLocations[location] = state.exceptions?[location.id] ?? {'error': GenericLocationBlocException()};
               _loadingStates = {..._loadingStates, location.id: LoadingState.error};
-              debugPrint('🔍 [LocationBloc] Loading states: $_loadingStates');
+              _debugger.debPrint('Loading states: $_loadingStates', DebugMessageType.info);
               emit(LocationsLoaded(
                 cloudLocations: _cloudLocations,
                 localSavedLocations: _localSavedLocations,
@@ -601,18 +603,18 @@ class LocationBloc extends Bloc<LocationEvent, LocationState> {
         }
 
         if (failedLocations.containsKey(location)) {
-          debugPrint('⏭️ [LocationBloc] Skipping location ${location.id} because it has failed');
+          _debugger.debPrint('Skipping location ${location.id} because it has failed', DebugMessageType.skipping);
           continue;
         }
-        debugPrint('📞 [LocationBloc] Calling delete location media for ${location.id}');
+        _debugger.debPrint('Calling delete location media for ${location.id}', DebugMessageType.info);
         _storageBloc.add(DeleteLocationMedia(locationId: location.id));
         await for (final state in _storageBloc.stream) {
           if (state is StorageLoaded) {
             final loadingState = state.loadingStates[location.id];
             if (loadingState == LoadingState.deleted) {
-              debugPrint('🗑️[LocationBloc] Location ${location.id} media deleted');
+              _debugger.debPrint('Location ${location.id} media deleted', DebugMessageType.done);
               _loadingStates = {..._loadingStates, location.id: LoadingState.deleted};
-              debugPrint('🔍 [LocationBloc] Loading states: $_loadingStates');
+              _debugger.debPrint('Loading states: $_loadingStates', DebugMessageType.info);
               emit(LocationsLoaded(
                 cloudLocations: _cloudLocations,
                 localSavedLocations: _localSavedLocations,
@@ -621,9 +623,9 @@ class LocationBloc extends Bloc<LocationEvent, LocationState> {
               ));
               break;
             } else if (loadingState == LoadingState.deleting) {
-              debugPrint('🔄 [LocationBloc] Location ${location.id} media deleting');
+              _debugger.debPrint('Location ${location.id} media deleting', DebugMessageType.building);
               _loadingStates = {..._loadingStates, location.id: LoadingState.deleting};
-              debugPrint('🔍 [LocationBloc] Loading states: $_loadingStates');
+              _debugger.debPrint('Loading states: $_loadingStates', DebugMessageType.info);
               emit(LocationsLoaded(
                 cloudLocations: _cloudLocations,
                 localSavedLocations: _localSavedLocations,
@@ -631,10 +633,11 @@ class LocationBloc extends Bloc<LocationEvent, LocationState> {
                 loadingStates: _loadingStates,
               ));
             } else if (loadingState == LoadingState.error && state.exceptions?[location.id] != null) {
-              debugPrint('❌ [LocationBloc] Location ${location.id} media deleting failed: ${state.exceptions![location.id]}');
+              _debugger.debPrint(
+                  'Location ${location.id} media deleting failed: ${state.exceptions![location.id]}', DebugMessageType.error);
               failedLocations[location] = state.exceptions?[location.id] ?? {'error': GenericLocationBlocException()};
               _loadingStates = {..._loadingStates, location.id: LoadingState.error};
-              debugPrint('🔍 [LocationBloc] Loading states: $_loadingStates');
+              _debugger.debPrint('Loading states: $_loadingStates', DebugMessageType.info);
               emit(LocationsLoaded(
                 cloudLocations: _cloudLocations,
                 localSavedLocations: _localSavedLocations,
@@ -646,16 +649,16 @@ class LocationBloc extends Bloc<LocationEvent, LocationState> {
           }
         }
         if (failedLocations.containsKey(location)) {
-          debugPrint('⏭️ [LocationBloc] Skipping location ${location.id} because it has failed');
+          _debugger.debPrint('Skipping location ${location.id} because it has failed', DebugMessageType.skipping);
           continue;
         }
-        debugPrint('📞 [LocationBloc] Calling set location media for ${location.id}');
+        _debugger.debPrint('Calling set location media for ${location.id}', DebugMessageType.uploading);
         _storageBloc.add(SetLocationMedia());
         await for (final state in _storageBloc.stream) {
           if (state is StorageLoaded) {
             final loadingState = state.loadingStates[location.id];
             if (loadingState == LoadingState.uploaded) {
-              debugPrint('✅ [LocationBloc] Location ${location.id} media uploaded');
+              _debugger.debPrint('Location ${location.id} media uploaded', DebugMessageType.done);
               if (state.exceptions?.isNotEmpty == true) {
                 failedLocations[location] = {
                   ...failedLocations[location] ?? {},
@@ -665,7 +668,7 @@ class LocationBloc extends Bloc<LocationEvent, LocationState> {
               } else {
                 _loadingStates[location.id] = LoadingState.uploaded;
               }
-              debugPrint('🔍 [LocationBloc] Loading states: $_loadingStates');
+              _debugger.debPrint('Loading states: $_loadingStates', DebugMessageType.info);
               emit(LocationsLoaded(
                 cloudLocations: _cloudLocations,
                 localSavedLocations: _localSavedLocations,
@@ -674,9 +677,9 @@ class LocationBloc extends Bloc<LocationEvent, LocationState> {
               ));
               break;
             } else if (loadingState == LoadingState.uploading) {
-              debugPrint('🔄 [LocationBloc] Location ${location.id} media uploading');
+              _debugger.debPrint('Location ${location.id} media uploading', DebugMessageType.uploading);
               _loadingStates = {..._loadingStates, location.id: LoadingState.uploading};
-              debugPrint('🔍 [LocationBloc] Loading states: $_loadingStates');
+              _debugger.debPrint('Loading states: $_loadingStates', DebugMessageType.info);
               emit(LocationsLoaded(
                 cloudLocations: _cloudLocations,
                 localSavedLocations: _localSavedLocations,
@@ -684,10 +687,11 @@ class LocationBloc extends Bloc<LocationEvent, LocationState> {
                 loadingStates: _loadingStates,
               ));
             } else if (loadingState == LoadingState.error && state.exceptions?[location.id] != null) {
-              debugPrint('❌ [LocationBloc] Location ${location.id} media uploading failed: ${state.exceptions![location.id]}');
+              _debugger.debPrint(
+                  'Location ${location.id} media uploading failed: ${state.exceptions![location.id]}', DebugMessageType.error);
               failedLocations[location] = state.exceptions?[location.id] ?? {'error': GenericLocationBlocException()};
               _loadingStates = {..._loadingStates, location.id: LoadingState.error};
-              debugPrint('🔍 [LocationBloc] Loading states: $_loadingStates');
+              _debugger.debPrint('Loading states: $_loadingStates', DebugMessageType.info);
               emit(LocationsLoaded(
                 cloudLocations: _cloudLocations,
                 localSavedLocations: _localSavedLocations,
@@ -708,21 +712,21 @@ class LocationBloc extends Bloc<LocationEvent, LocationState> {
         }
       }
       if (atLeastOneLoaded) {
-        debugPrint('✅ [LocationBloc] Finished updating locations media to cloud');
-        debugPrint('📥 [LocationBloc] Getting user data from cloud');
+        _debugger.debPrint('Finished updating locations media to cloud', DebugMessageType.done);
+        _debugger.debPrint('Getting user data from cloud', DebugMessageType.downloading);
         await Future.delayed(const Duration(milliseconds: 2000));
         // ignore: use_build_context_synchronously
         _userBloc.add(GetUser(event.context));
         await for (final state in _userBloc.stream) {
           if (state is CurrentUser) {
-            debugPrint('✅ [LocationBloc] User data loaded');
+            _debugger.debPrint('User data loaded', DebugMessageType.done);
             break;
           } else if (state is NoCurrentUser && state.exception != null && state.isLoading == false) {
-            debugPrint('❌ [LocationBloc] Failed to get user data: ${state.exception}');
+            _debugger.debPrint('Failed to get user data: ${state.exception}', DebugMessageType.error);
             navigatorKey.currentState?.pushNamedAndRemoveUntil(Routes.splashRoute, (route) => false);
           }
         }
-        debugPrint('📥 [LocationBloc] Getting locations from cloud');
+        _debugger.debPrint('Getting locations from cloud', DebugMessageType.downloading);
         final completer = Completer<void>();
         final maxAttempts = 10;
         int attempts = 0;
@@ -733,7 +737,7 @@ class LocationBloc extends Bloc<LocationEvent, LocationState> {
                 continue;
               }
               if (location.media == null) {
-                debugPrint('📥 [LocationBloc] Location ${location.id} media is null, attempt $attempts');
+                _debugger.debPrint('Location ${location.id} media is null, attempt $attempts', DebugMessageType.info);
                 attempts++;
                 await Future.delayed(Duration(milliseconds: 200 * attempts));
                 add(GetUserLocations(event.context));
@@ -753,7 +757,7 @@ class LocationBloc extends Bloc<LocationEvent, LocationState> {
       }
 
       _loadingStates = {..._loadingStates, 'cloud': LoadingState.loaded};
-      debugPrint('🔍 [LocationBloc] Loading states: $_loadingStates');
+      _debugger.debPrint('Loading states: $_loadingStates', DebugMessageType.info);
       emit(LocationsLoaded(
         cloudLocations: _cloudLocations,
         localSavedLocations: _localSavedLocations,
@@ -762,7 +766,7 @@ class LocationBloc extends Bloc<LocationEvent, LocationState> {
         failedLocations: failedLocations,
       ));
     } catch (e) {
-      debugPrint('❌ [LocationBloc] Failed to update locations media to cloud: ${e.toString()}');
+      _debugger.debPrint('Failed to update locations media to cloud: ${e.toString()}', DebugMessageType.error);
       for (final location in event.locations) {
         _loadingStates = {
           ..._loadingStates,
@@ -777,7 +781,7 @@ class LocationBloc extends Bloc<LocationEvent, LocationState> {
         }
       }
       _loadingStates = {..._loadingStates, 'cloud': LoadingState.loaded};
-      debugPrint('🔍 [LocationBloc] Loading states: $_loadingStates');
+      _debugger.debPrint('Loading states: $_loadingStates', DebugMessageType.info);
       emit(LocationsLoaded(
         cloudLocations: _cloudLocations,
         localSavedLocations: _localSavedLocations,
@@ -797,7 +801,7 @@ class LocationBloc extends Bloc<LocationEvent, LocationState> {
     CreateLocationLocally event,
     Emitter<LocationState> emit,
   ) async {
-    debugPrint('📝 [LocationBloc] Creating new location locally: ${event.location.name}');
+    _debugger.debPrint('Creating new location locally: ${event.location.name}', DebugMessageType.creating);
     _ensureInitialized();
     _localUnsavedLocations = [..._localUnsavedLocations.isNotEmpty ? _localUnsavedLocations : _cloudLocations, event.location];
     emit(LocationsLoaded(
@@ -812,7 +816,7 @@ class LocationBloc extends Bloc<LocationEvent, LocationState> {
     UpdateLocationLocally event,
     Emitter<LocationState> emit,
   ) async {
-    debugPrint('📝 [LocationBloc] Updating location locally: ${event.location.name}');
+    _debugger.debPrint('Updating location locally: ${event.location.name}', DebugMessageType.updating);
     _ensureInitialized();
     try {
       if (_localUnsavedLocations.isEmpty) {
@@ -834,9 +838,9 @@ class LocationBloc extends Bloc<LocationEvent, LocationState> {
         localUnsavedLocations: _localUnsavedLocations,
         loadingStates: _loadingStates,
       ));
-      debugPrint('✅ [LocationBloc] Location updated locally successfully');
+      _debugger.debPrint('Location updated locally successfully', DebugMessageType.done);
     } catch (e) {
-      debugPrint('❌ [LocationBloc] Error updating location locally: $e');
+      _debugger.debPrint('Error updating location locally: $e', DebugMessageType.error);
       emit(LocationsLoaded(
         cloudLocations: _cloudLocations,
         localSavedLocations: _localSavedLocations,
@@ -851,7 +855,7 @@ class LocationBloc extends Bloc<LocationEvent, LocationState> {
     DeleteLocationLocally event,
     Emitter<LocationState> emit,
   ) async {
-    debugPrint('🗑️ [LocationBloc] Deleting location locally: ${event.location.name}');
+    _debugger.debPrint('Deleting location locally: ${event.location.name}', DebugMessageType.deleting);
     _ensureInitialized();
     _localUnsavedLocations = _localUnsavedLocations.where((location) => location.id != event.location.id).toList();
     for (var file in event.location.media?.files ?? <LivitMediaFile>[]) {
@@ -869,7 +873,7 @@ class LocationBloc extends Bloc<LocationEvent, LocationState> {
     UpdateLocationMediaLocally event,
     Emitter<LocationState> emit,
   ) async {
-    debugPrint('🖼️ [LocationBloc] Updating location media locally: ${event.location.name}');
+    _debugger.debPrint('Updating location media locally: ${event.location.name}', DebugMessageType.updating);
     _ensureInitialized();
 
     if (_localUnsavedLocations.isEmpty) {
@@ -905,12 +909,12 @@ class LocationBloc extends Bloc<LocationEvent, LocationState> {
       final List<String?> filePathsToDelete = removedFilePaths.where((path) => !allOldSavedLocationMediaFilesPaths.contains(path)).toList();
 
       for (var filePath in filePathsToDelete) {
-        debugPrint('🗑️ [LocationBloc] Deleting old saved location media file: $filePath');
+        _debugger.debPrint('Deleting old saved location media file: $filePath', DebugMessageType.deleting);
         MediaFileCleanup.deleteFileByPath(filePath);
       }
     } else {
       for (var filePath in removedFilePaths) {
-        debugPrint('🗑️ [LocationBloc] Deleting old unsaved location media file: $filePath');
+        _debugger.debPrint('Deleting old unsaved location media file: $filePath', DebugMessageType.deleting);
         MediaFileCleanup.deleteFileByPath(filePath);
       }
     }
@@ -930,7 +934,7 @@ class LocationBloc extends Bloc<LocationEvent, LocationState> {
     Emitter<LocationState> emit,
   ) async {
     if (_localUnsavedLocations.isEmpty) {
-      debugPrint('💾 [LocationBloc] No unsaved locations');
+      _debugger.debPrint('No unsaved locations', DebugMessageType.info);
       emit(LocationsLoaded(
         cloudLocations: _cloudLocations,
         localSavedLocations: _localSavedLocations,
@@ -939,9 +943,9 @@ class LocationBloc extends Bloc<LocationEvent, LocationState> {
       ));
       return;
     }
-    debugPrint('💾 [LocationBloc] Saving changes locally');
-    debugPrint('💾 [LocationBloc] Local unsaved locations: ${_localUnsavedLocations.map((location) => location.name)}');
-    debugPrint('💾 [LocationBloc] Local saved locations: ${_localSavedLocations.map((location) => location.name)}');
+    _debugger.debPrint('Saving changes locally', DebugMessageType.saving);
+    _debugger.debPrint('Local unsaved locations: ${_localUnsavedLocations.map((location) => location.name)}', DebugMessageType.info);
+    _debugger.debPrint('Local saved locations: ${_localSavedLocations.map((location) => location.name)}', DebugMessageType.info);
     try {
       _ensureInitialized();
       List<String?> newFilePaths = [];
@@ -968,7 +972,7 @@ class LocationBloc extends Bloc<LocationEvent, LocationState> {
       _localSavedLocations = _localUnsavedLocations;
 
       _localUnsavedLocations = [];
-      debugPrint('✅ [LocationBloc] Saved changes locally');
+      _debugger.debPrint('Saved changes locally', DebugMessageType.done);
       emit(LocationsLoaded(
         cloudLocations: _cloudLocations,
         localSavedLocations: _localSavedLocations,
@@ -976,7 +980,7 @@ class LocationBloc extends Bloc<LocationEvent, LocationState> {
         loadingStates: _loadingStates,
       ));
     } catch (e) {
-      debugPrint('❌ [LocationBloc] Failed to save changes locally: $e');
+      _debugger.debPrint('Failed to save changes locally: $e', DebugMessageType.error);
       emit(LocationsLoaded(
         cloudLocations: _cloudLocations,
         localSavedLocations: _localSavedLocations,
@@ -991,7 +995,7 @@ class LocationBloc extends Bloc<LocationEvent, LocationState> {
     DiscardChangesLocally event,
     Emitter<LocationState> emit,
   ) async {
-    debugPrint('🔄 [LocationBloc] Discarding local changes');
+    _debugger.debPrint('Discarding local changes', DebugMessageType.discarding);
     List<String?> newFilePaths = [];
     for (var newLocation in _localUnsavedLocations) {
       newFilePaths.addAll([
@@ -1026,7 +1030,7 @@ class LocationBloc extends Bloc<LocationEvent, LocationState> {
     SetCurrentLocation event,
     Emitter<LocationState> emit,
   ) async {
-    debugPrint('🛠️ [LocationBloc] Setting current location: ${event.locationId}');
+    _debugger.debPrint('Setting current location: ${event.locationId}', DebugMessageType.updating);
     _currentLocation = _cloudLocations.firstWhere((location) => location.id == event.locationId);
     emit(LocationsLoaded(
       cloudLocations: _cloudLocations,

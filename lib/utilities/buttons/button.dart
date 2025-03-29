@@ -612,7 +612,7 @@ class _ButtonState extends State<Button> {
                   padding: LivitButtonStyle.padding,
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
-                    mainAxisAlignment: widget.isLoading ? MainAxisAlignment.start : MainAxisAlignment.center,
+                    mainAxisAlignment: widget.isLoading ? MainAxisAlignment.center : MainAxisAlignment.center,
                     children: [
                       if (widget.leftIcon != null)
                         Padding(

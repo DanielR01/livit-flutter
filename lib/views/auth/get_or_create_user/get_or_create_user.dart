@@ -10,6 +10,7 @@ import 'package:livit/services/firestore_storage/firestore_storage/exceptions/fi
 import 'package:livit/services/firestore_storage/bloc/user/user_bloc.dart';
 import 'package:livit/services/firestore_storage/bloc/user/user_event.dart';
 import 'package:livit/services/firestore_storage/bloc/user/user_state.dart';
+import 'package:livit/utilities/debug/livit_debugger.dart';
 import 'package:livit/utilities/error_screens/error_reauth_screen.dart';
 import 'package:livit/utilities/loading_screen.dart';
 import 'package:livit/views/auth/get_or_create_user/create_user_view.dart';
@@ -31,17 +32,18 @@ class GetOrCreateUserView extends StatefulWidget {
 
 class _GetOrCreateUserViewState extends State<GetOrCreateUserView> {
   bool _isFirstTime = false;
+  final _debugger = LivitDebugger('GetOrCreateUserView');
 
   @override
   void initState() {
     super.initState();
-    debugPrint('🔄 [GetOrCreateUserView] Initializing view...');
+    _debugger.debPrint('Initializing view...', DebugMessageType.initializing);
     BlocProvider.of<UserBloc>(context).add(GetUserWithPrivateData(context));
     //BlocProvider.of<AuthBloc>(context).add(AuthEventLogOut(context));
   }
 
   bool _isProfileCompleted(UserState userState, LocationState? locationState) {
-    debugPrint('🔄 [GetOrCreateUserView] Checking if profile is completed');
+    _debugger.debPrint('Checking if profile is completed', DebugMessageType.info);
     if (userState is! CurrentUser) return false;
     if (userState.user.userType == UserType.promoter && locationState is! LocationsLoaded) return false;
     if (userState.user.userType == UserType.promoter &&
@@ -53,25 +55,25 @@ class _GetOrCreateUserViewState extends State<GetOrCreateUserView> {
           promoter.interests != null &&
           promoter.locations != null &&
           locations.every((location) => location.geopoint != null && location.media != null);
-      debugPrint('🔄 [GetOrCreateUserView] Profile is completed: $isCompleted');
+      _debugger.debPrint('Profile is completed: $isCompleted', DebugMessageType.info);
       return isCompleted;
     } else if (userState.user is CloudCustomer) {
       final bool isCompleted = (userState.user as CloudCustomer).interests != null;
-      debugPrint('🔄 [GetOrCreateUserView] Profile is completed: $isCompleted');
+      _debugger.debPrint('Profile is completed: $isCompleted', DebugMessageType.info);
       return isCompleted;
     }
-    debugPrint('🔄 [GetOrCreateUserView] Profile is not completed');
-      return false;
+    _debugger.debPrint('Profile is not completed', DebugMessageType.info);
+    return false;
   }
 
   Widget _handleNoCurrentUser(NoCurrentUser noCurrentUser) {
-    debugPrint('👤 [GetOrCreateUserView] Handling NoCurrentUser state');
+    _debugger.debPrint('Handling NoCurrentUser state', DebugMessageType.userVerifying);
     if (!noCurrentUser.isInitialized || noCurrentUser.isLoading) {
-      debugPrint('⏳ [GetOrCreateUserView] Loading state from no initialized or loading state');
+      _debugger.debPrint('Loading state from no initialized or loading state', DebugMessageType.loading);
       return const LoadingScreen();
     }
     if (noCurrentUser.userType == null && !noCurrentUser.isLoading && noCurrentUser.isInitialized && noCurrentUser.exception == null) {
-      debugPrint('📝 [GetOrCreateUserView] Showing user type input');
+      _debugger.debPrint('Showing user type input', DebugMessageType.info);
       return const UserTypeInput();
     }
     if (noCurrentUser.exception != null) {
@@ -81,30 +83,30 @@ class _GetOrCreateUserViewState extends State<GetOrCreateUserView> {
   }
 
   Widget _handleNoCurrentUserWithException(NoCurrentUser noCurrentUser) {
-    debugPrint('⚠️ [GetOrCreateUserView] Handling exception: ${noCurrentUser.exception.runtimeType}');
+    _debugger.debPrint('Handling exception: ${noCurrentUser.exception.runtimeType}', DebugMessageType.error);
     if (noCurrentUser.exception is UserNotFoundException || noCurrentUser.exception is UsernameAlreadyExistsException) {
       if (noCurrentUser.userType == null) {
         if (widget.userType != null) {
-          debugPrint('🔄 [GetOrCreateUserView] Setting user type to: ${widget.userType}');
+          _debugger.debPrint('Setting user type to: ${widget.userType}', DebugMessageType.userCreating);
           BlocProvider.of<UserBloc>(context).add(SetUserType(context, userType: widget.userType!));
           return const LoadingScreen();
         } else {
-          debugPrint('📝 [GetOrCreateUserView] Showing user type input');
+          _debugger.debPrint('Showing user type input', DebugMessageType.info);
           return const UserTypeInput();
         }
       } else {
-        debugPrint('📝 [GetOrCreateUserView] Showing create user view');
+        _debugger.debPrint('Showing create user view', DebugMessageType.info);
         _isFirstTime = true;
         return const CreateUserView();
       }
     } else {
-      debugPrint('🚨 [GetOrCreateUserView] Unhandled exception: ${noCurrentUser.exception}');
+      _debugger.debPrint('Unhandled exception: ${noCurrentUser.exception}', DebugMessageType.error);
       throw noCurrentUser.exception!;
     }
   }
 
   Widget _handleCurrentUser(CurrentUser currentUser) {
-    debugPrint('👤 [GetOrCreateUserView] Handling CurrentUser state - Type: ${currentUser.user.userType}');
+    _debugger.debPrint('Handling CurrentUser state - Type: ${currentUser.user.userType}', DebugMessageType.userVerifying);
     if (currentUser.user is CloudCustomer && (currentUser.user as CloudCustomer).isProfileCompleted ||
         currentUser.user is CloudPromoter && (currentUser.user as CloudPromoter).isProfileCompleted) {
       return _handleCurrentUserProfileCompleted(currentUser);
@@ -116,65 +118,65 @@ class _GetOrCreateUserViewState extends State<GetOrCreateUserView> {
   }
 
   Widget _handleCurrentUserProfileIncomplete(CurrentUser currentUser) {
-    debugPrint('👤 [GetOrCreateUserView] Handling CurrentUser profile incomplete - Type: ${currentUser.user.userType}');
+    _debugger.debPrint('Handling CurrentUser profile incomplete - Type: ${currentUser.user.userType}', DebugMessageType.userVerifying);
     switch (currentUser.user.userType) {
       case UserType.customer:
         if (currentUser.user is CloudCustomer && (currentUser.user as CloudCustomer).interests == null ||
             currentUser.user is CloudPromoter && (currentUser.user as CloudPromoter).interests == null) {
-          debugPrint('📝 [GetOrCreateUserView] Customer needs to set interests');
+          _debugger.debPrint('Customer needs to set interests', DebugMessageType.info);
           _isFirstTime = true;
           return const WelcomeAndInterestsView();
         } else if (_isProfileCompleted(currentUser, null)) {
-          debugPrint('🔄 [GetOrCreateUserView] Customer profile completed, showing loading screen');
+          _debugger.debPrint('Customer profile completed, showing loading screen', DebugMessageType.done);
           BlocProvider.of<UserBloc>(context).add(SetUserProfileCompleted(context));
           return const LoadingScreen();
         } else {
-          debugPrint('🔄 [GetOrCreateUserView] Customer profile data is corrupted');
+          _debugger.debPrint('Customer profile data is corrupted', DebugMessageType.error);
           throw UserInformationCorruptedException();
         }
       case UserType.promoter:
-        debugPrint('🏢 [GetOrCreateUserView] Handling promoter profile setup');
+        _debugger.debPrint('Handling promoter profile setup', DebugMessageType.userCreating);
         if (BlocProvider.of<LocationBloc>(context).state is LocationUninitialized) {
-          debugPrint('🔄 [GetOrCreateUserView] Initializing location bloc');
+          _debugger.debPrint('Initializing location bloc', DebugMessageType.initializing);
           BlocProvider.of<LocationBloc>(context).add(InitializeLocationBloc(context));
         }
         final promoter = currentUser.user as CloudPromoter;
 
         if (promoter.interests == null) {
-          debugPrint('📝 [GetOrCreateUserView] Promoter needs to set interests');
+          _debugger.debPrint('Promoter needs to set interests', DebugMessageType.info);
           _isFirstTime = true;
           return const WelcomeAndInterestsView();
         } else if (promoter.description == null) {
-          debugPrint('📝 [GetOrCreateUserView] Promoter needs to set description');
+          _debugger.debPrint('Promoter needs to set description', DebugMessageType.info);
           _isFirstTime = true;
           return const DescriptionPrompt();
         } else {
           _isFirstTime = true;
           return BlocBuilder<LocationBloc, LocationState>(
             builder: (context, locationState) {
-              debugPrint('📍 [GetOrCreateUserView] Building location state: ${locationState.runtimeType}');
+              _debugger.debPrint('Building location state: ${locationState.runtimeType}', DebugMessageType.building);
               switch (locationState) {
                 case LocationUninitialized():
                   return const LoadingScreen();
                 case LocationsLoaded():
-                  debugPrint('📍 [GetOrCreateUserView] Locations loaded: ${promoter.locations}');
-                  debugPrint('📍 [GetOrCreateUserView] Cloud locations: ${locationState.cloudLocations}');
+                  _debugger.debPrint('Locations loaded: ${promoter.locations}', DebugMessageType.info);
+                  _debugger.debPrint('Cloud locations: ${locationState.cloudLocations}', DebugMessageType.info);
                   if (promoter.locations == null) {
-                    debugPrint('📝 [GetOrCreateUserView] Showing address prompt');
+                    _debugger.debPrint('Showing address prompt', DebugMessageType.info);
                     return AddressPrompt();
                   } else if (promoter.locations!.isNotEmpty && locationState.cloudLocations.any((location) => location.geopoint == null)) {
-                    debugPrint('📝 [GetOrCreateUserView] Showing map location prompt');
+                    _debugger.debPrint('Showing map location prompt', DebugMessageType.info);
                     return const MapLocationPrompt();
                   } else if (promoter.locations!.isNotEmpty &&
                       !locationState.cloudLocations.any((location) => location.geopoint == null) &&
                       (locationState.cloudLocations.any((location) => location.media == null))) {
-                    debugPrint('📝 [GetOrCreateUserView] Showing media prompt');
+                    _debugger.debPrint('Showing media prompt', DebugMessageType.info);
                     return const MediaPrompt();
                   } else {
                     if (_isProfileCompleted(currentUser, locationState)) {
                       BlocProvider.of<UserBloc>(context).add(SetUserProfileCompleted(context));
                     }
-                    debugPrint('🔄 [GetOrCreateUserView] Showing loading screen');
+                    _debugger.debPrint('Showing loading screen', DebugMessageType.loading);
                     return const LoadingScreen();
                   }
                 default:
@@ -189,12 +191,12 @@ class _GetOrCreateUserViewState extends State<GetOrCreateUserView> {
   }
 
   Widget _handleCurrentUserProfileCompleted(CurrentUser currentUser) {
-    debugPrint('✅ [GetOrCreateUserView] Profile is marked as completed');
+    _debugger.debPrint('Profile is marked as completed', DebugMessageType.done);
     if (_isFirstTime) {
-      debugPrint('👋 [GetOrCreateUserView] Showing final welcome message');
+      _debugger.debPrint('Showing final welcome message', DebugMessageType.info);
       return FinalWelcomeMessage(
         onPressed: () {
-          debugPrint('👋 [GetOrCreateUserView] Pressed button on final welcome message');
+          _debugger.debPrint('Pressed button on final welcome message', DebugMessageType.interaction);
           setState(() {
             _isFirstTime = false;
           });
@@ -202,13 +204,13 @@ class _GetOrCreateUserViewState extends State<GetOrCreateUserView> {
         },
       );
     } else {
-      debugPrint('🔄 [GetOrCreateUserView] Loading screen because first time is false');
+      _debugger.debPrint('Loading screen because first time is false', DebugMessageType.loading);
       return const LoadingScreen();
     }
   }
 
   Widget _handleError(FirestoreException error, String context) {
-    debugPrint('🚨 [GetOrCreateUserView] Handling error: $error');
+    _debugger.debPrint('Handling error: $error', DebugMessageType.error);
     return ErrorReauthScreen(exception: error);
   }
 
@@ -221,7 +223,7 @@ class _GetOrCreateUserViewState extends State<GetOrCreateUserView> {
               (state.user is CloudCustomer && (state.user as CloudCustomer).isProfileCompleted ||
                       state.user is CloudPromoter && (state.user as CloudPromoter).isProfileCompleted) &&
                   !_isFirstTime) {
-            debugPrint('✅ [GetOrCreateUserView] Profile complete, navigating to main view');
+            _debugger.debPrint('Profile complete, navigating to main view', DebugMessageType.navigation);
             Navigator.of(context).pushNamedAndRemoveUntil(
               Routes.mainViewRoute,
               (route) => false,
@@ -239,14 +241,14 @@ class _GetOrCreateUserViewState extends State<GetOrCreateUserView> {
           }
         }
         try {
-          debugPrint('🔄 [GetOrCreateUserView] Building state: ${userState.runtimeType}');
-        switch (userState) {
-          case CurrentUser():
+          _debugger.debPrint('Building state: ${userState.runtimeType}', DebugMessageType.building);
+          switch (userState) {
+            case CurrentUser():
               return _handleCurrentUser(userState);
             case NoCurrentUser():
               return _handleNoCurrentUser(userState);
-                        default:
-              debugPrint('❌ [GetOrCreateUserView] Unknown state type');
+            default:
+              _debugger.debPrint('Unknown state type', DebugMessageType.error);
               throw GenericFirestoreException(details: 'Unknown state type');
           }
         } catch (e) {

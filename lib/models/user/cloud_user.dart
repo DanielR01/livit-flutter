@@ -1,6 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:livit/constants/enums.dart';
+import 'package:livit/services/error_reporting/error_reporter.dart';
+import 'package:livit/utilities/debug/livit_debugger.dart';
 
 part 'cloud_promoter/cloud_promoter.dart';
 part 'cloud_customer/cloud_customer.dart';

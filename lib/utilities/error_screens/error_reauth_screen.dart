@@ -8,6 +8,7 @@ import 'package:livit/services/auth/bloc/auth_event.dart';
 import 'package:livit/services/error_reporting/error_reporter.dart';
 import 'package:livit/services/firestore_storage/firestore_storage/exceptions/firestore_exceptions.dart';
 import 'package:livit/utilities/buttons/button.dart';
+import 'package:livit/utilities/debug/livit_debugger.dart';
 
 class ErrorReauthScreen extends StatefulWidget {
   final Exception exception;
@@ -19,16 +20,17 @@ class ErrorReauthScreen extends StatefulWidget {
 
 class _ErrorReauthScreenState extends State<ErrorReauthScreen> {
   final _errorReporter = ErrorReporter(viewName: 'ErrorReauthScreen');
+  final _debugger = LivitDebugger('ErrorReauthScreen');
 
   @override
   void initState() {
     super.initState();
-    debugPrint('🚨 [ErrorReauthScreen] Showing error: ${widget.exception}');
+    _debugger.debPrint('Showing error: ${widget.exception}', DebugMessageType.error);
     _reportError();
   }
 
   Future<void> _reportError() async {
-    debugPrint('📤 [ErrorReauthScreen] Reporting error to crash analytics');
+    _debugger.debPrint('Reporting error to crash analytics', DebugMessageType.uploading);
     await _errorReporter.reportError(
       widget.exception is FirestoreException ? widget.exception : GenericFirestoreException(details: widget.exception.toString()),
       StackTrace.current,
@@ -37,7 +39,7 @@ class _ErrorReauthScreenState extends State<ErrorReauthScreen> {
   }
 
   void _handleLogout() {
-    debugPrint('🚪 [ErrorReauthScreen] User logging out after error');
+    _debugger.debPrint('User logging out after error', DebugMessageType.info);
     context.read<AuthBloc>().add(AuthEventLogOut(context));
   }
 

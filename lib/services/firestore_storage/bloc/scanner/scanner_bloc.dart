@@ -1,4 +1,3 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:livit/models/user/cloud_user.dart';
 import 'package:livit/services/cloud_functions/firestore_cloud_functions.dart';
@@ -6,6 +5,7 @@ import 'package:livit/services/error_reporting/error_reporter.dart';
 import 'package:livit/services/firestore_storage/bloc/user/user_bloc.dart';
 import 'package:livit/constants/enums.dart';
 import 'package:livit/services/firestore_storage/firestore_storage/firestore_storage.dart';
+import 'package:livit/utilities/debug/livit_debugger.dart';
 
 part 'scanner_event.dart';
 part 'scanner_state.dart';
@@ -16,6 +16,7 @@ class ScannerBloc extends Bloc<ScannerEvent, ScannerState> {
   final UserBloc _userBloc;
   final Map<String, LoadingState> loadingStates = {};
   final FirestoreStorageService _firestoreStorageService;
+  final _debugger = const LivitDebugger('ScannerBloc');
 
   List<CloudScanner> scanners = [];
 
@@ -86,19 +87,19 @@ class ScannerBloc extends Bloc<ScannerEvent, ScannerState> {
     Emitter<ScannerState> emit,
   ) async {
     try {
-      debugPrint('📥 [ScannerBloc] Getting scanners by location id: ${event.locationId}');
+      _debugger.debPrint('Getting scanners by location id: ${event.locationId}', DebugMessageType.downloading);
       _ensureUserIsPromoter();
       loadingStates[event.locationId] = LoadingState.loading;
       emit(ScannerLoading(loadingStates: loadingStates));
       scanners = await _firestoreStorageService.scannerService.getScannersByLocationId(locationId: event.locationId);
-      debugPrint('📥 [ScannerBloc] Found ${scanners.length} scanners');
+      _debugger.debPrint('Found ${scanners.length} scanners', DebugMessageType.done);
       loadingStates[event.locationId] = LoadingState.loaded;
       emit(ScannerSuccess(
         loadingStates: loadingStates,
         scanners: scanners,
       ));
     } catch (e) {
-      debugPrint('❌ [ScannerBloc] Error getting scanners by location id: ${event.locationId}');
+      _debugger.debPrint('Error getting scanners by location id: ${event.locationId}', DebugMessageType.error);
       loadingStates[event.locationId] = LoadingState.error;
       _errorReporter.reportError(e, StackTrace.current);
       emit(ScannerError(

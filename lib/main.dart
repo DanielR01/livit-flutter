@@ -33,6 +33,9 @@ import 'package:livit/services/firestore_storage/firestore_storage/firestore_sto
 import 'package:livit/services/navigation/navigation_service.dart';
 import 'package:livit/utilities/navigation/transitions/rootwidget.dart';
 import 'package:livit/services/background/background_bloc.dart';
+import 'package:livit/utilities/debug/livit_debugger.dart';
+
+final _debugger = LivitDebugger('main', isDebugEnabled: false);
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -46,7 +49,7 @@ void main() async {
 
   // Enable Crashlytics and add debug prints
   await FirebaseCrashlytics.instance.setCrashlyticsCollectionEnabled(true);
-  debugPrint('Crashlytics enabled: ${FirebaseCrashlytics.instance.isCrashlyticsCollectionEnabled}');
+  _debugger.debPrint('Crashlytics enabled: ${FirebaseCrashlytics.instance.isCrashlyticsCollectionEnabled}', DebugMessageType.info);
 
   final errorReporter = ErrorReporter(viewName: 'Main');
 
@@ -90,7 +93,7 @@ Future<void> initializeAppCheck() async {
       await _initializeAndroidAppCheck();
     }
   } catch (e) {
-    debugPrint('❌ [Main] Error initializing App Check: $e');
+    _debugger.debPrint('Error initializing App Check: $e', DebugMessageType.error);
     if (kDebugMode) {
       await FirebaseAppCheck.instance.activate(
         androidProvider: AndroidProvider.debug,
@@ -101,32 +104,32 @@ Future<void> initializeAppCheck() async {
 }
 
 Future<void> _initializeIOSAppCheck() async {
-  debugPrint('✅ [Main] Initializing iOS App Check');
+  _debugger.debPrint('Initializing iOS App Check', DebugMessageType.starting);
   if (kDebugMode) {
     await FirebaseAppCheck.instance.activate(
       appleProvider: AppleProvider.debug,
     );
-    debugPrint('✅ [Main] iOS App Check initialized successfully (debug mode)');
+    _debugger.debPrint('iOS App Check initialized successfully (debug mode)', DebugMessageType.done);
     return;
   }
   try {
     await FirebaseAppCheck.instance.activate(
       appleProvider: AppleProvider.appAttestWithDeviceCheckFallback,
     );
-    debugPrint('✅ [Main] iOS App Check initialized successfully');
+    _debugger.debPrint('iOS App Check initialized successfully', DebugMessageType.done);
   } catch (e) {
-    debugPrint('❌ [Main] Error initializing iOS App Check: $e');
+    _debugger.debPrint('Error initializing iOS App Check: $e', DebugMessageType.error);
     rethrow;
   }
 }
 
 Future<void> _initializeAndroidAppCheck() async {
-  debugPrint('✅ [Main] Initializing Android App Check');
+  _debugger.debPrint('Initializing Android App Check', DebugMessageType.starting);
   if (kDebugMode) {
     await FirebaseAppCheck.instance.activate(
       androidProvider: AndroidProvider.debug,
     );
-    debugPrint('✅ [Main] Android App Check initialized successfully (debug mode)');
+    _debugger.debPrint('Android App Check initialized successfully (debug mode)', DebugMessageType.done);
     return;
   }
 
@@ -134,9 +137,9 @@ Future<void> _initializeAndroidAppCheck() async {
     await FirebaseAppCheck.instance.activate(
       androidProvider: AndroidProvider.playIntegrity,
     );
-    debugPrint('✅ [Main] Android App Check initialized successfully');
+    _debugger.debPrint('Android App Check initialized successfully', DebugMessageType.done);
   } catch (e) {
-    debugPrint('❌ [Main] Error initializing Android App Check: $e');
+    _debugger.debPrint('Error initializing Android App Check: $e', DebugMessageType.error);
     rethrow;
   }
 }
@@ -162,11 +165,11 @@ class _StartPageState extends State<_StartPage> with WidgetsBindingObserver {
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.paused) {
-      debugPrint('App paused');
+      _debugger.debPrint('App paused', DebugMessageType.info);
       FileCleanupManager().cleanupOnAppPause();
       context.read<BackgroundBloc>().add(BackgroundStopLoadingAnimation(overrideLock: true));
     } else if (state == AppLifecycleState.resumed) {
-      debugPrint('App resumed');
+      _debugger.debPrint('App resumed', DebugMessageType.info);
     }
   }
 
@@ -174,7 +177,7 @@ class _StartPageState extends State<_StartPage> with WidgetsBindingObserver {
   Widget build(BuildContext context) {
     ScreenUtil.init(context, designSize: const Size(390, 844));
 
-    debugPrint('🗑️ [Main] Cleaning up old files');
+    _debugger.debPrint('Cleaning up old files', DebugMessageType.deleting);
     TempFileManager.cleanupAllFiles();
 
     return MultiBlocProvider(
@@ -210,8 +213,10 @@ class _StartPageState extends State<_StartPage> with WidgetsBindingObserver {
         BlocProvider<EventsBloc>(
           create: (context) => EventsBloc(
             storageService: FirestoreStorageService(),
-            locationBloc: context.read<LocationBloc>(),
+            userBloc: context.read<UserBloc>(),
             backgroundBloc: context.read<BackgroundBloc>(),
+            cloudFunctions: FirestoreCloudFunctions(),
+            storageBloc: context.read<StorageBloc>(),
           ),
         ),
         BlocProvider<TicketBloc>(

@@ -23,6 +23,7 @@ import 'package:livit/utilities/bars_containers_fields/livit_text_field.dart';
 import 'package:livit/utilities/buttons/button.dart';
 import 'package:livit/utilities/buttons/livit_dropdown_button.dart';
 import 'package:livit/utilities/buttons/toggle_button.dart';
+import 'package:livit/utilities/debug/livit_debugger.dart';
 
 class LocationSelector extends StatefulWidget {
   final EventDate eventDate;
@@ -39,6 +40,8 @@ class LocationSelector extends StatefulWidget {
 }
 
 class LocationSelectorState extends State<LocationSelector> {
+  final _debugger = const LivitDebugger('LocationSelector');
+
   bool _useExistingLocation = false;
   String? _selectedLocationId;
   String? _selectedLocationName;
@@ -141,7 +144,7 @@ class LocationSelectorState extends State<LocationSelector> {
                         });
                       }
                       channel.setMethodCallHandler((call) {
-                        debugPrint('🔍 [LocationSelector] Method call: ${call.method}');
+                        _debugger.debPrint('Method call: ${call.method}', DebugMessageType.methodCalling);
                         if (call.method == 'locationSelected') {
                           setState(() {
                             _locationCoordinates = GeoPoint(call.arguments['latitude'], call.arguments['longitude']);

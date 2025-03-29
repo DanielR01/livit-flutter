@@ -3,6 +3,9 @@ import 'package:flutter/cupertino.dart';
 import 'package:livit/models/location/product/product_media.dart';
 import 'package:livit/models/price/price.dart';
 import 'package:livit/services/firestore_storage/firestore_storage/exceptions/locations_exceptions.dart';
+import 'package:livit/utilities/debug/livit_debugger.dart';
+
+final _debugger = LivitDebugger('location_product', isDebugEnabled: false);
 
 class LocationProduct {
   final String id;
@@ -42,7 +45,7 @@ class LocationProduct {
 
   factory LocationProduct.fromDocument(DocumentSnapshot doc) {
     try {
-      debugPrint('📦 [LocationProduct] Creating location product from document: ${doc.id}');
+      _debugger.debPrint('Creating location product from document: ${doc.id}', DebugMessageType.reading);
       final data = doc.data() as Map<String, dynamic>;
       final locationProduct = LocationProduct(
         id: doc.id,
@@ -55,10 +58,10 @@ class LocationProduct {
         updatedAt: data['updatedAt'] as Timestamp?,
         stock: data['stock'] as int,
       );
-      debugPrint('📥 [LocationProduct] Location product created from document: ${locationProduct.name}');
+      _debugger.debPrint('Location product created from document: ${locationProduct.name}', DebugMessageType.done);
       return locationProduct;
     } catch (e) {
-      debugPrint('❌ [LocationProduct] Failed to create location product from document: $e');
+      _debugger.debPrint('Failed to create location product from document: $e', DebugMessageType.error);
       throw CouldNotCreateLocationProductFromDocumentException(details: e.toString());
     }
   }

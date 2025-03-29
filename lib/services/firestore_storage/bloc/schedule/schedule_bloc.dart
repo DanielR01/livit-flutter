@@ -1,9 +1,9 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:livit/constants/enums.dart';
 import 'package:livit/models/location/schedule/location_schedule.dart';
 import 'package:livit/services/firestore_storage/bloc/location/location_bloc.dart';
 import 'package:livit/services/firestore_storage/firestore_storage/firestore_storage.dart';
+import 'package:livit/utilities/debug/livit_debugger.dart';
 
 part 'schedule_event.dart';
 part 'schedule_state.dart';
@@ -13,6 +13,7 @@ part 'schedule_next_opening_or_closing_date.dart';
 class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
   final FirestoreStorageService _storageService;
   final LocationBloc _locationBloc;
+  final _debugger = LivitDebugger('ScheduleBloc');
 
   final Map<String, ScheduleLoadingState> _loadingStates = {};
   final Map<String, List<DaySchedule>> _monthSchedules = {};
@@ -31,7 +32,7 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
 
   Future<void> _onCheckLocationOpenForPromoter(CheckLocationOpenForPromoter event, Emitter<ScheduleState> emit) async {
     try {
-      debugPrint('🔍 [ScheduleBloc] Checking location open for promoter ${event.locationId} on ${event.date}');
+      _debugger.debPrint('Checking location open for promoter ${event.locationId} on ${event.date}', DebugMessageType.query);
       _updateLoadingState(event.locationId, isOpen: LoadingState.loading);
       emit(_createLoadedState());
 
@@ -52,9 +53,9 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
       _isOpen[event.locationId] = isOpen;
       _updateLoadingState(event.locationId, isOpen: LoadingState.loaded);
       emit(_createLoadedState());
-      debugPrint('✅ [ScheduleBloc] Location open: $isOpen for promoter ${event.locationId} on ${event.date}');
+      _debugger.debPrint('Location open: $isOpen for promoter ${event.locationId} on ${event.date}', DebugMessageType.done);
     } catch (e) {
-      debugPrint('❌ [ScheduleBloc] Error checking location open for promoter ${event.locationId} on ${event.date}: $e');
+      _debugger.debPrint('Error checking location open for promoter ${event.locationId} on ${event.date}: $e', DebugMessageType.error);
       _updateLoadingState(event.locationId, isOpen: LoadingState.error);
       emit(_createLoadedState());
     }
@@ -62,7 +63,7 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
 
   Future<void> _onLoadMonthScheduleForPromoter(LoadMonthScheduleForPromoter event, Emitter<ScheduleState> emit) async {
     try {
-      debugPrint('🔍 [ScheduleBloc] Loading month schedule for promoter ${event.locationId} on ${event.month}');
+      _debugger.debPrint('Loading month schedule for promoter ${event.locationId} on ${event.month}', DebugMessageType.downloading);
       _updateLoadingState(event.locationId, monthSchedule: LoadingState.loading);
       emit(_createLoadedState());
 
@@ -80,9 +81,9 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
       _monthSchedules[event.locationId] = monthSchedule;
       _updateLoadingState(event.locationId, monthSchedule: LoadingState.loaded);
       emit(_createLoadedState());
-      debugPrint('✅ [ScheduleBloc] Month schedule loaded for promoter ${event.locationId} on ${event.month}');
+      _debugger.debPrint('Month schedule loaded for promoter ${event.locationId} on ${event.month}', DebugMessageType.done);
     } catch (e) {
-      debugPrint('❌ [ScheduleBloc] Error loading month schedule for promoter ${event.locationId} on ${event.month}: $e');
+      _debugger.debPrint('Error loading month schedule for promoter ${event.locationId} on ${event.month}: $e', DebugMessageType.error);
       _updateLoadingState(event.locationId, monthSchedule: LoadingState.error);
       emit(_createLoadedState());
     }
@@ -90,7 +91,7 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
 
   Future<void> _onGetNextOpeningDateForPromoter(GetNextOpeningDateForPromoter event, Emitter<ScheduleState> emit) async {
     try {
-      debugPrint('🔍 [ScheduleBloc] Getting next opening date for promoter ${event.locationId} from ${event.fromDate}');
+      _debugger.debPrint('Getting next opening date for promoter ${event.locationId} from ${event.fromDate}', DebugMessageType.query);
       _updateLoadingState(event.locationId, nextOpeningDate: LoadingState.loading);
       emit(_createLoadedState());
 
@@ -122,10 +123,12 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
       }
       _updateLoadingState(event.locationId, nextOpeningDate: LoadingState.loaded);
       emit(_createLoadedState());
-      debugPrint(
-          '✅ [ScheduleBloc] Next opening date: ${_nextOpeningOrClosingDates[event.locationId]} for promoter ${event.locationId} from ${event.fromDate}');
+      _debugger.debPrint(
+          'Next opening date: ${_nextOpeningOrClosingDates[event.locationId]} for promoter ${event.locationId} from ${event.fromDate}',
+          DebugMessageType.done);
     } catch (e) {
-      debugPrint('❌ [ScheduleBloc] Error getting next opening date for promoter ${event.locationId} from ${event.fromDate}: $e');
+      _debugger.debPrint(
+          'Error getting next opening date for promoter ${event.locationId} from ${event.fromDate}: $e', DebugMessageType.error);
       _updateLoadingState(event.locationId, nextOpeningDate: LoadingState.error);
       emit(_createLoadedState());
     }
@@ -168,7 +171,7 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
     final List<DaySchedule> monthSchedule = [];
     final DateTime startOfSchedule = fromDate;
     final DateTime endOfSchedule = fromDate.add(const Duration(days: 30));
-    debugPrint('🔍 [ScheduleBloc] Building schedule from $startOfSchedule to $endOfSchedule');
+    _debugger.debPrint('Building schedule from $startOfSchedule to $endOfSchedule', DebugMessageType.building);
     DateTime currentCheck = startOfSchedule;
     while (currentCheck.isBefore(endOfSchedule)) {
       final weekday = currentCheck.weekday;
@@ -177,7 +180,7 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
         currentCheck = currentCheck.add(const Duration(days: 1));
         continue;
       }
-      debugPrint('➕ [ScheduleBloc] Adding regular day to calendar: $regularDay');
+      _debugger.debPrint('Adding regular day to calendar: $regularDay', DebugMessageType.creating);
       final DateTime newTimeSlotStart = DateTime(
         currentCheck.year,
         currentCheck.month,
@@ -228,7 +231,7 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
       return aStart.compareTo(bStart);
     });
 
-    debugPrint('🔍 [ScheduleBloc] Sorted schedule: $monthSchedule');
+    _debugger.debPrint('Sorted schedule: $monthSchedule', DebugMessageType.info);
     return monthSchedule;
   }
 }

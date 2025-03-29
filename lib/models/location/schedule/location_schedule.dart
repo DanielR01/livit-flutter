@@ -1,8 +1,10 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/foundation.dart';
+import 'package:livit/utilities/debug/livit_debugger.dart';
 
 part 'day_schedule.dart';
 part 'time_slot.dart';
+
+final _debugger = LivitDebugger('location_schedule', isDebugEnabled: false);
 
 class LocationSchedule {
   final Map<int, RegularDaySchedule> weekSchedule;
@@ -23,7 +25,7 @@ class LocationSchedule {
   }
 
   factory LocationSchedule.fromMap(Map<String, dynamic> map) {
-    debugPrint('🔍 [LocationSchedule] Creating location schedule from map: $map');
+    _debugger.debPrint('Creating location schedule from map: $map', DebugMessageType.reading);
     return LocationSchedule(
       weekSchedule: map.map(
         (key, value) => MapEntry(

@@ -1,9 +1,11 @@
 // lib/services/firestore/ticket_service.dart
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:livit/utilities/debug/livit_debugger.dart';
 
 class TicketService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
+  final _debugger = const LivitDebugger('TicketService');
 
   Future<int> getTicketsSoldInDateRange({
     required String promoterId,
@@ -12,8 +14,7 @@ class TicketService {
     required String locationId,
   }) async {
     try {
-      // Query tickets directly
-      debugPrint('📥 [TicketService] Getting tickets sold in date range: $startDate to $endDate');
+      _debugger.debPrint('Getting tickets sold in date range: $startDate to $endDate', DebugMessageType.downloading);
       final querySnapshot = await _firestore
           .collection('tickets')
           .where('promoterId', isEqualTo: promoterId)
@@ -21,10 +22,10 @@ class TicketService {
           .where('purchasedAt', isGreaterThanOrEqualTo: startDate)
           .where('purchasedAt', isLessThanOrEqualTo: endDate)
           .get();
-      debugPrint('📥 [TicketService] Tickets sold in date range: ${querySnapshot.docs.length}');
+      _debugger.debPrint('Tickets sold in date range: ${querySnapshot.docs.length}', DebugMessageType.response);
       return querySnapshot.docs.length;
     } catch (e) {
-      debugPrint('❌ [TicketService] Error getting tickets count: $e');
+      _debugger.debPrint('Error getting tickets count: $e', DebugMessageType.error);
       rethrow;
     }
   }
@@ -33,7 +34,7 @@ class TicketService {
     required String eventId,
     required String promoterId,
   }) async {
-    debugPrint('📥 [TicketService] Getting tickets sold for event: $eventId');
+    _debugger.debPrint('Getting tickets sold for event: $eventId', DebugMessageType.downloading);
     try {
       final querySnapshot = await _firestore
           .collection('tickets')
@@ -43,10 +44,10 @@ class TicketService {
           )
           .where('promoterId', isEqualTo: promoterId)
           .get();
-      debugPrint('📥 [TicketService] Tickets sold for event: ${querySnapshot.docs.length}');
+      _debugger.debPrint('Tickets sold for event: ${querySnapshot.docs.length}', DebugMessageType.response);
       return querySnapshot.docs.length;
     } catch (e) {
-      debugPrint('❌ [TicketService] Error getting tickets count: $e');
+      _debugger.debPrint('Error getting tickets count: $e', DebugMessageType.error);
       rethrow;
     }
   }

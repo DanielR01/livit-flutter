@@ -12,6 +12,7 @@ import 'package:livit/utilities/bars_containers_fields/bar.dart';
 import 'package:livit/utilities/bars_containers_fields/glass_container.dart';
 import 'package:livit/utilities/buttons/toggle_button.dart';
 import 'package:livit/views/main_pages/promoters/event_creation/components/location_selection/location_selector.dart';
+import 'package:livit/utilities/debug/livit_debugger.dart';
 
 class LocationSelection extends StatefulWidget {
   final List<EventDate> eventDates;
@@ -39,6 +40,8 @@ class LocationSelection extends StatefulWidget {
 }
 
 class LocationSelectionState extends State<LocationSelection> {
+  final _debugger = const LivitDebugger('LocationSelection');
+
   bool _useSameLocationForAllDates = true;
 
   // Create GlobalKeys for each LocationSelector to access their states
@@ -97,35 +100,35 @@ class LocationSelectionState extends State<LocationSelection> {
 
   /// Validates all locations based on the toggle state
   Map<String, dynamic> validateAllLocations() {
-    debugPrint('🔍 [LocationSelection] Validating locations. Using same location for all dates: $_useSameLocationForAllDates');
+    _debugger.debPrint('Validating locations. Using same location for all dates: $_useSameLocationForAllDates', DebugMessageType.verifying);
 
     if (_useSameLocationForAllDates) {
       // Only need to validate the first location
       GlobalKey<LocationSelectorState>? firstKey = _selectorKeys.values.isNotEmpty ? _selectorKeys.values.first : null;
 
       if (firstKey?.currentState == null) {
-        debugPrint('❌ [LocationSelection] First location state is null');
+        _debugger.debPrint('First location state is null', DebugMessageType.error);
         return {'isValid': false, 'message': 'No se pudo validar la ubicación'};
       }
 
       final validation = firstKey!.currentState!.validateLocationData();
-      debugPrint('📍 [LocationSelection] First location validation result: $validation');
+      _debugger.debPrint('First location validation result: $validation', DebugMessageType.location);
       return validation;
     } else {
       // Need to validate all locations
       bool allValid = true;
       String? firstErrorMessage;
 
-      debugPrint('🔄 [LocationSelection] Validating ${_selectorKeys.length} locations');
+      _debugger.debPrint('Validating ${_selectorKeys.length} locations', DebugMessageType.verifying);
 
       for (var entry in _selectorKeys.entries) {
         if (entry.value.currentState == null) {
-          debugPrint('⚠️ [LocationSelection] State is null for location: ${entry.key}');
+          _debugger.debPrint('State is null for location: ${entry.key}', DebugMessageType.warning);
           continue;
         }
 
         final validation = entry.value.currentState!.validateLocationData();
-        debugPrint('📍 [LocationSelection] Location "${entry.key}" validation result: $validation');
+        _debugger.debPrint('Location "${entry.key}" validation result: $validation', DebugMessageType.location);
 
         if (validation['isValid'] == false) {
           allValid = false;
@@ -137,7 +140,7 @@ class LocationSelectionState extends State<LocationSelection> {
         'isValid': allValid,
         'message': allValid ? null : (firstErrorMessage ?? 'Todas las ubicaciones deben ser válidas'),
       };
-      debugPrint('✅ [LocationSelection] Final validation result: $result');
+      _debugger.debPrint('Final validation result: $result', DebugMessageType.done);
       return result;
     }
   }

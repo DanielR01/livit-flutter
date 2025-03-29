@@ -6,12 +6,17 @@ import 'package:livit/services/firestore_storage/firestore_storage/exceptions/fi
 import 'package:livit/services/firestore_storage/firestore_storage/exceptions/locations_exceptions.dart';
 import 'package:livit/services/firestore_storage/bloc/location/location_bloc_exception.dart';
 import 'package:livit/services/cloud_functions/cloud_functions_exceptions.dart';
+import 'package:livit/utilities/debug/livit_debugger.dart';
 
 class ErrorReporter {
   final FirebaseCrashlytics _crashlytics;
   final String? _viewName;
 
-  ErrorReporter({FirebaseCrashlytics? crashlytics, String? viewName}) : _crashlytics = crashlytics ?? FirebaseCrashlytics.instance, _viewName = viewName;
+  final LivitDebugger _debugger = const LivitDebugger('ErrorReporter', isDebugEnabled: true);
+
+  ErrorReporter({FirebaseCrashlytics? crashlytics, String? viewName})
+      : _crashlytics = crashlytics ?? FirebaseCrashlytics.instance,
+        _viewName = viewName;
 
   Future<void> reportError(
     dynamic error,
@@ -19,12 +24,12 @@ class ErrorReporter {
     String? reason,
   }) async {
     // Handle different exception types
-    debugPrint('🚨 [ErrorReporter] Reporting error: $error, viewName: $_viewName');
+    _debugger.debPrint('Reporting error: $error, viewName: $_viewName', DebugMessageType.reporting);
 
     // Set view information if provided
     if (_viewName != null) {
       await _crashlytics.setCustomKey('error_view', _viewName);
-      debugPrint('🚨 [ErrorReporter] Error occurred in view: $_viewName');
+      _debugger.debPrint('Error occurred in view: $_viewName', DebugMessageType.info);
     }
 
     if (error is LivitException) {
@@ -46,7 +51,7 @@ class ErrorReporter {
     String? reason,
   }) async {
     // Log all errors to console
-    debugPrint('🔄 [ErrorReporter] ${error.runtimeType}: ${error.toString()}');
+    _debugger.debPrint('${error.runtimeType}: ${error.toString()}', DebugMessageType.info);
 
     // Determine exception category for analytics
     final String category = _getExceptionCategory(error);
@@ -91,7 +96,7 @@ class ErrorReporter {
     required String errorType,
     String? reason,
   }) async {
-    debugPrint('🚨 [ErrorReporter] Reporting high severity error to Crashlytics...');
+    _debugger.debPrint('Reporting high severity error to Crashlytics...', DebugMessageType.reporting);
     await _setErrorKeys(error, errorType);
 
     await _crashlytics.recordError(
@@ -100,7 +105,7 @@ class ErrorReporter {
       reason: reason ?? 'High Severity Error',
       fatal: true,
     );
-    debugPrint('🚨 [ErrorReporter] Error reported to Crashlytics successfully');
+    _debugger.debPrint('Error reported to Crashlytics successfully', DebugMessageType.done);
 
     // Additional actions for high severity errors
     await _crashlytics.setCustomKey('requires_immediate_attention', true);
@@ -112,7 +117,7 @@ class ErrorReporter {
     required String errorType,
     String? reason,
   }) async {
-    debugPrint('🚨 [ErrorReporter] Reporting normal severity error to Crashlytics...');
+    _debugger.debPrint('Reporting normal severity error to Crashlytics...', DebugMessageType.reporting);
     await _setErrorKeys(error, errorType);
 
     await _crashlytics.recordError(
@@ -121,12 +126,12 @@ class ErrorReporter {
       reason: reason ?? 'Normal Severity Error',
       fatal: false,
     );
-    debugPrint('🚨 [ErrorReporter] Error reported to Crashlytics successfully');
+    _debugger.debPrint('Error reported to Crashlytics successfully', DebugMessageType.done);
   }
 
   void _logLowSeverityError(LivitException error) {
     // Only log to console for debugging
-    debugPrint('🔄 [ErrorReporter] Low Severity Error - ${error.runtimeType}: ${error.toString()}');
+    _debugger.debPrint('Low Severity Error - ${error.runtimeType}: ${error.toString()}', DebugMessageType.info);
   }
 
   Future<void> _setErrorKeys(dynamic error, String errorType) async {

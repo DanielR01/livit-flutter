@@ -25,3 +25,11 @@ class UnavailableStorageException extends StorageServiceException {
     super.severity = ErrorSeverity.low,
   });
 }
+
+class GenericStorageException extends StorageServiceException {
+  GenericStorageException(
+    super.message, {
+    super.showToUser = true,
+    super.technicalDetails,
+  });
+}
